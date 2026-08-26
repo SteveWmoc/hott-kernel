@@ -8,9 +8,9 @@
 Core v0.1 uses an explicit hierarchy of predicative universes indexed by
 natural numbers:
 
-[
-mathcal U_i : mathcal U_{i+1}.
-]
+$$
+\mathcal U_i : \mathcal U_{i+1}.
+$$
 
 The hierarchy is initially noncumulative.
 

@@ -10,21 +10,21 @@ proof-relevant identity types.
 
 The core will support four principal judgments:
 
-[
-Gamma;mathsf{ctx}
-]
+$$
+\Gamma\;\mathsf{ctx}
+$$
 
-[
-Gamma dash A;mathsf{type}
-]
+$$
+\Gamma \vdash A\;\mathsf{type}
+$$
 
-[
-Gamma dash t : A
-]
+$$
+\Gamma \vdash t : A
+$$
 
-[
-Gamma dash t equiv u : A
-]
+$$
+\Gamma \vdash t \equiv u : A
+$$
 
 The final specification must also state the well-formedness conditions for
 every premise and the symmetry, transitivity, congruence, substitution, and
@@ -35,10 +35,10 @@ conversion behavior of judgmental equality.
 The intended Core v0.1 term language contains:
 
 - variables and global declarations;
-- universes (mathcal U_i);
-- dependent functions: (Pi), lambda abstraction, and application;
-- dependent pairs: (Sigma), pairing, and projections;
-- identity types: (mathsf{Id}), reflexivity, and (J);
+- universes $\mathcal U_i$;
+- dependent functions: $\Pi$, lambda abstraction, and application;
+- dependent pairs: $\Sigma$, pairing, and projections;
+- identity types: $\mathsf{Id}$, reflexivity, and $J$;
 - the empty type and its eliminator;
 - the unit type, its point, and its eliminator;
 - natural numbers and primitive recursion.
@@ -50,9 +50,9 @@ the kernel theory.
 
 Universe levels are explicit natural numbers:
 
-[
-mathcal U_i : mathcal U_{i+1}.
-]
+$$
+\mathcal U_i : \mathcal U_{i+1}.
+$$
 
 Core v0.1 universes are predicative and noncumulative. Formation rules for
 dependent products and sums compute their result level from the levels of the
@@ -61,19 +61,19 @@ surface-language and library concerns.
 
 ## Identity
 
-For (A : mathcal U_i) and (a,b:A),
+For $A : \mathcal U_i$ and $a,b:A$,
 
-[
-mathsf{Id}_A(a,b) : mathcal U_i.
-]
+$$
+\mathsf{Id}_A(a,b) : \mathcal U_i.
+$$
 
 Reflexivity supplies
 
-[
-mathsf{refl}_a : mathsf{Id}_A(a,a).
-]
+$$
+\mathsf{refl}_a : \mathsf{Id}_A(a,a).
+$$
 
-The eliminator (J) provides path induction, with a judgmental computation
+The eliminator $J$ provides path induction, with a judgmental computation
 rule on reflexivity. Identity proofs are not placed in a proof-irrelevant
 universe and are not definitionally collapsed.
 
@@ -89,7 +89,7 @@ The initial conversion relation is intentionally small. It will include:
 - unfolding of transparent global definitions;
 - beta computation for dependent functions;
 - projection computation for dependent pairs;
-- the (J) computation rule at reflexivity;
+- the $J$ computation rule at reflexivity;
 - computation rules for the empty, unit, and natural-number eliminators.
 
 Core v0.1 will not initially include judgmental eta rules.

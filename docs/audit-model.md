@@ -13,23 +13,23 @@ dependency rather than calling all of them “axioms.”
 Primitive judgments and computation principles supplied by the selected core
 theory, for example:
 
-- `universe`
-- `pi`
-- `sigma`
-- `identity`
-- `empty`
-- `unit`
-- `natural-numbers`
+- <code>universe</code>
+- <code>pi</code>
+- <code>sigma</code>
+- <code>identity</code>
+- <code>empty</code>
+- <code>unit</code>
+- <code>natural-numbers</code>
 
 ### Extensions
 
 Optional rule packages not present in the selected core, for example:
 
-- `univalence`
-- `propositional-truncation`
-- `hit.circle`
-- `cubical.composition`
-- `cubical.glue`
+- <code>univalence</code>
+- <code>propositional-truncation</code>
+- <code>hit.circle</code>
+- <code>cubical.composition</code>
+- <code>cubical.glue</code>
 
 An extension may add formation, introduction, elimination, or judgmental
 computation rules. Its manifest entry must identify which.
@@ -68,7 +68,7 @@ reproducibility and metalinguistic analysis.
 
 The eventual serialized schema may resemble:
 
-```json
+~~~json
 {
   "declaration": "Path.inverse",
   "kernel": {
@@ -86,17 +86,17 @@ The eventual serialized schema may resemble:
     }
   ]
 }
-```
+~~~
 
 The exact encoding is not yet frozen.
 
 ## Transitivity
 
-If declaration (d) references declaration (e), the foundation manifest for
-(d) contains the union of:
+If declaration $d$ references declaration $e$, the foundation manifest for
+$d$ contains the union of:
 
-- features used directly by (d);
-- features in the manifest for (e);
+- features used directly by $d$;
+- features in the manifest for $e$;
 - corresponding dependencies for every other referenced declaration.
 
 Cycles are forbidden in checked declaration environments unless a future,
