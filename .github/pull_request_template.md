@@ -11,7 +11,8 @@
 - [ ] Changes the trusted computing base
 - [ ] Includes or supersedes a decision record
 - [ ] Updates the core interchange format
-- [ ] Updates the foundation-manifest schema, if one has been frozen
+- [ ] Updates the foundation-manifest schema
+- [ ] Updates the result or failure-class vocabulary
 
 Describe any checked judgments that change:
 

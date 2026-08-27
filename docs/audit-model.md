@@ -75,43 +75,19 @@ Tools or agents involved in producing a candidate term, such as:
 Provenance is not part of logical validity, but it is relevant to
 reproducibility and metalinguistic analysis.
 
-## Proposed manifest shape
+## Manifest format
 
-The eventual serialized schema may resemble:
+[Foundation manifest v0.1](foundation-manifest-v0.1.md) is a versioned JSON
+document covering one complete Core artifact. It contains one ordered audit
+record per declaration and records both:
 
-```json
-{
-  "declaration": "Path.inverse",
-  "artifact": {
-    "format": "hott-core/0.1",
-    "sha256": "..."
-  },
-  "kernel": {
-    "theory": "mltt-core",
-    "version": "0.1"
-  },
-  "rules": ["universe", "pi", "identity"],
-  "extensions": [],
-  "postulates": [],
-  "declarations": ["Path"],
-  "generated_by": [
-    {
-      "kind": "surface-elaborator",
-      "version": "0.1"
-    },
-    {
-      "kind": "ai-assistant",
-      "name": "example-only"
-    }
-  ]
-}
-```
+- the SHA-256 hash of exact canonical `hott-core` bytes;
+- the SHA-256 hash of the versioned, name-free `hott-semantic` projection.
 
-The exact JSON schema is not yet frozen. The canonical term artifact described
-in [the core-format sketch](core-format.md) is authoritative; the manifest is
-recomputed metadata tied to that artifact's hash. The frozen schema will label
-the exact artifact hash separately from the name-free semantic hash; a verifier
-recomputes both.
+The machine-readable schema is checked in under `schemas/`. Deterministic audit
+data is structurally separate from asserted generation provenance. A verifier
+recomputes the hashes and deterministic fields; it can validate the shape but
+not the historical truth of provenance claims.
 
 ## Transitivity
 
@@ -123,7 +99,12 @@ $d$ contains the union of:
 - corresponding dependencies for every other referenced declaration.
 
 The union operation is deterministic: identifiers are deduplicated and
-canonically ordered. Cycles are forbidden in checked declaration environments
+canonically ordered. Extraction scans syntax and global references; it does not
+record a normalizer's operational trace.
+
+Opaque and postulate dependencies contribute their already computed transitive
+sets without unfolding. An opaque declaration's own checked body contributes
+to its own record. Cycles are forbidden in checked declaration environments
 unless a future, explicitly specified inductive or recursive mechanism permits
 them.
 
@@ -135,10 +116,14 @@ A verifier should be able to:
 1. load the identified kernel theory version;
 2. reconstruct the referenced environment;
 3. parse and check the fully explicit term;
-4. recompute the artifact hash and manifest;
-5. compare the deterministic result.
+4. recompute the artifact and semantic hashes;
+5. recompute every direct and transitive audit record;
+6. compare the deterministic result while reporting asserted provenance
+   separately.
 
 A malformed or dishonest manifest cannot cause an invalid term to be accepted.
+Failure classes distinguish such an audit defect from logical rejection; see
+[`failure-classes.md`](failure-classes.md).
 
 ## Metalinguistic assumptions
 

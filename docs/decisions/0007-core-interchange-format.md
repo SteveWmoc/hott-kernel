@@ -1,6 +1,6 @@
 # 0007: Canonical textual core interchange
 
-- **Status:** Accepted direction; exact grammar remains pre-freeze
+- **Status:** Accepted direction; finalized by Decision 0009
 - **Date:** 2026-08-27
 
 ## Decision
@@ -31,4 +31,6 @@ complex surface parser.
 - The exact grammar and canonical hashing rules must be frozen before Core
   v0.1 compatibility is promised.
 
-See [`../core-format.md`](../core-format.md) for the current sketch.
+See [`../core-format.md`](../core-format.md) for the frozen specification and
+[`0009-freeze-core-format.md`](0009-freeze-core-format.md) for the finalizing
+decision.

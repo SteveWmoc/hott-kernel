@@ -15,12 +15,24 @@ declarative judgments by soundness and completeness results.
 Syntax that supplies an expected type to the bidirectional checker. An
 annotation guides checking but contributes no new object-theoretic principle.
 
+## Artifact hash
+
+The SHA-256 hash of the exact canonical `hott-core` bytes, including diagnostic
+display names and the transport-format version. It identifies a serialized
+artifact, not name-free mathematical content.
+
 ## Canonicity
 
 A statement that every closed term of a designated data type computes to a
 canonical constructor form. Core v0.1 initially targets canonicity for
 natural-number terms closed in an environment without a postulate or opaque
 definition capable of producing a natural number.
+
+## Canonical artifact
+
+The unique byte encoding emitted by the selected core-format canonical
+printer. Parseable transport input with different whitespace is not a canonical
+artifact until rewritten.
 
 ## Core term
 
@@ -63,10 +75,18 @@ cubical mechanism making univalence computational is an extension.
 
 ## Foundation manifest
 
-A deterministic report identifying the kernel theory version and the kernel
-features, extensions, postulates, and declaration dependencies used by a
-checked declaration. A manifest explains dependencies; it does not replace
+A versioned report for a complete Core artifact containing deterministic audit
+records for each declaration. It identifies hashes and the kernel theory and
+separates kernel features, extensions, postulates, declaration dependencies,
+and asserted provenance. A manifest explains dependencies; it does not replace
 rechecking the term.
+
+## Failure class
+
+A stable category describing why an operation did not succeed. Core v0.1 keeps
+unsupported versions, malformed or noncanonical bytes, invalid judgments, hash
+or manifest mismatches, and resource exhaustion distinct. Only
+`invalid-judgment` is logical rejection.
 
 ## Generation provenance
 
@@ -122,6 +142,18 @@ and natural numbers.
 The absence of a rule identifying arbitrary inhabitants merely because they
 inhabit the same proposition-like type. In a proof-relevant theory, identity
 proofs may carry data used by later constructions and higher identities.
+
+## Semantic hash
+
+The SHA-256 hash of the canonical, versioned `hott-semantic` projection. It
+identifies name-free mathematical content while retaining declaration order,
+kind, types, bodies, indices, and the kernel-theory version.
+
+## Semantic projection
+
+A transport-independent, name-free serialization derived structurally from a
+Core artifact and used as the semantic-hash preimage. It is versioned
+independently and is not checker input.
 
 ## Surface elaborator
 

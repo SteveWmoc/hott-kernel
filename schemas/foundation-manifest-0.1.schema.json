@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:hott-kernel:schema:foundation-manifest:0.1",
+  "title": "hott-kernel foundation manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "artifact",
+    "kernel",
+    "audit",
+    "asserted_provenance"
+  ],
+  "properties": {
+    "schema": {
+      "const": "hott-foundation-manifest/0.1"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "sha256",
+        "semantic_projection",
+        "semantic_sha256"
+      ],
+      "properties": {
+        "format": {
+          "const": "hott-core/0.1"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "semantic_projection": {
+          "const": "hott-semantic/0.1"
+        },
+        "semantic_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "kernel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "theory",
+        "version"
+      ],
+      "properties": {
+        "theory": {
+          "const": "mltt-core"
+        },
+        "version": {
+          "const": "0.1"
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_vocabulary",
+        "declarations"
+      ],
+      "properties": {
+        "feature_vocabulary": {
+          "const": "mltt-core-features/0.1"
+        },
+        "declarations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/declarationAudit"
+          }
+        }
+      }
+    },
+    "asserted_provenance": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/provenanceRecord"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "humanString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[^\u0000-\u001f\u007f-\u009f]+$"
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+    },
+    "kernelFeature": {
+      "enum": [
+        "empty",
+        "identity",
+        "natural-numbers",
+        "pi",
+        "sigma",
+        "unit",
+        "universe"
+      ]
+    },
+    "dependencySet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kernel_features",
+        "extensions",
+        "postulates",
+        "declarations"
+      ],
+      "properties": {
+        "kernel_features": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/kernelFeature"
+          }
+        },
+        "extensions": {
+          "type": "array",
+          "maxItems": 0,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/identifier"
+          }
+        },
+        "postulates": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/index"
+          }
+        },
+        "declarations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/index"
+          }
+        }
+      }
+    },
+    "declarationAudit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "display_name",
+        "kind",
+        "direct",
+        "transitive"
+      ],
+      "properties": {
+        "index": {
+          "$ref": "#/$defs/index"
+        },
+        "display_name": {
+          "$ref": "#/$defs/humanString"
+        },
+        "kind": {
+          "enum": [
+            "postulate",
+            "transparent",
+            "opaque"
+          ]
+        },
+        "direct": {
+          "$ref": "#/$defs/dependencySet"
+        },
+        "transitive": {
+          "$ref": "#/$defs/dependencySet"
+        }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "name"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/identifier"
+        },
+        "name": {
+          "$ref": "#/$defs/humanString"
+        },
+        "version": {
+          "$ref": "#/$defs/humanString"
+        },
+        "details": {
+          "$ref": "#/$defs/humanString"
+        }
+      }
+    },
+    "provenanceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "declaration",
+        "generated_by"
+      ],
+      "properties": {
+        "declaration": {
+          "$ref": "#/$defs/index"
+        },
+        "generated_by": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/generator"
+          }
+        }
+      }
+    }
+  }
+}
