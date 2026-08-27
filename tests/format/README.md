@@ -64,3 +64,7 @@ format 0.2. A v0.1-only implementation reports `unsupported-version`, not
 scanning the `pi`, `universe`, and variable/lambda constructors. The resulting
 feature set is `pi` and `universe`; variables contribute no feature of their
 own.
+
+`manifests/invalid-lone-surrogate.json` is valid UTF-8 JSON but fails the
+manifest schema because its provenance generator name decodes to the lone
+surrogate U+D800 rather than a Unicode scalar value.

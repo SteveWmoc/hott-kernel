@@ -1,0 +1,52 @@
+{
+  "schema": "hott-foundation-manifest/0.1",
+  "artifact": {
+    "format": "hott-core/0.1",
+    "sha256": "c24d88214220b2d9d24fabc523601e67a5c716a414053c988f73c3b80d9475ea",
+    "semantic_projection": "hott-semantic/0.1",
+    "semantic_sha256": "043e467fc7e2ff8c1ee847e2453acbe8e490c27fe47ade2a81361e50dce772aa"
+  },
+  "kernel": {
+    "theory": "mltt-core",
+    "version": "0.1"
+  },
+  "audit": {
+    "feature_vocabulary": "mltt-core-features/0.1",
+    "declarations": [
+      {
+        "index": 0,
+        "display_name": "id-U0",
+        "kind": "transparent",
+        "direct": {
+          "kernel_features": [
+            "pi",
+            "universe"
+          ],
+          "extensions": [],
+          "postulates": [],
+          "declarations": []
+        },
+        "transitive": {
+          "kernel_features": [
+            "pi",
+            "universe"
+          ],
+          "extensions": [],
+          "postulates": [],
+          "declarations": []
+        }
+      }
+    ]
+  },
+  "asserted_provenance": [
+    {
+      "declaration": 0,
+      "generated_by": [
+        {
+          "kind": "ai-system",
+          "name": "\uD800"
+        }
+      ]
+    }
+  ]
+}

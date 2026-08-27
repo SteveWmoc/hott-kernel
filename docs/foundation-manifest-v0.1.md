@@ -262,6 +262,8 @@ The following additional rules apply:
 
 - no byte-order mark;
 - no duplicate object keys;
+- every decoded string is a sequence of Unicode scalar values; lone surrogates
+  are forbidden even when written as JSON escapes such as `\uD800`;
 - decoded `display_name` values exactly match the core artifact;
 - decoded numeric values are nonnegative integers; their JSON spelling is not
   canonical;

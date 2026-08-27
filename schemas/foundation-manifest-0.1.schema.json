@@ -95,7 +95,8 @@
     "humanString": {
       "type": "string",
       "minLength": 1,
-      "pattern": "^[^\u0000-\u001f\u007f-\u009f]+$"
+      "description": "Unicode scalar values excluding C0 and C1 controls",
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F\\uD800-\\uDFFF]+$"
     },
     "identifier": {
       "type": "string",
