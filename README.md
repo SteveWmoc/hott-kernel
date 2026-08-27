@@ -11,6 +11,11 @@ This repository is in **Phase 0: specification**. There is intentionally no
 implementation yet. The formal system, trusted boundary, and audit vocabulary
 will be fixed before kernel code is written.
 
+The repository now contains a normative candidate for the Core v0.1 calculus,
+including its declarative judgments, computation rules, bidirectional checking
+algorithm, and conversion relation. It remains a candidate until the Phase 0
+review and freeze are complete.
+
 ## Purpose
 
 Most proof assistants can report named axioms used by a declaration, but their
@@ -25,8 +30,8 @@ with:
 - dependent function types;
 - dependent pair types;
 - proof-relevant identity types;
-- explicit universes;
-- a few basic inductive types;
+- explicit, noncumulative universes;
+- empty, unit, and natural-number types;
 - no proof-irrelevant `Prop`;
 - no choice, excluded middle, extensionality, univalence, or higher inductive
   types unless they are introduced explicitly and reported.
@@ -44,11 +49,13 @@ with:
   specification, the checker, tests, and independent validation—not from the
   identity of the term's author.
 
-See the [project charter](CHARTER.md) for the governing commitments.
+See the [project charter](CHARTER.md) for the governing commitments and the
+[glossary](docs/glossary.md) for the project's normative vocabulary.
 
 ## Phase 0 documents
 
-- [Core v0.1 direction](docs/core-v0.1.md)
+- [Core v0.1 calculus](docs/core-v0.1.md)
+- [Core interchange format](docs/core-format.md)
 - [Foundation audit model](docs/audit-model.md)
 - [Metatheory and validation program](docs/metatheory.md)
 - [Foundational decisions](docs/decisions/)
@@ -61,7 +68,8 @@ See the [project charter](CHARTER.md) for the governing commitments.
 2. Implement a small safe-Rust checker for fully explicit core terms.
 3. Add a surface elaborator, modules, and deterministic foundation manifests.
 4. Develop path algebra, equivalences, and homotopy levels.
-5. Add univalence and selected higher inductive types as auditable extensions.
+5. Add univalence and selected higher inductive types as auditable extensions
+   or postulates, according to their exact presentation.
 6. Build an independent checker and begin a separate computational cubical
    track.
 

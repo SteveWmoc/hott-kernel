@@ -4,7 +4,8 @@
 
 A declaration can be free of named postulates while still relying on powerful
 kernel rules. The audit model therefore reports several different forms of
-dependency rather than calling all of them “axioms.”
+dependency rather than calling all of them “axioms.” The terms below have the
+precise meanings given in the [glossary](glossary.md).
 
 ## Dependency classes
 
@@ -13,26 +14,34 @@ dependency rather than calling all of them “axioms.”
 Primitive judgments and computation principles supplied by the selected core
 theory, for example:
 
-- <code>universe</code>
-- <code>pi</code>
-- <code>sigma</code>
-- <code>identity</code>
-- <code>empty</code>
-- <code>unit</code>
-- <code>natural-numbers</code>
+- `universe`;
+- `pi`;
+- `sigma`;
+- `identity`;
+- `empty`;
+- `unit`;
+- `natural-numbers`.
+
+These entries report rules that the checker itself recognizes. They are not
+named constants in the checked declaration environment.
 
 ### Extensions
 
 Optional rule packages not present in the selected core, for example:
 
-- <code>univalence</code>
-- <code>propositional-truncation</code>
-- <code>hit.circle</code>
-- <code>cubical.composition</code>
-- <code>cubical.glue</code>
+- `propositional-truncation`;
+- `hit.circle`;
+- `cubical.composition`;
+- `cubical.glue`.
 
 An extension may add formation, introduction, elimination, or judgmental
-computation rules. Its manifest entry must identify which.
+computation rules. Its manifest entry must identify which rules it adds and
+the exact extension version.
+
+“Univalence” alone is not an adequate extension identifier. If univalence is
+provided computationally by cubical primitives, the manifest reports those
+primitive extensions and their rules. If it is merely assumed as an opaque
+term, it is a postulate instead.
 
 ### Postulates
 
@@ -41,15 +50,17 @@ Opaque constants supplied without checked bodies, for example:
 - excluded middle;
 - a choice principle;
 - an axiomatic form of function extensionality;
-- axiomatic univalence.
+- axiomatic univalence, such as `postulate.univalence`.
 
-A principle implemented later by a kernel extension and the same principle
-assumed as an opaque term are intentionally reported differently.
+A principle implemented by a kernel extension and the same mathematical
+principle assumed as an opaque term are intentionally reported differently.
 
 ### Declaration dependencies
 
 Previously checked global declarations referenced by a term. Audit results
-include their transitive foundational dependencies.
+include their transitive foundational dependencies. Transparent and opaque
+checked definitions remain declarations, while an opaque declaration without
+a body is a postulate.
 
 ### Generation provenance
 
@@ -68,11 +79,15 @@ reproducibility and metalinguistic analysis.
 
 The eventual serialized schema may resemble:
 
-~~~json
+```json
 {
   "declaration": "Path.inverse",
+  "artifact": {
+    "format": "hott-core/0.1",
+    "sha256": "..."
+  },
   "kernel": {
-    "theory": "mltt",
+    "theory": "mltt-core",
     "version": "0.1"
   },
   "rules": ["universe", "pi", "identity"],
@@ -83,12 +98,18 @@ The eventual serialized schema may resemble:
     {
       "kind": "surface-elaborator",
       "version": "0.1"
+    },
+    {
+      "kind": "ai-assistant",
+      "name": "example-only"
     }
   ]
 }
-~~~
+```
 
-The exact encoding is not yet frozen.
+The exact JSON schema is not yet frozen. The canonical term artifact described
+in [the core-format sketch](core-format.md) is authoritative; the manifest is
+recomputed metadata tied to that artifact's hash.
 
 ## Transitivity
 
@@ -99,8 +120,10 @@ $d$ contains the union of:
 - features in the manifest for $e$;
 - corresponding dependencies for every other referenced declaration.
 
-Cycles are forbidden in checked declaration environments unless a future,
-explicitly specified inductive or recursive mechanism permits them.
+The union operation is deterministic: identifiers are deduplicated and
+canonically ordered. Cycles are forbidden in checked declaration environments
+unless a future, explicitly specified inductive or recursive mechanism permits
+them.
 
 ## Reproducibility
 
@@ -109,14 +132,16 @@ A verifier should be able to:
 
 1. load the identified kernel theory version;
 2. reconstruct the referenced environment;
-3. check the fully explicit term;
-4. recompute the manifest;
+3. parse and check the fully explicit term;
+4. recompute the artifact hash and manifest;
 5. compare the deterministic result.
+
+A malformed or dishonest manifest cannot cause an invalid term to be accepted.
 
 ## Metalinguistic assumptions
 
 The logical validity of an accepted term does not depend on how it was found.
-Nevertheless, a proof search may employ classical reasoning, external
+Nevertheless, proof search may employ classical reasoning, external
 computation, or unverified code without leaving a corresponding constant in the
 term.
 
