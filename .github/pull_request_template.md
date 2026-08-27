@@ -10,6 +10,8 @@
 - [ ] Adds or changes a postulate
 - [ ] Changes the trusted computing base
 - [ ] Includes or supersedes a decision record
+- [ ] Updates the core interchange format
+- [ ] Updates the foundation-manifest schema, if one has been frozen
 
 Describe any checked judgments that change:
 
@@ -18,6 +20,7 @@ Describe any checked judgments that change:
 - [ ] Positive examples added or updated
 - [ ] Negative examples added or updated
 - [ ] Documentation agrees with the proposed behavior
+- [ ] Serialization examples or fixtures added or updated, if applicable
 - [ ] No implementation silently precedes specification
 
 ## Provenance
