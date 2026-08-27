@@ -31,6 +31,7 @@ For well-formed environments and contexts, we intend to prove:
 - regularity: if $\Gamma\vdash t:A$, then
   $\Gamma\vdash A:\mathcal U_i$ for some $i$;
 - inversion lemmas for every type former;
+- uniqueness of declarative typing up to judgmental equality;
 - uniqueness of synthesized types up to judgmental equality;
 - subject reduction.
 

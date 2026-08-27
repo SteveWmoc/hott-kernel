@@ -117,15 +117,26 @@ The canonical printer will use:
 Whitespace outside strings is semantically irrelevant to parsing. Hashing a
 serialized artifact uses the canonical printer's bytes.
 
-The project may later define a second semantic hash that excludes display names
-and provenance. Until that design is fixed, the artifact hash and semantic hash
-must not be conflated.
+The canonical artifact hash covers those exact bytes, so diagnostic display
+names participate in it. This hash answers which serialized artifact was
+checked; changing a display name changes the artifact hash even though it does
+not change the represented judgment.
+
+A separate semantic hash covers a versioned, name-free projection of the
+parsed abstract syntax. That projection retains the theory version,
+declaration order and kind, types, and bodies, but omits display names.
+Generation provenance is already outside the core artifact and does not
+participate. Thus a display-name-only change preserves the semantic hash while
+changing the artifact hash. The two hashes answer different questions and
+must never share an unlabeled manifest field.
 
 ## Foundation manifests
 
 Foundation manifests remain JSON because they are explanatory metadata rather
 than kernel terms. A manifest identifies the exact core artifact hash and
-theory version it describes.
+theory version it describes. Once the semantic-hash encoding is frozen, the
+manifest will record both hashes with explicit algorithm and projection
+identifiers.
 
 The core term is authoritative. A malformed or dishonest manifest cannot make
 an invalid term valid, because a verifier recomputes the manifest after
@@ -142,5 +153,5 @@ and decision record.
 - exact string-escape grammar;
 - size and recursion-depth limits for defensive implementations;
 - module composition and imported-environment hashes;
-- whether diagnostic display names belong in the canonical artifact hash;
+- hash algorithms and the exact versioned semantic projection;
 - the final foundation-manifest JSON schema.

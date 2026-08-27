@@ -182,6 +182,13 @@ $$
      {\Gamma\vdash t:B}.
 $$
 
+The level $i$ in this rule is determined, not chosen. Because the universes
+are noncumulative and distinct universe constants have distinct normal forms,
+every well-formed type has a unique normalized universe level. Thus the
+equality premise is formed at the unique level at which both $A$ and $B$
+inhabit a universe; the rule performs no implicit lifting to a common higher
+level. Uniqueness of declarative typing is a metatheoretic obligation.
+
 ## 5. Universes
 
 The universes are predicative and noncumulative:
@@ -315,6 +322,13 @@ $$
   J(A,a,C,d,b,q):C\,b\,q
 }.
 $$
+
+In serialized core syntax, the motive `C` occurs in a synthesis position. If
+the surface motive is a lambda, the surface elaborator is responsible for
+inserting an `ann` that gives its full dependent function type, including the
+target universe $\mathcal U_j$. The core checker never invents $j$ or any
+other universe level. [Section 15.2](#152-synthesis) specifies this algorithmic
+requirement; it does not alter the declarative rule above.
 
 Computation at reflexivity:
 
@@ -607,9 +621,10 @@ The eliminators synthesize as follows:
 The checker obtains $j$ by exposing the synthesized motive type; it never
 solves for a hidden universe metavariable. Consequently a lambda motive must
 carry an `ann` whose type exhibits the relevant universe level. The surface
-elaborator may insert such annotations, but the core checker will not guess
-them. Expected branch types are instantiated internally from the already
-checked motive, so this process adds no new typing rule.
+elaborator is responsible for inserting such annotations when translating
+surface motives; the core checker will not guess them. Expected branch types
+are instantiated internally from the already checked motive, so this process
+adds no new typing rule.
 
 ### 15.3 Checking
 
@@ -730,6 +745,7 @@ The following are intended theorems, not kernel rules:
 - substitution;
 - substitution composition;
 - subject reduction;
+- uniqueness of declarative typing up to judgmental equality;
 - uniqueness of synthesized types up to judgmental equality;
 - strong normalization of well-typed Core v0.1 terms;
 - decidability of checking and conversion;

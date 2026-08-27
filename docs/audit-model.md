@@ -109,7 +109,9 @@ The eventual serialized schema may resemble:
 
 The exact JSON schema is not yet frozen. The canonical term artifact described
 in [the core-format sketch](core-format.md) is authoritative; the manifest is
-recomputed metadata tied to that artifact's hash.
+recomputed metadata tied to that artifact's hash. The frozen schema will label
+the exact artifact hash separately from the name-free semantic hash; a verifier
+recomputes both.
 
 ## Transitivity
 

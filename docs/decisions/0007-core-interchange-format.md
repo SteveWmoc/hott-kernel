@@ -10,6 +10,11 @@ S-expression containing fully explicit core terms. Local variables use de
 Bruijn indices and global references use indices into the preceding declaration
 sequence. Foundation manifests remain JSON.
 
+The canonical artifact hash covers the exact canonical bytes, including
+diagnostic display names. A separately labeled semantic hash covers a
+versioned, name-free projection of the parsed core syntax while retaining the
+theory version, declaration order and kind, types, and bodies.
+
 ## Reason
 
 A small textual grammar is straightforward to audit and independently parse.
@@ -20,6 +25,8 @@ complex surface parser.
 
 - The format carries explicit syntax and theory versions.
 - Metavariables, tactics, implicit arguments, and local binder names are absent.
+- Renaming a display name changes the artifact hash but not the semantic hash.
+- Manifests must label the two hashes and their algorithms unambiguously.
 - A binary format is deferred and cannot silently replace the textual format.
 - The exact grammar and canonical hashing rules must be frozen before Core
   v0.1 compatibility is promised.
