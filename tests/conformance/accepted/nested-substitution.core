@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (transparent "nested-substitution" (id (pi unit (pi unit unit)) (lam (app (ann (lam (lam (var 1))) (pi unit (pi unit unit))) (var 0))) (lam (lam (var 1)))) (refl (ann (lam (lam (var 1))) (pi unit (pi unit unit)))))))

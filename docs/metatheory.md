@@ -52,8 +52,11 @@ At a high level:
 3. prove the fundamental theorem: every well-typed term inhabits the
    interpretation of its type;
 4. derive strong normalization and subject reduction;
-5. obtain uniqueness of normal forms and decidability of conversion;
-6. derive canonicity for closed natural-number terms.
+5. prove confluence on well-typed terms, using parallel reduction or an
+   equivalent Church-Rosser argument that accounts for transparent globals;
+6. combine confluence and normalization to obtain uniqueness of normal forms
+   and decidability of conversion;
+7. derive canonicity for closed natural-number terms.
 
 Identity types require no proof-irrelevance assumption in this argument.
 Neutral identity proofs remain neutral; reflexivity is the canonical
@@ -61,7 +64,8 @@ introduction form.
 
 The exact logical relation will be developed alongside a paper proof. We will
 not claim strong normalization merely because the implementation terminates on
-the test suite.
+the test suite. We likewise will not infer confluence or uniqueness of normal
+forms from normalization alone.
 
 ## Normalization by evaluation
 

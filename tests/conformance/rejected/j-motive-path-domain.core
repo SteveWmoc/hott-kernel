@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (transparent "j-motive-path-domain" unit (j unit star (ann (lam (lam unit)) (pi unit (pi unit (universe 0)))) star star (refl star)))))

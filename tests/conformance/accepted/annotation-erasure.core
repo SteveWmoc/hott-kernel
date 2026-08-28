@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (transparent "annotation-erasure" (id unit (ann star unit) star) (refl star))))

@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (postulate "f" (pi unit unit)) (transparent "no-pi-eta" (id (pi unit unit) (global 0) (lam (app (global 0) (var 0)))) (refl (global 0)))))

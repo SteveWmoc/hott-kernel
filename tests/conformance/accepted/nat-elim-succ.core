@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (transparent "nat-elim-succ" (id nat (nat-elim (ann (lam nat) (pi nat (universe 0))) zero (lam (lam (succ (var 0)))) (succ zero)) (succ zero)) (refl (succ zero)))))

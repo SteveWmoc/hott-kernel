@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (postulate "void" empty) (transparent "empty-neutral" unit (empty-elim (ann (lam unit) (pi empty (universe 0))) (global 0)))))

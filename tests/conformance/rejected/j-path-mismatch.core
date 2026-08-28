@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (transparent "j-path-mismatch" unit (j nat zero (ann (lam (lam unit)) (pi nat (pi (id nat zero (var 0)) (universe 0)))) star (succ zero) (refl zero)))))

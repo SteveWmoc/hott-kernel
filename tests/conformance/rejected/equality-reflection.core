@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (postulate "A" (universe 0)) (postulate "x" (global 0)) (postulate "y" (global 0)) (postulate "p" (id (global 0) (global 1) (global 2))) (transparent "equality-reflection" (id (global 0) (global 1) (global 1)) (refl (global 2)))))

@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (opaque "sealed-unit" unit star) (transparent "opaque-no-delta" (id unit (global 0) star) (refl star))))
