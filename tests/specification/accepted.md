@@ -2,8 +2,9 @@
 
 These are normative semantic examples for the
 [Core v0.1 calculus](../../docs/core-v0.1.md). The S-expressions are candidate
-golden inputs for the parser and checker; until implementation begins, the
-displayed judgments are the source of truth.
+golden inputs for the parser and checker. The displayed judgments remain
+normative explanatory examples; exact machine-readable typing and conversion
+contracts are checked in under [`tests/conformance/`](../conformance/).
 
 ## Contexts and universes
 

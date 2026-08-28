@@ -7,15 +7,15 @@ kernel and explicit tracking of foundational rules, axioms, and extensions.
 
 ## Status
 
-This repository is in **Phase 0: specification**. There is intentionally no
-implementation yet. The formal system, trusted boundary, and audit vocabulary
-will be fixed before kernel code is written.
+**Phase 0 is complete.** Core v0.1 is frozen for implementation by
+[Decision 0012](docs/decisions/0012-freeze-core-v0.1.md). Its declarative
+judgments, computation rules, bidirectional algorithm, conversion relation,
+interchange format, semantic projection, foundation manifest, and failure
+classes are now versioned implementation contracts.
 
-The repository now contains a normative candidate for the Core v0.1 calculus,
-including its declarative judgments, computation rules, bidirectional checking
-algorithm, and conversion relation. The Core v0.1 interchange, semantic-hash,
-manifest, and failure-class formats are frozen specifications. The theory
-remains a candidate until the Phase 0 implementability review is complete.
+There is intentionally no kernel implementation yet. Implementation may now
+begin against the frozen specification and conformance fixtures; code does not
+silently supersede either one.
 
 ## Purpose
 
@@ -61,20 +61,26 @@ See the [project charter](CHARTER.md) for the governing commitments and the
 - [Foundation audit model](docs/audit-model.md)
 - [Result and failure classes](docs/failure-classes.md)
 - [Metatheory and validation program](docs/metatheory.md)
+- [Core v0.1 implementability review](docs/implementability-review-v0.1.md)
 - [Foundational decisions](docs/decisions/)
 - [Accepted specification examples](tests/specification/accepted.md)
 - [Rejected specification examples](tests/specification/rejected.md)
 - [Exact format fixtures](tests/format/)
+- [Typing and conversion conformance fixtures](tests/conformance/)
 
 ## Roadmap
 
 1. Freeze the Core v0.1 judgments, rules, formats, and audit schema.
-2. Implement a small safe-Rust checker for fully explicit core terms.
-3. Add a surface elaborator, modules, and deterministic foundation manifests.
-4. Develop path algebra, equivalences, and homotopy levels.
-5. Add univalence and selected higher inductive types as auditable extensions
+   **Complete.**
+2. Implement the Core AST, strict parser, canonical printer, and byte-for-byte
+   round-trip tests in safe Rust.
+3. Implement the bidirectional checker, conversion, and deterministic
+   foundation manifests in safe Rust.
+4. Add a surface elaborator and modules.
+5. Develop path algebra, equivalences, and homotopy levels.
+6. Add univalence and selected higher inductive types as auditable extensions
    or postulates, according to their exact presentation.
-6. Build an independent checker and begin a separate computational cubical
+7. Build an independent checker and begin a separate computational cubical
    track.
 
 Compatibility with Lean or Mathlib, general-purpose programming, powerful

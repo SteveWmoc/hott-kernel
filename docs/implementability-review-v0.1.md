@@ -1,11 +1,13 @@
 # Core v0.1 implementability review
 
-**Status:** Complete review candidate; freeze attestation pending.
+**Status:** Complete; Core v0.1 frozen for implementation.
 
 **Review baseline:** repository `main` at
 `4191294b96ff45d4b654491fdfc6f3bc5af368dc`.
 
-**Reviewed candidate:** `REVIEWED-CANDIDATE-COMMIT`.
+**Reviewed candidate:** `841be2681abdf5ea3b3fa21c66c76a37ccbc73ac`.
+
+**Freeze record:** [Decision 0012](decisions/0012-freeze-core-v0.1.md).
 
 ## 1. Question and standard
 
@@ -250,6 +252,6 @@ form, and audit contribution has an implementation path with distinguishing
 fixtures. The clarifications found during review preserve the accepted theory.
 No unresolved design choice blocks an independent implementation.
 
-Subject to the freeze attestation tying this document to the reviewed
-candidate commit, Core v0.1 satisfies the charter's Phase 0 exit condition and
-is ready to be frozen for implementation by Decision 0012.
+Decision 0012 ties this review to the candidate commit above. Core v0.1
+satisfies the charter's Phase 0 exit condition and is frozen for
+implementation.

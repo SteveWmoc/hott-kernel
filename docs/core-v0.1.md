@@ -1,6 +1,7 @@
 # Core v0.1 calculus
 
-**Status:** Normative Phase 0 candidate.
+**Status:** Normative Core v0.1 specification, frozen for implementation by
+[Decision 0012](decisions/0012-freeze-core-v0.1.md).
 
 This document specifies the declarative theory that the first `hott-kernel`
 checker will implement. It also specifies a bidirectional checking algorithm

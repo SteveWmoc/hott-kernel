@@ -1,7 +1,7 @@
 # Contributing
 
-The project is currently specifying its foundation. Documentation changes are
-therefore implementation work, not preliminary decoration.
+Core v0.1 is frozen for implementation. Specification changes remain
+implementation work, not preliminary decoration.
 
 ## Pull requests
 
@@ -25,11 +25,18 @@ A change should be:
 - free of silent changes to the accepted theory;
 - reproducible without trusting the tool that generated it.
 
-## Phase 0 discipline
+## Frozen-core discipline
 
-Until Core v0.1 is frozen, please do not add a kernel implementation, tactic
-framework, editor plugin, or general surface language. The specification must
-lead the software.
+Core v0.1 is frozen by
+[Decision 0012](docs/decisions/0012-freeze-core-v0.1.md). Implementations must
+conform to its published theory, formats, and conformance fixtures.
+
+A change to an accepted judgment, conversion, computation rule, universe
+policy, or elimination principle requires a new decision record and a new
+theory version. Transport, projection, manifest, and feature-vocabulary changes
+follow their own version policies. Editorial clarifications, proof work, and
+implementation corrections may retain existing versions only when they leave
+the specified behavior unchanged.
 
 ## AI assistance
 
