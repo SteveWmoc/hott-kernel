@@ -1,0 +1,35 @@
+{
+  "schema": "hott-format-fixtures/0.1",
+  "fixtures": [
+    {
+      "artifact": "canonical/empty.core",
+      "artifact_sha256": "d15f02d6d077829b1133995f8f81b3d8e404bb7bef976368eb86fd7a98d22834",
+      "semantic_projection": "semantic/empty.semantic",
+      "semantic_sha256": "af4c8b526f9a1fe4a03efe2cfe60b0744f0a7f6bcca227f762d3e1c6d9de5deb"
+    },
+    {
+      "artifact": "canonical/identity-u0.core",
+      "artifact_sha256": "c24d88214220b2d9d24fabc523601e67a5c716a414053c988f73c3b80d9475ea",
+      "semantic_projection": "semantic/identity-u0.semantic",
+      "semantic_sha256": "043e467fc7e2ff8c1ee847e2453acbe8e490c27fe47ade2a81361e50dce772aa"
+    },
+    {
+      "artifact": "canonical/identity-u0-renamed.core",
+      "artifact_sha256": "1fde31a8426a8f4088bec41b598ecc87e67ccfee04aa2cbc4317e19cc5998282",
+      "semantic_projection": "semantic/identity-u0.semantic",
+      "semantic_sha256": "043e467fc7e2ff8c1ee847e2453acbe8e490c27fe47ade2a81361e50dce772aa"
+    },
+    {
+      "artifact": "canonical/unit-transparent.core",
+      "artifact_sha256": "c01e40b607870cae7d392f603059cf38535de9b5417d82a4ea808e4dcc4ed458",
+      "semantic_projection": "semantic/unit-transparent.semantic",
+      "semantic_sha256": "90e074556d0e9d1540b7c8ebe58e25955e52237899578c57e560efc0eb8c3ad4"
+    },
+    {
+      "artifact": "canonical/unit-opaque.core",
+      "artifact_sha256": "08b30d97048374f591cedff9a4722267a7997ac857af0dafb25362c744468b26",
+      "semantic_projection": "semantic/unit-opaque.semantic",
+      "semantic_sha256": "3f7bf145e6e64f915f0a54683496a0fac5c671992c8acf4b303a776885049ef2"
+    }
+  ]
+}

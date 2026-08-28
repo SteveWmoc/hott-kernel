@@ -1,0 +1,1 @@
+(hott-semantic (projection 0 1) (theory "mltt-core" 0 1) (declarations (opaque unit star)))

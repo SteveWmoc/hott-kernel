@@ -36,7 +36,7 @@ $$
 \Pi(A:\mathcal U_i).\Pi(x:A).A.
 $$
 
-The level-zero declaration has this candidate canonical form:
+The level-zero declaration has this readable transport form:
 
 ```text
 (hott-core
@@ -48,6 +48,9 @@ The level-zero declaration has this candidate canonical form:
           (pi (var 0) (var 1)))
       (lam (lam (var 0))))))
 ```
+
+Its exact canonical bytes and expected hashes are fixed by the
+[`identity-u0` format fixture](../format/canonical/identity-u0.core).
 
 Beta computation must establish
 

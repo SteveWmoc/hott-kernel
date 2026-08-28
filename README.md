@@ -13,8 +13,9 @@ will be fixed before kernel code is written.
 
 The repository now contains a normative candidate for the Core v0.1 calculus,
 including its declarative judgments, computation rules, bidirectional checking
-algorithm, and conversion relation. It remains a candidate until the Phase 0
-review and freeze are complete.
+algorithm, and conversion relation. The Core v0.1 interchange, semantic-hash,
+manifest, and failure-class formats are frozen specifications. The theory
+remains a candidate until the Phase 0 implementability review is complete.
 
 ## Purpose
 
@@ -56,15 +57,18 @@ See the [project charter](CHARTER.md) for the governing commitments and the
 
 - [Core v0.1 calculus](docs/core-v0.1.md)
 - [Core interchange format](docs/core-format.md)
+- [Foundation manifest v0.1](docs/foundation-manifest-v0.1.md)
 - [Foundation audit model](docs/audit-model.md)
+- [Result and failure classes](docs/failure-classes.md)
 - [Metatheory and validation program](docs/metatheory.md)
 - [Foundational decisions](docs/decisions/)
 - [Accepted specification examples](tests/specification/accepted.md)
 - [Rejected specification examples](tests/specification/rejected.md)
+- [Exact format fixtures](tests/format/)
 
 ## Roadmap
 
-1. Freeze the Core v0.1 judgments, rules, and computation laws.
+1. Freeze the Core v0.1 judgments, rules, formats, and audit schema.
 2. Implement a small safe-Rust checker for fully explicit core terms.
 3. Add a surface elaborator, modules, and deterministic foundation manifests.
 4. Develop path algebra, equivalences, and homotopy levels.

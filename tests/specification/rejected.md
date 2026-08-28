@@ -112,14 +112,21 @@ extensionality, univalence, excluded middle, choice, UIP, or axiom K as
 primitive facts unless the exact principle is introduced as an explicit
 postulate or versioned extension and reported accordingly.
 
-## Malformed environments and interchange terms
+## Invalid environments and malformed interchange
 
-The checker or canonical-format parser must reject:
+The checker must report `invalid-judgment` for:
 
 - a global reference to the declaration currently being checked or to a later
   declaration;
 - a local de Bruijn index outside the current context;
-- a declaration body that does not check against its declared type;
+- a declaration body that does not check against its declared type.
+
+The format layer must report `malformed-encoding` for:
+
 - a postulate carrying a body;
 - a term tag with the wrong arity;
 - a metavariable, implicit argument, tactic, or unresolved name in core input.
+
+The complete result vocabulary and exact examples are in
+[`failure-classes.md`](../../docs/failure-classes.md) and
+[`tests/format/`](../format/).
