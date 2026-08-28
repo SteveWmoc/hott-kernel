@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (transparent "beta" (id unit (app (ann (lam (var 0)) (pi unit unit)) star) star) (refl star))))

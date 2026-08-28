@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (transparent "unit-elim-star" (id unit (unit-elim (ann (lam unit) (pi unit (universe 0))) star star) star) (refl star))))

@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (transparent "dependent-lookup" (pi (universe 0) (pi (var 0) (var 1))) (lam (lam (var 0))))))

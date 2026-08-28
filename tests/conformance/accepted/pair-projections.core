@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (transparent "fst-pair" (id unit (fst (ann (pair star star) (sigma unit unit))) star) (refl star)) (transparent "snd-pair" (id unit (snd (ann (pair star star) (sigma unit unit))) star) (refl star))))

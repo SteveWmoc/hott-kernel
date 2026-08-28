@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (transparent "j-wrong-branch" unit (j unit star (ann (lam (lam unit)) (pi unit (pi (id unit star (var 0)) (universe 0)))) zero star (refl star)))))

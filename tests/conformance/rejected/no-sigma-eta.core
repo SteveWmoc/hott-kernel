@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (postulate "p" (sigma unit unit)) (transparent "no-sigma-eta" (id (sigma unit unit) (global 0) (pair (fst (global 0)) (snd (global 0)))) (refl (global 0)))))

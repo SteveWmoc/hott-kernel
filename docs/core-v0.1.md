@@ -1,6 +1,7 @@
 # Core v0.1 calculus
 
-**Status:** Normative Phase 0 candidate.
+**Status:** Normative Core v0.1 specification, frozen for implementation by
+[Decision 0012](decisions/0012-freeze-core-v0.1.md).
 
 This document specifies the declarative theory that the first `hott-kernel`
 checker will implement. It also specifies a bidirectional checking algorithm
@@ -118,21 +119,56 @@ A simultaneous substitution $\Delta\vdash\sigma:\Gamma$ assigns to every
 variable of $\Gamma$ a term in $\Delta$ of the corresponding substituted
 type. The action of a substitution on a term is written $t[\sigma]$.
 
-For de Bruijn syntax, a substitution is a map from indices to terms. Its action
-is defined structurally. Under a binder, the lifted substitution
-$\sigma^{\uparrow}$ is given by
+For de Bruijn syntax, define $\mathsf{shift}_{d,c}(t)$, where $d$ is a
+nonnegative increment and $c$ is a cutoff. On variables,
+
+$$
+\mathsf{shift}_{d,c}(\mathsf{var}(n))=
+\begin{cases}
+\mathsf{var}(n),&n<c,\\
+\mathsf{var}(n+d),&n\ge c.
+\end{cases}
+$$
+
+The operation recurses structurally through every constructor. Under the
+binding argument of `pi`, `sigma`, or `lam`, the cutoff becomes $c+1$;
+all other arguments retain cutoff $c$. Global indices and universe levels are
+unchanged. Write $\mathsf{shift}(t)$ for
+$\mathsf{shift}_{1,0}(t)$.
+
+A simultaneous substitution is a total map from source local indices to target
+terms. Its action is defined structurally, with
+
+$$
+\mathsf{var}(n)[\sigma]=\sigma(n).
+$$
+
+Under the binding argument of `pi`, `sigma`, or `lam`, use the lifted
+substitution $\sigma^{\uparrow}$ given by
 
 $$
 \sigma^{\uparrow}(0)=\mathsf{var}(0),
 $$
 
 $$
-\sigma^{\uparrow}(n+1)=\mathsf{shift}(\sigma(n)),
+\sigma^{\uparrow}(n+1)=\mathsf{shift}(\sigma(n)).
 $$
 
-where `shift` increments free indices to account for the new binder.
-Substitution through `pi`, `sigma`, and `lam` uses
-$\sigma^{\uparrow}$ in the binding argument and $\sigma$ elsewhere.
+Substitution through every other constructor is componentwise. Global indices
+and universe levels are unchanged.
+
+If $\Gamma\vdash a:A$, substitution for the newest variable of
+$\Gamma,x:A$ is the simultaneous substitution
+
+$$
+\sigma_a(0)=a,
+\qquad
+\sigma_a(n+1)=\mathsf{var}(n).
+$$
+
+Thus the notation $B[a/x]$ means $B[\sigma_a]$. This definition both removes
+the substituted binder and shifts references to older binders down by one. No
+implementation uses a negative natural-number index.
 
 Identity substitution and substitution composition are defined pointwise.
 Capture avoidance follows from the de Bruijn representation.
@@ -158,7 +194,15 @@ $$
      {\Gamma,x:A\;\mathsf{ctx}}.
 $$
 
-A variable has the type recorded by context lookup, with the weakening shifts
+A checker stores a context newest entry first. If index $n$ selects an entry
+whose type $A$ was checked before that entry and the $n$ newer entries were
+added, lookup returns
+
+$$
+\mathsf{shift}_{n+1,0}(A).
+$$
+
+This is the type recorded by the declarative variable rule after the weakening
 required by its de Bruijn depth:
 
 $$
@@ -559,38 +603,104 @@ $$
 \quad\text{(algorithmic conversion)}.
 $$
 
-The invariant is that expected types supplied to checking have already been
-validated as types.
+The algorithm maintains these invariants:
+
+1. the global environment and local context are well formed;
+2. successful synthesis returns a type that has itself been validated;
+3. every expected type supplied to checking has already been validated;
+4. temporary context extensions use validated domain types;
+5. weak-head normalization, full normalization, and conversion are invoked
+   only on terms already established to be well typed, or on validated types.
+
+The final invariant matters operationally. The checker never attempts to
+justify an arbitrary raw term by normalizing it first.
 
 ### 15.1 Auxiliary operations
 
-`inferUniverse(A)` synthesizes the type of `A`, normalizes that type to weak
-head normal form, and succeeds with $i$ only when the result is
-$\mathcal U_i$.
+`inferUniverse(A)` synthesizes the type $T$ of `A`, computes
+`whnf(T)`, and succeeds with $i$ exactly when the exposed term is
+`universe i`.
 
-`whnf(t)` performs beta-delta-iota reduction until the head constructor is
-visible, unfolding transparent globals only.
+`whnf(t)` uses a deterministic outermost head strategy on a validated term:
 
-`convert(A,B)` normalizes the already well-typed inputs without eta expansion
-and compares their normal forms structurally. The intended implementation is
-normalization by evaluation. A simpler normalizer may be used initially if it
-decides the same relation.
+1. erase a head annotation;
+2. unfold a head global exactly when its declaration is transparent;
+3. for application, first expose the function and perform beta reduction when
+   it is a lambda;
+4. for a projection, first expose the pair and select the corresponding
+   component;
+5. for $J$, unit elimination, or natural-number elimination, first expose the
+   path or scrutinee and apply the corresponding iota rule when its constructor
+   is visible;
+6. otherwise stop at the visible constructor or neutral head.
+
+On a well-typed $J$ term, a path argument exposing `refl r` is sufficient
+for the iota step: prior checking established that $r$, the base point, and
+the endpoint are judgmentally equal. Empty elimination has no constructor case
+and therefore remains neutral when its scrutinee is neutral.
+
+A neutral head is a local variable, an opaque or postulate global, or an
+application, projection, or eliminator whose principal term has a neutral
+head. A transparent global is never retained as a neutral head. Head reduction
+does not normalize constructor arguments that are not needed to expose the
+head.
+
+`exposePi(T)` computes `whnf(T)` and succeeds exactly when the result is
+`pi A B`, returning $A$ and $B$. `exposeSigma(T)` is identical with
+`sigma` in place of `pi`. These operations do not guess a type former.
+
+`exposeUnaryMotive(C,X)` performs the following steps:
+
+1. synthesize $T_C$ for $C$;
+2. call `exposePi(T_C)`, obtaining domain $D$ and codomain $R$;
+3. require `convert(D,X)`;
+4. in the context extended by $D$, require `whnf(R) = universe j`;
+5. return the literal level $j$.
+
+`exposeJMotive(C,A,a)` similarly:
+
+1. synthesizes $T_C$ and exposes `pi D1 R1`;
+2. requires `convert(D1,A)`;
+3. in the context extended by $D_1$, exposes `pi D2 R2`;
+4. requires $D_2$ to convert to
+   $\mathsf{Id}_{\mathsf{shift}(A)}
+   (\mathsf{shift}(a),\mathsf{var}(0))$;
+5. in the context extended by $D_2$, requires
+   `whnf(R2) = universe j`;
+6. returns the literal level $j$.
+
+Thus motive decomposition only peels visible dependent-function constructors,
+checks their domains, and reads a universe constant. It introduces no
+metavariable and performs no search over levels.
+
+`normalize(t)` repeatedly applies the head procedure and recursively
+normalizes every constructor argument and binder body until no
+beta-delta-iota rule applies. It never unfolds an opaque definition or
+postulate and performs no eta expansion.
+
+`convert(A,B)` normalizes the already validated inputs and compares their
+normal forms structurally. The intended primary implementation is
+normalization by evaluation. A reference normalizer based on explicit
+substitution and the specified reductions may be used if it decides the same
+relation.
 
 ### 15.2 Synthesis
 
 The following forms synthesize:
 
-- `var n` and `global n` return their lookup types;
+- `var n` returns the cutoff-shifted context entry specified in Section 4;
+- `global n` returns the declared type of an earlier environment entry;
 - `universe i` returns `universe (i+1)`;
 - `pi A B` and `sigma A B` call `inferUniverse` on the domain and on the
   codomain in the extended context, returning `universe max(i,j)`;
-- `app f a` synthesizes `f`, exposes a `pi A B`, checks `a` against `A`, and
-  returns (B[a/x]);
-- `fst p` exposes a synthesized sigma type and returns its domain;
-- `snd p` exposes a synthesized sigma type and returns its codomain with
-  `fst p` substituted;
-- `id A a b` checks `A` as a universe and both endpoints against `A`, returning
-  the same universe as `A`;
+- `app f a` synthesizes a type $T_f$ for `f`, calls `exposePi(T_f)` to
+  obtain `pi A B`, checks `a` against `A`, and returns $B[a/x]$;
+- `fst p` synthesizes a type $T_p$ for `p`, calls `exposeSigma(T_p)`, and
+  returns its domain;
+- `snd p` synthesizes a type $T_p$ for `p`, calls `exposeSigma(T_p)`, and
+  returns its codomain with `fst p` substituted;
+- `id A a b` calls `inferUniverse(A)`, obtaining $i$, checks both endpoints
+  against `A`, and returns `universe i`;
 - `refl a` synthesizes $A$ for `a` and returns
   $\mathsf{Id}_A(a,a)$;
 - `empty`, `unit`, and `nat` return $\mathcal U_0$;
@@ -600,21 +710,16 @@ The following forms synthesize:
 
 The eliminators synthesize as follows:
 
-- `j A a C d b p` calls `inferUniverse(A)`, checks `a` and `b` against `A`,
-  and requires the synthesized type of `C` to be convertible to
-  $\Pi(y:A).\Pi(q:\mathsf{Id}_A(a,y)).\mathcal U_j$ for some exposed
-  universe level $j$. It checks `d` against
-  $C\,a\,(\mathsf{refl}_A(a))$ and `p` against
-  $\mathsf{Id}_A(a,b)$, then returns $C\,b\,p$.
-- `empty-elim C e` requires the synthesized type of `C` to be convertible to
-  $\Pi(x:\mathbf 0).\mathcal U_j$, checks `e` against $\mathbf 0$, and
-  returns $C\,e$.
-- `unit-elim C c u` requires the synthesized type of `C` to be convertible to
-  $\Pi(x:\mathbf 1).\mathcal U_j$, checks `c` against $C\,\star$ and `u`
-  against $\mathbf 1$, and returns $C\,u$.
-- `nat-elim C z s n` requires the synthesized type of `C` to be convertible
-  to $\Pi(k:\mathbb N).\mathcal U_j$, checks `z` against $C\,0$, checks `s`
-  against
+- `j A a C d b p` calls `inferUniverse(A)`, checks `a` against `A`, and
+  calls `exposeJMotive(C,A,a)`. It checks `d` against
+  $C\,a\,(\mathsf{refl}_A(a))$, checks `b` against `A`, checks `p` against
+  $\mathsf{Id}_A(a,b)$, and returns $C\,b\,p$.
+- `empty-elim C e` calls `exposeUnaryMotive(C,empty)`, checks `e` against
+  $\mathbf 0$, and returns $C\,e$.
+- `unit-elim C c u` calls `exposeUnaryMotive(C,unit)`, checks `c` against
+  $C\,\star$, checks `u` against $\mathbf 1$, and returns $C\,u$.
+- `nat-elim C z s n` calls `exposeUnaryMotive(C,nat)`, checks `z` against
+  $C\,0$, checks `s` against
   $\Pi(k:\mathbb N).\Pi(h:C\,k).C\,(\mathsf{succ}(k))$, checks `n` against
   $\mathbb N$, and returns $C\,n$.
 
@@ -682,11 +787,33 @@ metatheorems are:
 - annotation completeness: every declaratively typable term can be annotated
   so that the bidirectional checker accepts it.
 
+### 15.5 Declaration checking
+
+A module is checked in one forward pass. Let $\mathcal E_k$ contain exactly
+the first $k$ declarations that have already succeeded. To check declaration
+$k$:
+
+1. in $\mathcal E_k$ and the empty local context, call
+   `inferUniverse(A)` on its declared type;
+2. for a postulate, append the declaration only after that check succeeds;
+3. for a transparent or opaque definition, check its body against $A$ and
+   append the declaration only after both checks succeed;
+4. make no provisional entry for declaration $k$, so a self-reference,
+   forward reference, or out-of-range global index cannot be resolved;
+5. after insertion, permit delta reduction of the new entry exactly when it
+   is transparent; an opaque entry and a postulate always remain neutral.
+
+All declaration boundaries use the empty local context. If any declaration
+fails, the module has no successful checking result and no conforming
+foundation manifest. A logical failure is `invalid-judgment`; an implementation
+that reaches a defensive resource limit instead reports `resource-exhausted`
+and makes no mathematical claim.
+
 ## 16. Representative derivations
 
 ### 16.1 Polymorphic identity
 
-For fixed (i), the type
+For fixed $i$, the type
 
 $$
 \Pi(A:\mathcal U_i).\Pi(x:A).A
@@ -748,6 +875,8 @@ The following are intended theorems, not kernel rules:
 - uniqueness of declarative typing up to judgmental equality;
 - uniqueness of synthesized types up to judgmental equality;
 - strong normalization of well-typed Core v0.1 terms;
+- confluence of beta-delta-iota reduction on well-typed terms and uniqueness of
+  their normal forms;
 - decidability of checking and conversion;
 - canonicity for natural-number terms closed in an environment without
   postulates or opaque definitions that can produce a natural number;

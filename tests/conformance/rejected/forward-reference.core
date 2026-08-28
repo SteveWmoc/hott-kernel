@@ -1,0 +1,1 @@
+(hott-core (format 0 1) (theory "mltt-core" 0 1) (declarations (transparent "too-early" unit (global 1)) (transparent "later" unit star)))
