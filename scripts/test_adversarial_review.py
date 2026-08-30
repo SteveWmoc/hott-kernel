@@ -84,6 +84,7 @@ class RenderingTests(unittest.TestCase):
             "current_head_sha": "a" * 40,
             "base_sha": "b" * 40,
             "review_mode": "current",
+            "review_profile": "broad",
             "provider": "Fireworks AI",
             "model": "accounts/fireworks/models/glm-5p3-flash",
             "reasoning_effort": "max",
@@ -119,6 +120,22 @@ class RenderingTests(unittest.TestCase):
         self.assertIn("Historical adversarial-review replay", rendered)
         self.assertIn("not a review of the pull request's current or final head", rendered)
         self.assertIn("Current/final PR head", rendered)
+
+    def test_focused_replay_has_a_profile_specific_identity(self):
+        metadata = self.metadata()
+        metadata.update(
+            head_sha="c" * 40,
+            current_head_sha="a" * 40,
+            review_mode="historical",
+            review_profile="schema-encoding",
+        )
+        rendered = review.render_markdown(clean_report(), metadata)
+
+        self.assertIn("profile=schema-encoding", rendered)
+        self.assertIn("mode=historical", rendered)
+        self.assertIn("Historical focused schema-and-encoding replay", rendered)
+        self.assertIn("Review profile | `schema-encoding`", rendered)
+        self.assertNotIn(review.comment_marker_for("historical", "c" * 40) + "\n", rendered)
 
     def test_escapes_model_markdown_and_flattens_lines(self):
         report = clean_report()
@@ -191,6 +208,23 @@ class ConfigurationTests(unittest.TestCase):
             path.write_text(json.dumps(config), encoding="utf-8")
             with self.assertRaises(review.ReviewError):
                 review.load_config(path)
+
+    def test_composes_a_pinned_focused_prompt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            base = root / "base.md"
+            focused = root / review.REVIEW_PROFILE_FILES["schema-encoding"]
+            focused.parent.mkdir(parents=True)
+            base.write_text("Base contract\n", encoding="utf-8")
+            focused.write_text("Focused contract\n", encoding="utf-8")
+
+            prompt = review.compose_review_prompt(root, base, "schema-encoding")
+
+        self.assertEqual(prompt, "Base contract\n\nFocused contract\n")
+
+    def test_rejects_an_unknown_review_profile(self):
+        with self.assertRaises(review.ReviewError):
+            review.validate_review_profile("untrusted-profile")
 
 
 class UtilityTests(unittest.TestCase):

@@ -25,6 +25,14 @@ on:
         description: "Optional full PR-commit SHA for a historical replay"
         required: false
         type: string
+      review_profile:
+        description: "Review profile"
+        required: true
+        default: broad
+        type: choice
+        options:
+          - broad
+          - schema-encoding
       reasoning_effort:
         description: "GLM reasoning effort"
         required: true
@@ -75,6 +83,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ inputs.pr_number }}
           REVIEW_HEAD_SHA: ${{ inputs.review_head_sha }}
+          REVIEW_PROFILE: ${{ inputs.review_profile }}
           REASONING_EFFORT: ${{ inputs.reasoning_effort }}
           REVIEW_OUTPUT_DIR: ${{ runner.temp }}/adversarial-review
           FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}

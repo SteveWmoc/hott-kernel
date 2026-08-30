@@ -40,6 +40,10 @@ ALLOWED_SEVERITIES = {"P0", "P1", "P2", "P3"}
 ALLOWED_CONFIDENCE = {"low", "medium", "high"}
 ALLOWED_FIREWORKS_API_URLS = {FIREWORKS_API_URL}
 SEVERITY_PRIORITY = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
+REVIEW_PROFILE_FILES = {
+    "broad": None,
+    "schema-encoding": ".github/adversarial-review/profiles/schema-encoding.md",
+}
 FINDING_ID = re.compile(r"AR-[0-9]{3}\Z")
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 FULL_GIT_SHA = re.compile(r"[0-9a-f]{40}\Z")
@@ -558,6 +562,13 @@ def validate_fireworks_api_key(api_key: str) -> str:
     return api_key
 
 
+def validate_review_profile(profile: str) -> str:
+    if profile not in REVIEW_PROFILE_FILES:
+        allowed = ", ".join(sorted(REVIEW_PROFILE_FILES))
+        raise ReviewError(f"REVIEW_PROFILE must be one of: {allowed}")
+    return profile
+
+
 def _fireworks_stream_content_once(
     api_url: str,
     api_key: str,
@@ -724,26 +735,57 @@ def markdown_code(text: str, maximum: int | None = None) -> str:
     return "`" + clip_rendered(rendered, maximum) + "`"
 
 
-def comment_marker_for(review_mode: str, head_sha: str) -> str:
-    if review_mode == "current":
-        return COMMENT_MARKER
-    return f"<!-- adversarial-review:v0.1 historical-head={head_sha} -->"
+def comment_marker_for(
+    review_mode: str,
+    head_sha: str,
+    review_profile: str = "broad",
+) -> str:
+    if review_profile == "broad":
+        if review_mode == "current":
+            return COMMENT_MARKER
+        return f"<!-- adversarial-review:v0.1 historical-head={head_sha} -->"
+    return (
+        f"<!-- adversarial-review:v0.1 profile={review_profile} "
+        f"mode={review_mode} head={head_sha} -->"
+    )
 
 
 def review_heading(metadata: dict[str, str], maximum: int | None = None) -> str:
-    prefix = (
-        "Historical adversarial-review replay"
-        if metadata.get("review_mode") == "historical"
-        else "Independent adversarial review"
-    )
+    review_mode = metadata.get("review_mode", "current")
+    review_profile = metadata.get("review_profile", "broad")
+    if review_profile == "schema-encoding":
+        prefix = (
+            "Historical focused schema-and-encoding replay"
+            if review_mode == "historical"
+            else "Focused schema-and-encoding review"
+        )
+    else:
+        prefix = (
+            "Historical adversarial-review replay"
+            if review_mode == "historical"
+            else "Independent adversarial review"
+        )
     return f"## {prefix} — {plain_markdown(metadata['model'], maximum)}"
 
 
 def review_notice(metadata: dict[str, str]) -> str:
-    if metadata.get("review_mode") == "historical":
+    review_mode = metadata.get("review_mode", "current")
+    review_profile = metadata.get("review_profile", "broad")
+    if review_mode == "historical" and review_profile == "schema-encoding":
+        return (
+            "> Historical calibration replay of an earlier PR commit, focused on schema "
+            "and encoding boundaries. Not a review of the pull request's current or final "
+            "head. Advisory model output; no PR code was executed."
+        )
+    if review_mode == "historical":
         return (
             "> Historical calibration replay of an earlier PR commit, not a review of the "
             "pull request's current or final head. Advisory model output; no PR code was executed."
+        )
+    if review_profile == "schema-encoding":
+        return (
+            "> Focused advisory model output for schema and encoding boundaries, not a "
+            "trusted proof or automatic merge decision. No PR code was executed."
         )
     return (
         "> Advisory model output, not a trusted proof or automatic merge decision. "
@@ -758,8 +800,12 @@ def render_markdown(report: dict[str, Any], metadata: dict[str, str]) -> str:
         "foundational_stop": "FOUNDATIONAL STOP",
     }
     review_mode = metadata.get("review_mode", "current")
+    review_profile = metadata.get("review_profile", "broad")
     lines = [
-        metadata.get("comment_marker", comment_marker_for(review_mode, metadata["head_sha"])),
+        metadata.get(
+            "comment_marker",
+            comment_marker_for(review_mode, metadata["head_sha"], review_profile),
+        ),
         review_heading(metadata),
         "",
         review_notice(metadata),
@@ -771,6 +817,7 @@ def render_markdown(report: dict[str, Any], metadata: dict[str, str]) -> str:
         "| Audit field | Value |",
         "|---|---|",
         f"| Review mode | {markdown_code(review_mode)} |",
+        f"| Review profile | {markdown_code(review_profile)} |",
         f"| Reviewed PR head | {markdown_code(metadata['head_sha'])} |",
     ]
     if review_mode == "historical":
@@ -859,8 +906,12 @@ def render_compact_markdown(report: dict[str, Any], metadata: dict[str, str]) ->
         for severity in ("P0", "P1", "P2", "P3")
     }
     review_mode = metadata.get("review_mode", "current")
+    review_profile = metadata.get("review_profile", "broad")
     lines = [
-        metadata.get("comment_marker", comment_marker_for(review_mode, metadata["head_sha"])),
+        metadata.get(
+            "comment_marker",
+            comment_marker_for(review_mode, metadata["head_sha"], review_profile),
+        ),
         review_heading(metadata, 100),
         "",
         review_notice(metadata),
@@ -880,6 +931,7 @@ def render_compact_markdown(report: dict[str, Any], metadata: dict[str, str]) ->
         "| Audit field | Value |",
         "|---|---|",
         f"| Review mode | {markdown_code(review_mode, 20)} |",
+        f"| Review profile | {markdown_code(review_profile, 40)} |",
         f"| Reviewed PR head | {markdown_code(metadata['head_sha'], 100)} |",
     ]
     if review_mode == "historical":
@@ -1013,6 +1065,15 @@ def read_prompt(path: Path) -> str:
     return prompt
 
 
+def compose_review_prompt(root: Path, base_prompt_path: Path, review_profile: str) -> str:
+    base_prompt = read_prompt(base_prompt_path).rstrip()
+    profile_path = REVIEW_PROFILE_FILES[validate_review_profile(review_profile)]
+    if profile_path is None:
+        return base_prompt + "\n"
+    focused_prompt = read_prompt(root / profile_path).strip()
+    return base_prompt + "\n\n" + focused_prompt + "\n"
+
+
 def main() -> int:
     repository = os.environ.get("GITHUB_REPOSITORY", "")
     if not REPOSITORY_NAME.fullmatch(repository):
@@ -1032,6 +1093,9 @@ def main() -> int:
         raise ReviewError("PR_NUMBER must be a positive decimal integer")
     pr_number = int(raw_pr_number)
     requested_head_sha = os.environ.get("REVIEW_HEAD_SHA", "")
+    review_profile = validate_review_profile(
+        os.environ.get("REVIEW_PROFILE", "broad") or "broad"
+    )
 
     reasoning_effort = os.environ.get("REASONING_EFFORT", "max") or "max"
     if reasoning_effort not in {"high", "max"}:
@@ -1046,7 +1110,7 @@ def main() -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     config = load_config(config_path)
-    prompt = read_prompt(prompt_path)
+    prompt = compose_review_prompt(root, prompt_path, review_profile)
     packet = assemble_packet(
         repository,
         pr_number,
@@ -1077,6 +1141,7 @@ def main() -> int:
         "head_sha": pr_meta["head_sha"],
         "current_head_sha": pr_meta["current_head_sha"],
         "review_mode": pr_meta["review_mode"],
+        "review_profile": review_profile,
         "provider": PROVIDER_NAME,
         "model": model,
         "reasoning_effort": reasoning_effort,
@@ -1088,6 +1153,7 @@ def main() -> int:
     metadata["comment_marker"] = comment_marker_for(
         metadata["review_mode"],
         metadata["head_sha"],
+        metadata["review_profile"],
     )
     result = {"metadata": metadata, "report": report}
     (output_dir / "review-result.json").write_text(
