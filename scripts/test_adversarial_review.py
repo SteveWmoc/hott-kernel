@@ -302,6 +302,7 @@ class UtilityTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "advisory_clear")
         self.assertEqual(captured["payload"]["reasoning_effort"], "max")
         self.assertEqual(captured["payload"]["response_format"], {"type": "json_object"})
+        self.assertEqual(captured["payload"]["max_tokens"], review.FIREWORKS_MAX_TOKENS)
         self.assertNotIn("thinking", captured["payload"])
         self.assertTrue(captured["payload"]["stream"])
         self.assertEqual(captured["payload"]["stream_options"]["buffer_ms"], 1000)

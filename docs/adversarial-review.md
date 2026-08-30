@@ -70,6 +70,12 @@ long reasoning requests from leaving an idle HTTP connection. A retryable HTTP
 or network failure before any streamed output is retried once after a short
 delay; an interrupted partial stream is never retried automatically.
 
+The completion allowance is pinned to `131072`, GLM-5.3-Flash's documented
+maximum. Reasoning tokens and final answer tokens share that allowance; the
+full limit gives `max` reasoning room to terminate and emit the required JSON.
+The strict report validator and bounded GitHub renderer still constrain what
+can be published.
+
 ## Foundational firewall
 
 Ordinary implementation defects receive `P0` through `P3` findings. If a
