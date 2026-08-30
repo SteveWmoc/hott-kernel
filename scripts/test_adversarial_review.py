@@ -81,7 +81,9 @@ class RenderingTests(unittest.TestCase):
     def metadata(self):
         return {
             "head_sha": "a" * 40,
+            "current_head_sha": "a" * 40,
             "base_sha": "b" * 40,
+            "review_mode": "current",
             "provider": "Fireworks AI",
             "model": "accounts/fireworks/models/glm-5p3-flash",
             "reasoning_effort": "max",
@@ -102,6 +104,21 @@ class RenderingTests(unittest.TestCase):
         report["summary"] = "Ask @maintainer."
         rendered = review.render_markdown(report, self.metadata())
         self.assertNotIn("@maintainer", rendered)
+
+    def test_historical_replay_has_a_distinct_marker_and_warning(self):
+        metadata = self.metadata()
+        metadata.update(
+            head_sha="c" * 40,
+            current_head_sha="a" * 40,
+            review_mode="historical",
+        )
+        rendered = review.render_markdown(clean_report(), metadata)
+
+        self.assertIn("historical-head=" + "c" * 40, rendered)
+        self.assertNotIn(review.COMMENT_MARKER + "\n", rendered)
+        self.assertIn("Historical adversarial-review replay", rendered)
+        self.assertIn("not a review of the pull request's current or final head", rendered)
+        self.assertIn("Current/final PR head", rendered)
 
     def test_escapes_model_markdown_and_flattens_lines(self):
         report = clean_report()
@@ -196,6 +213,64 @@ class UtilityTests(unittest.TestCase):
         with self.assertRaises(review.ReviewError):
             review.validate_fireworks_api_key("not-a-fireworks-key")
 
+    def test_historical_head_must_belong_to_the_pull_request(self):
+        with (
+            mock.patch.object(review, "list_pr_commit_shas", return_value={"c" * 40}),
+            self.assertRaises(review.ReviewError),
+        ):
+            review.select_review_head_sha(
+                "example/project",
+                7,
+                "token",
+                "a" * 40,
+                "b" * 40,
+            )
+
+    def test_selects_a_historical_pr_commit(self):
+        with mock.patch.object(
+            review,
+            "list_pr_commit_shas",
+            return_value={"b" * 40},
+        ):
+            self.assertEqual(
+                review.select_review_head_sha(
+                    "example/project",
+                    7,
+                    "token",
+                    "a" * 40,
+                    "b" * 40,
+                ),
+                ("b" * 40, "historical"),
+            )
+
+    def test_historical_comment_does_not_replace_the_current_head_review(self):
+        calls = []
+
+        def fake_github_json(_repository, path, _token, **kwargs):
+            calls.append((path, kwargs))
+            if path.startswith("/issues/7/comments?"):
+                return [
+                    {
+                        "id": 1,
+                        "body": review.COMMENT_MARKER + "\ncurrent review",
+                        "user": {"login": "github-actions[bot]"},
+                    }
+                ]
+            return {}
+
+        marker = review.comment_marker_for("historical", "b" * 40)
+        with mock.patch.object(review, "github_json", side_effect=fake_github_json):
+            review.publish_comment(
+                "example/project",
+                7,
+                "token",
+                marker,
+                marker + "\nhistorical review",
+            )
+
+        self.assertTrue(any(path == "/issues/7/comments" for path, _kwargs in calls))
+        self.assertFalse(any(path == "/issues/comments/1" for path, _kwargs in calls))
+
     def test_verify_pr_shas_rejects_a_changed_head(self):
         current = {"base": {"sha": "b" * 40}, "head": {"sha": "n" * 40}}
         with (
@@ -214,7 +289,7 @@ class UtilityTests(unittest.TestCase):
         pull_request = {
             "base": {"sha": "b" * 40},
             "head": {
-                "sha": "h" * 40,
+                "sha": "a" * 40,
                 "repo": {"full_name": "fork-owner/project"},
             },
         }
@@ -234,7 +309,7 @@ class UtilityTests(unittest.TestCase):
             "user": {"login": "author"},
             "base": {"sha": "b" * 40, "ref": "main"},
             "head": {
-                "sha": "h" * 40,
+                "sha": "a" * 40,
                 "ref": "feature",
                 "repo": {"full_name": "example/project"},
             },
@@ -277,9 +352,83 @@ class UtilityTests(unittest.TestCase):
             packet = review.assemble_packet("example/project", 7, "token", config)
 
         self.assertIn(("CHARTER.md", "b" * 40), raw_calls)
-        self.assertIn(("src/lib.rs", "h" * 40), raw_calls)
+        self.assertIn(("src/lib.rs", "a" * 40), raw_calls)
+        self.assertEqual(packet["pull_request"]["review_mode"], "current")
+        self.assertEqual(packet["pull_request"]["current_head_sha"], "a" * 40)
         self.assertFalse(packet["coverage"]["comments_and_prior_reviews_included"])
         self.assertFalse(packet["coverage"]["pull_request_code_executed"])
+
+    def test_assemble_packet_uses_a_historical_comparison(self):
+        pull_request = {
+            "title": "Pilot",
+            "body": "Body",
+            "state": "closed",
+            "draft": False,
+            "html_url": "https://github.com/example/project/pull/7",
+            "user": {"login": "author"},
+            "base": {"sha": "b" * 40, "ref": "main"},
+            "head": {
+                "sha": "c" * 40,
+                "ref": "feature",
+                "repo": {"full_name": "example/project"},
+            },
+        }
+        changed = [
+            {
+                "filename": "src/lib.rs",
+                "status": "modified",
+                "additions": 1,
+                "deletions": 1,
+                "changes": 2,
+            }
+        ]
+
+        def fake_github_json(_repository, path, _token, **_kwargs):
+            if path == "/pulls/7":
+                return pull_request
+            if path.startswith("/pulls/7/commits"):
+                return [{"sha": "a" * 40}]
+            if path == f"/compare/{'b' * 40}...{'a' * 40}":
+                return {
+                    "merge_base_commit": {"sha": "b" * 40},
+                    "files": changed,
+                }
+            self.fail(f"unexpected GitHub path: {path}")
+
+        raw_calls = []
+
+        def fake_github_raw(_repository, path, ref, _token):
+            raw_calls.append((path, ref))
+            return f"content of {path} at {ref}", None
+
+        config = {
+            "max_changed_files": 10,
+            "max_diff_chars": 1000,
+            "max_changed_file_chars": 1000,
+            "max_contract_chars": 1000,
+            "contract_files": ["CHARTER.md"],
+        }
+        with (
+            mock.patch.object(review, "github_json", side_effect=fake_github_json),
+            mock.patch.object(review, "github_raw", side_effect=fake_github_raw),
+            mock.patch.object(review, "fetch_comparison_diff", return_value="historical diff"),
+        ):
+            packet = review.assemble_packet(
+                "example/project",
+                7,
+                "token",
+                config,
+                requested_head_sha="a" * 40,
+            )
+
+        self.assertIn(("CHARTER.md", "b" * 40), raw_calls)
+        self.assertIn(("src/lib.rs", "a" * 40), raw_calls)
+        self.assertEqual(packet["packet_version"], "0.2")
+        self.assertEqual(packet["pull_request"]["head_sha"], "a" * 40)
+        self.assertEqual(packet["pull_request"]["current_head_sha"], "c" * 40)
+        self.assertEqual(packet["pull_request"]["review_mode"], "historical")
+        self.assertTrue(packet["coverage"]["historical_replay"])
+        self.assertEqual(packet["unified_diff"], "historical diff")
 
     def test_call_fireworks_requests_max_reasoning_and_structured_output(self):
         captured = {}
@@ -397,15 +546,18 @@ class UtilityTests(unittest.TestCase):
             "pull_request": {
                 "base_sha": "b" * 40,
                 "head_sha": "h" * 40,
+                "current_head_sha": "h" * 40,
+                "review_mode": "current",
             },
         }
         published = {}
 
-        def fake_publish(repository, pr_number, token, body):
+        def fake_publish(repository, pr_number, token, marker, body):
             published.update(
                 repository=repository,
                 pr_number=pr_number,
                 token=token,
+                marker=marker,
                 body=body,
             )
 
@@ -441,6 +593,7 @@ class UtilityTests(unittest.TestCase):
             self.assertTrue((output_path / "review-comment.md").is_file())
             self.assertEqual(published["repository"], "example/project")
             self.assertEqual(published["pr_number"], 7)
+            self.assertEqual(published["marker"], review.COMMENT_MARKER)
             self.assertIn(review.COMMENT_MARKER, published["body"])
 
 
