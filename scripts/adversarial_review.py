@@ -11,10 +11,12 @@ from __future__ import annotations
 
 import hashlib
 import html
+import http.client
 import json
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -44,6 +46,10 @@ MARKDOWN_SPECIAL = re.compile(r"([\\`*_{}\[\]()#+.!|>~-])")
 
 class ReviewError(RuntimeError):
     """A safe-to-print harness failure."""
+
+
+class TransientReviewError(ReviewError):
+    """A Fireworks transport failure that is safe to retry before output starts."""
 
 
 def canonical_json(value: Any) -> str:
@@ -439,6 +445,99 @@ def validate_fireworks_api_key(api_key: str) -> str:
     return api_key
 
 
+def _fireworks_stream_content_once(
+    api_url: str,
+    api_key: str,
+    request_body: dict[str, Any],
+    *,
+    timeout: int = 1200,
+) -> str:
+    headers = {
+        "Accept": "text/event-stream",
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+        "User-Agent": USER_AGENT,
+    }
+    body = json.dumps(request_body, ensure_ascii=False).encode("utf-8")
+    request = urllib.request.Request(api_url, data=body, headers=headers, method="POST")
+    content_parts: list[str] = []
+    finish_reason: str | None = None
+    received_data = False
+    saw_done = False
+
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            print("Fireworks response stream opened; awaiting the final report.", flush=True)
+            for raw_line in response:
+                try:
+                    line = raw_line.decode("utf-8").strip()
+                except UnicodeDecodeError as error:
+                    raise ReviewError("Fireworks returned non-UTF-8 stream data") from error
+                if not line or line.startswith(":") or not line.startswith("data:"):
+                    continue
+                data = line[5:].strip()
+                if not data:
+                    continue
+                received_data = True
+                if data == "[DONE]":
+                    saw_done = True
+                    break
+                try:
+                    chunk = json.loads(data)
+                except json.JSONDecodeError as error:
+                    raise ReviewError("Fireworks returned a malformed stream event") from error
+                if not isinstance(chunk, dict):
+                    raise ReviewError("Fireworks returned a malformed stream event")
+                choices = chunk.get("choices")
+                if choices == []:
+                    continue
+                if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
+                    raise ReviewError("Fireworks stream event did not contain a valid choice")
+                choice = choices[0]
+                delta = choice.get("delta")
+                if not isinstance(delta, dict):
+                    raise ReviewError("Fireworks stream event did not contain a valid delta")
+                piece = delta.get("content")
+                if piece is not None:
+                    if not isinstance(piece, str):
+                        raise ReviewError("Fireworks streamed non-string assistant content")
+                    content_parts.append(piece)
+                if choice.get("finish_reason") is not None:
+                    finish_reason = choice["finish_reason"]
+    except ReviewError:
+        raise
+    except urllib.error.HTTPError as error:
+        detail = error.read(2000).decode("utf-8", errors="replace").replace("\n", " ")
+        message = f"HTTP {error.code} from api.fireworks.ai: {detail}"
+        if error.code in {408, 429, 500, 502, 503, 504}:
+            raise TransientReviewError(message) from error
+        raise ReviewError(message) from error
+    except (
+        urllib.error.URLError,
+        TimeoutError,
+        ConnectionError,
+        http.client.HTTPException,
+        OSError,
+    ) as error:
+        reason = getattr(error, "reason", None) or str(error) or type(error).__name__
+        message = f"network request to api.fireworks.ai failed: {reason}"
+        if received_data:
+            raise ReviewError(f"Fireworks stream was interrupted after output began: {reason}") from error
+        raise TransientReviewError(message) from error
+
+    if not saw_done:
+        if received_data:
+            raise ReviewError("Fireworks stream ended after output began but before completion")
+        raise TransientReviewError("Fireworks stream ended before returning any output")
+    if finish_reason == "length":
+        raise ReviewError("Fireworks stopped because the completion token limit was reached")
+    if finish_reason not in {None, "stop"}:
+        raise ReviewError(f"Fireworks stopped with unexpected finish reason {finish_reason!r}")
+    if not content_parts:
+        raise ReviewError("Fireworks response did not contain assistant content")
+    return "".join(content_parts)
+
+
 def call_fireworks(
     api_url: str,
     api_key: str,
@@ -464,25 +563,26 @@ def call_fireworks(
         "top_p": 0.95,
         "max_tokens": 32768,
         "response_format": {"type": "json_object"},
-        "stream": False,
+        "stream": True,
+        "stream_options": {
+            "include_usage": True,
+            "buffer_tokens": 16,
+            "buffer_ms": 1000,
+        },
     }
-    response = _json_response(
-        _http_bytes(
-            "POST",
-            validate_fireworks_url(api_url),
-            token=validate_fireworks_api_key(api_key),
-            payload=request_body,
-            accept="application/json",
-            timeout=2400,
-        ),
-        "Fireworks",
-    )
-    try:
-        content = response["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, TypeError) as error:
-        raise ReviewError("Fireworks response did not contain assistant content") from error
-    if not isinstance(content, str):
-        raise ReviewError("Fireworks assistant content was not a string")
+    api_url = validate_fireworks_url(api_url)
+    api_key = validate_fireworks_api_key(api_key)
+    for attempt in range(2):
+        try:
+            content = _fireworks_stream_content_once(api_url, api_key, request_body)
+            break
+        except TransientReviewError as error:
+            if attempt == 1:
+                raise ReviewError(
+                    f"Fireworks request failed after two transient attempts: {error}"
+                ) from error
+            print(f"Transient Fireworks failure; retrying once in 2 seconds: {error}", file=sys.stderr)
+            time.sleep(2)
     return extract_json_object(content)
 
 
@@ -787,6 +887,11 @@ def main() -> int:
         encoding="utf-8",
     )
 
+    print(
+        f"Assembled review packet ({len(packet_text.encode('utf-8'))} bytes); "
+        "starting Fireworks inference.",
+        flush=True,
+    )
     report = call_fireworks(api_url, api_key, model, reasoning_effort, prompt, packet)
     pr_meta = packet["pull_request"]
     run_url = (
