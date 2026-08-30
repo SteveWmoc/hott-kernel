@@ -1,9 +1,9 @@
 # Independent adversarial review pilot
 
-This repository can ask Z.ai's `GLM-5.3-Flash` model to perform a blind,
-advisory review of a pull request. The reviewer is deliberately outside the
-trusted boundary: its claims acquire weight only through exact evidence,
-reproduction, tests, and human resolution.
+This repository can ask Z.ai's `GLM-5.3-Flash` model, hosted by Fireworks AI,
+to perform a blind, advisory review of a pull request. The reviewer is
+deliberately outside the trusted boundary: its claims acquire weight only
+through exact evidence, reproduction, tests, and human resolution.
 
 The pilot is manual. It does not run on every pull request and it never changes
 mergeability or branch protection.
@@ -15,7 +15,8 @@ mergeability or branch protection.
   requests fail closed.
 - It reads pull-request data through the GitHub API. It does not check out or
   execute pull-request code.
-- The Z.ai key is sent only to an HTTPS `api.z.ai` chat-completions endpoint.
+- The Fireworks key is sent only to the exact HTTPS endpoint
+  `https://api.fireworks.ai/inference/v1/chat/completions`.
 - Pull-request text is marked as untrusted data in the reviewer prompt, and no
   tools are exposed to the model.
 - The model receives the unified diff, bounded complete changed-file contents,
@@ -35,22 +36,19 @@ an explicit decision about sending private source code to the API provider.
 
 ## One-time setup
 
-1. Create a key in the [Z.ai API Keys page](https://z.ai/manage-apikey/account).
+1. Create or reuse a key in the
+   [Fireworks API Keys page](https://app.fireworks.ai/settings/users/api-keys).
 2. In this repository, open **Settings → Secrets and variables → Actions**.
-3. Create a repository secret named `ZAI_API_KEY` containing the key.
+3. Create a repository secret named `FIREWORKS_API_KEY` containing the key.
 
-The default endpoint is the standard API:
+The endpoint and model are pinned in the reviewed harness:
 
-`https://api.z.ai/api/paas/v4/chat/completions`
+- endpoint: `https://api.fireworks.ai/inference/v1/chat/completions`
+- model: `accounts/fireworks/models/glm-5p3-flash`
 
-If the key belongs to a GLM Coding Plan that requires its dedicated endpoint,
-create an Actions repository variable named `ZAI_API_URL` with:
-
-`https://api.z.ai/api/coding/paas/v4/chat/completions`
-
-The model defaults to `glm-5.3-flash`. An optional `ZAI_MODEL` repository
-variable can change the model while retaining the same validated report
-contract.
+Changing either value requires a reviewed code change. This keeps the external
+processor and model identity visible in the repository rather than allowing an
+unreviewed Actions variable to redirect source packets.
 
 ## Run a review
 
@@ -60,11 +58,11 @@ contract.
 4. Start the workflow.
 
 After local harness tests pass, the review job constructs the packet, calls
-Z.ai, validates the returned JSON, and creates or updates one marked comment on
-the pull request. Malformed output fails the workflow rather than publishing a
-misleading review. If a valid report is too large for a GitHub comment, the
-workflow publishes a severity-prioritized bounded view and retains the complete
-report in the run artifacts.
+Fireworks, validates the returned JSON, and creates or updates one marked
+comment on the pull request. Malformed output fails the workflow rather than
+publishing a misleading review. If a valid report is too large for a GitHub
+comment, the workflow publishes a severity-prioritized bounded view and retains
+the complete report in the run artifacts.
 
 ## Foundational firewall
 

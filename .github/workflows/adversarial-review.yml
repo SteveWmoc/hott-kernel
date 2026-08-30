@@ -72,9 +72,7 @@ jobs:
           PR_NUMBER: ${{ inputs.pr_number }}
           REASONING_EFFORT: ${{ inputs.reasoning_effort }}
           REVIEW_OUTPUT_DIR: ${{ runner.temp }}/adversarial-review
-          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
-          ZAI_API_URL: ${{ vars.ZAI_API_URL }}
-          ZAI_MODEL: ${{ vars.ZAI_MODEL }}
+          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
         run: python3 scripts/adversarial_review.py
       - name: Upload auditable review artifacts
         if: always()

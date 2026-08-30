@@ -3,8 +3,8 @@
 
 The script deliberately does not check out or execute pull-request code. It
 uses GitHub's read APIs to assemble a bounded packet, sends that packet to the
-configured Z.ai endpoint, validates the structured response, and publishes one
-advisory pull-request comment tied to the exact head commit.
+pinned Fireworks AI endpoint, validates the structured response, and publishes
+one advisory pull-request comment tied to the exact head commit.
 """
 
 from __future__ import annotations
@@ -25,8 +25,9 @@ from typing import Any
 COMMENT_MARKER = "<!-- adversarial-review:v0.1 -->"
 COMMENT_CHAR_LIMIT = 60_000
 COMPACT_FINDING_LIMIT = 8
-DEFAULT_ZAI_API_URL = "https://api.z.ai/api/paas/v4/chat/completions"
-DEFAULT_ZAI_MODEL = "glm-5.3-flash"
+FIREWORKS_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
+FIREWORKS_MODEL = "accounts/fireworks/models/glm-5p3-flash"
+PROVIDER_NAME = "Fireworks AI"
 GITHUB_API_VERSION = "2022-11-28"
 REPORT_SCHEMA_VERSION = "0.1"
 USER_AGENT = "hott-kernel-adversarial-review/0.1"
@@ -34,10 +35,7 @@ USER_AGENT = "hott-kernel-adversarial-review/0.1"
 ALLOWED_VERDICTS = {"advisory_clear", "advisory_findings", "foundational_stop"}
 ALLOWED_SEVERITIES = {"P0", "P1", "P2", "P3"}
 ALLOWED_CONFIDENCE = {"low", "medium", "high"}
-ALLOWED_ZAI_API_URLS = {
-    "https://api.z.ai/api/paas/v4/chat/completions",
-    "https://api.z.ai/api/coding/paas/v4/chat/completions",
-}
+ALLOWED_FIREWORKS_API_URLS = {FIREWORKS_API_URL}
 SEVERITY_PRIORITY = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 FINDING_ID = re.compile(r"AR-[0-9]{3}\Z")
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
@@ -429,13 +427,19 @@ def verify_pr_shas(
         raise ReviewError("pull-request base or head changed during review; rerun against the new SHAs")
 
 
-def validate_zai_url(url: str) -> str:
-    if url not in ALLOWED_ZAI_API_URLS:
-        raise ReviewError("ZAI_API_URL must be an allowlisted Z.ai chat-completions endpoint")
+def validate_fireworks_url(url: str) -> str:
+    if url not in ALLOWED_FIREWORKS_API_URLS:
+        raise ReviewError("Fireworks API URL must be the pinned chat-completions endpoint")
     return url
 
 
-def call_zai(
+def validate_fireworks_api_key(api_key: str) -> str:
+    if not api_key.startswith("fw_") or len(api_key) <= 3:
+        raise ReviewError("FIREWORKS_API_KEY must be a Fireworks key beginning with fw_")
+    return api_key
+
+
+def call_fireworks(
     api_url: str,
     api_key: str,
     model: str,
@@ -455,7 +459,6 @@ def call_zai(
             {"role": "system", "content": prompt},
             {"role": "user", "content": user_message},
         ],
-        "thinking": {"type": "enabled"},
         "reasoning_effort": reasoning_effort,
         "temperature": 1.0,
         "top_p": 0.95,
@@ -466,20 +469,20 @@ def call_zai(
     response = _json_response(
         _http_bytes(
             "POST",
-            validate_zai_url(api_url),
-            token=api_key,
+            validate_fireworks_url(api_url),
+            token=validate_fireworks_api_key(api_key),
             payload=request_body,
             accept="application/json",
             timeout=2400,
         ),
-        "Z.ai",
+        "Fireworks",
     )
     try:
         content = response["choices"][0]["message"]["content"]
     except (KeyError, IndexError, TypeError) as error:
-        raise ReviewError("Z.ai response did not contain assistant content") from error
+        raise ReviewError("Fireworks response did not contain assistant content") from error
     if not isinstance(content, str):
-        raise ReviewError("Z.ai assistant content was not a string")
+        raise ReviewError("Fireworks assistant content was not a string")
     return extract_json_object(content)
 
 
@@ -528,6 +531,7 @@ def render_markdown(report: dict[str, Any], metadata: dict[str, str]) -> str:
         "|---|---|",
         f"| PR head | {markdown_code(metadata['head_sha'])} |",
         f"| PR base | {markdown_code(metadata['base_sha'])} |",
+        f"| Provider | {markdown_code(metadata['provider'])} |",
         f"| Model | {markdown_code(metadata['model'])} |",
         f"| Reasoning | {markdown_code(metadata['reasoning_effort'])} |",
         f"| Harness commit | {markdown_code(metadata['harness_sha'])} |",
@@ -626,6 +630,7 @@ def render_compact_markdown(report: dict[str, Any], metadata: dict[str, str]) ->
         "|---|---|",
         f"| PR head | {markdown_code(metadata['head_sha'], 100)} |",
         f"| PR base | {markdown_code(metadata['base_sha'], 100)} |",
+        f"| Provider | {markdown_code(metadata['provider'], 100)} |",
         f"| Model | {markdown_code(metadata['model'], 100)} |",
         f"| Reasoning | {markdown_code(metadata['reasoning_effort'], 20)} |",
         f"| Harness commit | {markdown_code(metadata['harness_sha'], 100)} |",
@@ -749,9 +754,12 @@ def main() -> int:
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
         raise ReviewError("GITHUB_TOKEN is missing")
-    api_key = os.environ.get("ZAI_API_KEY", "")
+    api_key = os.environ.get("FIREWORKS_API_KEY", "")
     if not api_key:
-        raise ReviewError("ZAI_API_KEY is missing; add it as a repository Actions secret")
+        raise ReviewError(
+            "FIREWORKS_API_KEY is missing; add it as a repository Actions secret"
+        )
+    validate_fireworks_api_key(api_key)
 
     raw_pr_number = os.environ.get("PR_NUMBER", "")
     if not raw_pr_number.isascii() or not raw_pr_number.isdigit() or int(raw_pr_number) <= 0:
@@ -761,9 +769,8 @@ def main() -> int:
     reasoning_effort = os.environ.get("REASONING_EFFORT", "max") or "max"
     if reasoning_effort not in {"high", "max"}:
         raise ReviewError("REASONING_EFFORT must be high or max")
-    model = os.environ.get("ZAI_MODEL", "").strip() or DEFAULT_ZAI_MODEL
-    require_string(model, "ZAI_MODEL", maximum=100)
-    api_url = os.environ.get("ZAI_API_URL", "").strip() or DEFAULT_ZAI_API_URL
+    model = FIREWORKS_MODEL
+    api_url = FIREWORKS_API_URL
 
     root = Path(__file__).resolve().parent.parent
     config_path = Path(os.environ.get("REVIEWER_CONFIG", root / ".github/adversarial-review/config.json"))
@@ -780,7 +787,7 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    report = call_zai(api_url, api_key, model, reasoning_effort, prompt, packet)
+    report = call_fireworks(api_url, api_key, model, reasoning_effort, prompt, packet)
     pr_meta = packet["pull_request"]
     run_url = (
         f"https://github.com/{repository}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}"
@@ -790,6 +797,7 @@ def main() -> int:
         "pr_number": str(pr_number),
         "base_sha": pr_meta["base_sha"],
         "head_sha": pr_meta["head_sha"],
+        "provider": PROVIDER_NAME,
         "model": model,
         "reasoning_effort": reasoning_effort,
         "harness_sha": os.environ.get("GITHUB_SHA", "unknown"),

@@ -81,7 +81,8 @@ class RenderingTests(unittest.TestCase):
         return {
             "head_sha": "a" * 40,
             "base_sha": "b" * 40,
-            "model": "glm-5.3-flash",
+            "provider": "Fireworks AI",
+            "model": "accounts/fireworks/models/glm-5p3-flash",
             "reasoning_effort": "max",
             "harness_sha": "e" * 40,
             "prompt_sha256": "c" * 64,
@@ -180,13 +181,19 @@ class UtilityTests(unittest.TestCase):
         self.assertTrue(truncated)
         self.assertEqual(len(text), 5)
 
-    def test_zai_url_is_restricted(self):
+    def test_fireworks_url_is_restricted(self):
         with self.assertRaises(review.ReviewError):
-            review.validate_zai_url("https://example.com/chat/completions")
+            review.validate_fireworks_url("https://api.z.ai/api/paas/v4/chat/completions")
 
-    def test_zai_coding_url_is_allowed(self):
-        coding_url = "https://api.z.ai/api/coding/paas/v4/chat/completions"
-        self.assertEqual(review.validate_zai_url(coding_url), coding_url)
+    def test_pinned_fireworks_url_is_allowed(self):
+        self.assertEqual(
+            review.validate_fireworks_url(review.FIREWORKS_API_URL),
+            review.FIREWORKS_API_URL,
+        )
+
+    def test_fireworks_key_prefix_is_required(self):
+        with self.assertRaises(review.ReviewError):
+            review.validate_fireworks_api_key("not-a-fireworks-key")
 
     def test_verify_pr_shas_rejects_a_changed_head(self):
         current = {"base": {"sha": "b" * 40}, "head": {"sha": "n" * 40}}
@@ -273,7 +280,7 @@ class UtilityTests(unittest.TestCase):
         self.assertFalse(packet["coverage"]["comments_and_prior_reviews_included"])
         self.assertFalse(packet["coverage"]["pull_request_code_executed"])
 
-    def test_call_zai_requests_max_reasoning_and_structured_output(self):
+    def test_call_fireworks_requests_max_reasoning_and_structured_output(self):
         captured = {}
 
         def fake_http(_method, url, **kwargs):
@@ -287,10 +294,10 @@ class UtilityTests(unittest.TestCase):
             return json.dumps(response).encode("utf-8")
 
         with mock.patch.object(review, "_http_bytes", side_effect=fake_http):
-            result = review.call_zai(
-                review.DEFAULT_ZAI_API_URL,
-                "secret",
-                "glm-5.3-flash",
+            result = review.call_fireworks(
+                review.FIREWORKS_API_URL,
+                "fw_test-secret",
+                review.FIREWORKS_MODEL,
                 "max",
                 "system prompt",
                 {"packet_version": "0.1"},
@@ -299,7 +306,9 @@ class UtilityTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "advisory_clear")
         self.assertEqual(captured["payload"]["reasoning_effort"], "max")
         self.assertEqual(captured["payload"]["response_format"], {"type": "json_object"})
-        self.assertEqual(captured["url"], review.DEFAULT_ZAI_API_URL)
+        self.assertNotIn("thinking", captured["payload"])
+        self.assertEqual(captured["payload"]["model"], review.FIREWORKS_MODEL)
+        self.assertEqual(captured["url"], review.FIREWORKS_API_URL)
 
     def test_main_writes_artifacts_and_publishes_validated_comment(self):
         config = {
@@ -343,12 +352,12 @@ class UtilityTests(unittest.TestCase):
                 "REVIEWER_CONFIG": str(config_path),
                 "REVIEWER_PROMPT": str(prompt_path),
                 "REVIEW_OUTPUT_DIR": str(output_path),
-                "ZAI_API_KEY": "zai-secret",
+                "FIREWORKS_API_KEY": "fw_test-secret",
             }
             with (
                 mock.patch.dict("os.environ", environment, clear=True),
                 mock.patch.object(review, "assemble_packet", return_value=packet),
-                mock.patch.object(review, "call_zai", return_value=clean_report()),
+                mock.patch.object(review, "call_fireworks", return_value=clean_report()),
                 mock.patch.object(review, "verify_pr_shas"),
                 mock.patch.object(review, "publish_comment", side_effect=fake_publish),
             ):
