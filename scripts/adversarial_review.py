@@ -28,6 +28,7 @@ COMMENT_MARKER = "<!-- adversarial-review:v0.1 -->"
 COMMENT_CHAR_LIMIT = 60_000
 COMPACT_FINDING_LIMIT = 8
 FIREWORKS_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
+FIREWORKS_MAX_TOKENS = 131_072
 FIREWORKS_MODEL = "accounts/fireworks/models/glm-5p3-flash"
 PROVIDER_NAME = "Fireworks AI"
 GITHUB_API_VERSION = "2022-11-28"
@@ -561,7 +562,7 @@ def call_fireworks(
         "reasoning_effort": reasoning_effort,
         "temperature": 1.0,
         "top_p": 0.95,
-        "max_tokens": 32768,
+        "max_tokens": FIREWORKS_MAX_TOKENS,
         "response_format": {"type": "json_object"},
         "stream": True,
         "stream_options": {
