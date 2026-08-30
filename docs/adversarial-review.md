@@ -19,6 +19,8 @@ mergeability or branch protection.
   `https://api.fireworks.ai/inference/v1/chat/completions`.
 - Pull-request text is marked as untrusted data in the reviewer prompt, and no
   tools are exposed to the model.
+- Review profiles are checked-in prompt supplements selected from a fixed
+  allowlist. A workflow input cannot supply prompt text or a prompt path.
 - The model receives the unified diff, bounded complete changed-file contents,
   and the frozen contracts as they existed at the pull request's base commit.
 - Existing comments and reviews are excluded to reduce anchoring and preserve
@@ -58,7 +60,8 @@ unreviewed Actions variable to redirect source packets.
 
 1. Open **Actions → Adversarial Review → Run workflow**.
 2. Select the `main` branch.
-3. Enter the pull request number and select `max` reasoning for calibration.
+3. Enter the pull request number, select the `broad` review profile, and select
+   `max` reasoning for calibration.
    Leave **review head sha** empty to review the current PR head. To replay an
    earlier state, enter the exact full SHA of a commit in that PR's history.
 4. Start the workflow.
@@ -73,6 +76,19 @@ the complete report in the run artifacts.
 A historical replay is visibly labelled with both the reviewed SHA and the
 current or final PR head. It uses a SHA-specific comment marker, so it neither
 overwrites nor masquerades as the ordinary current-head review.
+
+## Focused calibration profile
+
+The optional `schema-encoding` profile appends a checked-in focused prompt to
+the same base reviewer contract. It concentrates the second pass on textual
+grammars, JSON Schema, Unicode and UTF-8 boundaries, regex witnesses,
+canonical bytes, ordering, and discrepancies among prose, schemas, fixtures,
+and author claims.
+
+Profile selection does not change packet assembly. Replaying the same PR head
+with the same repository state therefore holds the model, reasoning effort,
+and packet constant while changing only the prompt. Focused comments use a
+profile-specific marker and remain alongside the broad result.
 
 The harness consumes Fireworks' server-sent event stream while discarding
 private reasoning chunks and retaining only final assistant content. This keeps
