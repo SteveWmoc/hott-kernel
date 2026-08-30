@@ -23,6 +23,8 @@ from typing import Any
 
 
 COMMENT_MARKER = "<!-- adversarial-review:v0.1 -->"
+COMMENT_CHAR_LIMIT = 60_000
+COMPACT_FINDING_LIMIT = 8
 DEFAULT_ZAI_API_URL = "https://api.z.ai/api/paas/v4/chat/completions"
 DEFAULT_ZAI_MODEL = "glm-5.3-flash"
 GITHUB_API_VERSION = "2022-11-28"
@@ -36,6 +38,7 @@ ALLOWED_ZAI_API_URLS = {
     "https://api.z.ai/api/paas/v4/chat/completions",
     "https://api.z.ai/api/coding/paas/v4/chat/completions",
 }
+SEVERITY_PRIORITY = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 FINDING_ID = re.compile(r"AR-[0-9]{3}\Z")
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 MARKDOWN_SPECIAL = re.compile(r"([\\`*_{}\[\]()#+.!|>~-])")
@@ -484,16 +487,25 @@ def neutralize_mentions(text: str) -> str:
     return text.replace("@", "@\u200b")
 
 
-def plain_markdown(text: str) -> str:
+def clip_rendered(text: str, maximum: int | None) -> str:
+    if maximum is None or len(text) <= maximum:
+        return text
+    suffix = "…"
+    return text[: maximum - len(suffix)].rstrip("\\") + suffix
+
+
+def plain_markdown(text: str, maximum: int | None = None) -> str:
     """Render model-produced text as a single inert Markdown line."""
     flattened = " ".join(text.split())
     escaped_html = html.escape(neutralize_mentions(flattened), quote=False)
-    return MARKDOWN_SPECIAL.sub(r"\\\1", escaped_html)
+    rendered = MARKDOWN_SPECIAL.sub(r"\\\1", escaped_html)
+    return clip_rendered(rendered, maximum)
 
 
-def markdown_code(text: str) -> str:
+def markdown_code(text: str, maximum: int | None = None) -> str:
     flattened = " ".join(text.split())
-    return "`" + flattened.replace("`", "'") + "`"
+    rendered = flattened.replace("`", "'")
+    return "`" + clip_rendered(rendered, maximum) + "`"
 
 
 def render_markdown(report: dict[str, Any], metadata: dict[str, str]) -> str:
@@ -567,8 +579,122 @@ def render_markdown(report: dict[str, Any], metadata: dict[str, str]) -> str:
         ]
     )
     rendered = "\n".join(lines).rstrip() + "\n"
-    if len(rendered) > 60_000:
-        raise ReviewError("rendered review comment exceeds the safe GitHub comment limit")
+    if len(rendered) <= COMMENT_CHAR_LIMIT:
+        return rendered
+    return render_compact_markdown(report, metadata)
+
+
+def render_compact_markdown(report: dict[str, Any], metadata: dict[str, str]) -> str:
+    """Render a severity-prioritized, bounded view of an oversized report."""
+    verdict_labels = {
+        "advisory_clear": "Advisory clear",
+        "advisory_findings": "Advisory findings",
+        "foundational_stop": "FOUNDATIONAL STOP",
+    }
+    ordered_findings = sorted(
+        report["findings"],
+        key=lambda finding: (
+            not finding["foundational_change"],
+            SEVERITY_PRIORITY[finding["severity"]],
+            finding["id"],
+        ),
+    )
+    shown_findings = ordered_findings[:COMPACT_FINDING_LIMIT]
+    severity_counts = {
+        severity: sum(finding["severity"] == severity for finding in report["findings"])
+        for severity in ("P0", "P1", "P2", "P3")
+    }
+    lines = [
+        COMMENT_MARKER,
+        f"## Independent adversarial review — {plain_markdown(metadata['model'], 100)}",
+        "",
+        "> Advisory model output, not a trusted proof or automatic merge decision. No PR code was executed.",
+        "",
+        f"**Verdict:** {verdict_labels[report['verdict']]}",
+        "",
+        plain_markdown(report["summary"], 1_200),
+        "",
+        "> The full report exceeded GitHub's safe comment size. This is a severity-prioritized bounded view; the complete report remains in the workflow artifacts.",
+        "",
+        (
+            f"**Complete report:** {len(report['findings'])} finding(s) — "
+            f"P0: {severity_counts['P0']}, P1: {severity_counts['P1']}, "
+            f"P2: {severity_counts['P2']}, P3: {severity_counts['P3']}."
+        ),
+        "",
+        "| Audit field | Value |",
+        "|---|---|",
+        f"| PR head | {markdown_code(metadata['head_sha'], 100)} |",
+        f"| PR base | {markdown_code(metadata['base_sha'], 100)} |",
+        f"| Model | {markdown_code(metadata['model'], 100)} |",
+        f"| Reasoning | {markdown_code(metadata['reasoning_effort'], 20)} |",
+        f"| Harness commit | {markdown_code(metadata['harness_sha'], 100)} |",
+        f"| Prompt SHA-256 | {markdown_code(metadata['prompt_sha256'], 100)} |",
+        f"| Packet SHA-256 | {markdown_code(metadata['packet_sha256'], 100)} |",
+        f"| Workflow run | [Open run]({metadata['run_url']}) |",
+    ]
+
+    if shown_findings:
+        lines.extend(["", f"### Highest-priority findings ({len(shown_findings)} shown)"])
+        for finding in shown_findings:
+            stop = " — foundational change" if finding["foundational_change"] else ""
+            lines.extend(
+                [
+                    "",
+                    f"#### {finding['severity']} {finding['id']}: {plain_markdown(finding['title'], 180)}{stop}",
+                    "",
+                    f"**Claim:** {plain_markdown(finding['claim'], 700)}",
+                    "",
+                    f"**Requirement:** {plain_markdown(finding['requirement'], 600)}",
+                    "",
+                    "**Evidence:**",
+                ]
+            )
+            for evidence in finding["evidence"][:2]:
+                locator = f"{evidence['path']}:{evidence['line']}"
+                lines.append(
+                    f"- {markdown_code(locator, 350)} — {plain_markdown(evidence['detail'], 500)}"
+                )
+            if len(finding["evidence"]) > 2:
+                lines.append(
+                    f"- {len(finding['evidence']) - 2} additional evidence item(s) are in the artifact."
+                )
+            lines.extend(
+                [
+                    "",
+                    f"**Proposed reproduction (not executed):** {plain_markdown(finding['reproduction'], 600)}",
+                    "",
+                    f"**Confidence:** {finding['confidence']}",
+                ]
+            )
+        if len(ordered_findings) > len(shown_findings):
+            lines.extend(
+                [
+                    "",
+                    f"{len(ordered_findings) - len(shown_findings)} additional finding(s) are available in the complete artifact.",
+                ]
+            )
+    else:
+        lines.extend(["", "No evidence-backed findings were reported."])
+
+    if report["limitations"]:
+        shown_limitations = report["limitations"][:5]
+        lines.extend(["", f"### Limitations ({len(shown_limitations)} shown)", ""])
+        lines.extend(f"- {plain_markdown(item, 400)}" for item in shown_limitations)
+        if len(report["limitations"]) > len(shown_limitations):
+            lines.append(
+                f"- {len(report['limitations']) - len(shown_limitations)} additional limitation(s) are in the artifact."
+            )
+
+    lines.extend(
+        [
+            "",
+            "The complete structured report and exact review packet are retained as workflow artifacts.",
+        ]
+    )
+    rendered = "\n".join(lines).rstrip() + "\n"
+    if len(rendered) > COMMENT_CHAR_LIMIT:
+        raise ReviewError("internal error: compact review comment exceeded its bounded size")
     return rendered
 
 

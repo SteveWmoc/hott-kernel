@@ -109,6 +109,39 @@ class RenderingTests(unittest.TestCase):
         self.assertNotIn("<img", rendered)
         self.assertIn("&lt;img src=x&gt;", rendered)
 
+    def test_compacts_a_schema_valid_oversized_report(self):
+        report = finding_report()
+        report["summary"] = "&" * 4000
+        template = report["findings"][0]
+        report["findings"] = []
+        for index in range(50):
+            finding = dict(template)
+            finding["id"] = f"AR-{index + 1:03d}"
+            finding["claim"] = "&" * 5000
+            finding["requirement"] = "<" * 3000
+            finding["reproduction"] = "*" * 5000
+            finding["evidence"] = [
+                {
+                    "path": "p" * 500,
+                    "line": "1" * 200,
+                    "detail": ">" * 4000,
+                }
+                for _ in range(10)
+            ]
+            report["findings"].append(finding)
+        report["findings"][-1]["severity"] = "P0"
+        report["findings"][-1]["title"] = "Critical sentinel"
+        report["limitations"] = ["&" * 2000 for _ in range(20)]
+
+        review.validate_report(report)
+        rendered = review.render_markdown(report, self.metadata())
+
+        self.assertLessEqual(len(rendered), review.COMMENT_CHAR_LIMIT)
+        self.assertIn("severity-prioritized bounded view", rendered)
+        self.assertIn("42 additional finding(s)", rendered)
+        self.assertIn("Critical sentinel", rendered)
+        self.assertIn(review.COMMENT_MARKER, rendered)
+
 
 class ConfigurationTests(unittest.TestCase):
     def test_loads_minimal_valid_config(self):

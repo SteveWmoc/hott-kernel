@@ -62,7 +62,9 @@ contract.
 After local harness tests pass, the review job constructs the packet, calls
 Z.ai, validates the returned JSON, and creates or updates one marked comment on
 the pull request. Malformed output fails the workflow rather than publishing a
-misleading review.
+misleading review. If a valid report is too large for a GitHub comment, the
+workflow publishes a severity-prioritized bounded view and retains the complete
+report in the run artifacts.
 
 ## Foundational firewall
 
