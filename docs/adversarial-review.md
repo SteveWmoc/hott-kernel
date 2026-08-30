@@ -26,8 +26,12 @@ mergeability or branch protection.
 - The result is tied to the exact base and head SHAs. The prompt and input
   packet are SHA-256 identified, and the complete packet and structured report
   are retained as workflow artifacts for 30 days.
-- The harness rechecks both SHAs after packet assembly and immediately before
-  publication. A concurrent push or base change aborts the run as stale.
+- An optional historical head must be a full 40-character SHA returned by
+  GitHub as a commit of the selected pull request. The harness constructs that
+  replay from the recorded PR base and refuses an unrelated or diverged commit.
+- The harness rechecks the recorded base and current head after packet assembly
+  and immediately before publication. A concurrent push or base change aborts
+  the run as stale.
 - Model output is advisory. CI and the project owner remain the merge gate.
 
 The repository is public, so the selected source and specification content is
@@ -55,6 +59,8 @@ unreviewed Actions variable to redirect source packets.
 1. Open **Actions → Adversarial Review → Run workflow**.
 2. Select the `main` branch.
 3. Enter the pull request number and select `max` reasoning for calibration.
+   Leave **review head sha** empty to review the current PR head. To replay an
+   earlier state, enter the exact full SHA of a commit in that PR's history.
 4. Start the workflow.
 
 After local harness tests pass, the review job constructs the packet, calls
@@ -63,6 +69,10 @@ comment on the pull request. Malformed output fails the workflow rather than
 publishing a misleading review. If a valid report is too large for a GitHub
 comment, the workflow publishes a severity-prioritized bounded view and retains
 the complete report in the run artifacts.
+
+A historical replay is visibly labelled with both the reviewed SHA and the
+current or final PR head. It uses a SHA-specific comment marker, so it neither
+overwrites nor masquerades as the ordinary current-head review.
 
 The harness consumes Fireworks' server-sent event stream while discarding
 private reasoning chunks and retaining only final assistant content. This keeps
@@ -87,10 +97,11 @@ fix.
 
 ## Initial calibration
 
-The first runs should target historical pull requests rather than a live merge:
+The first runs should target historical pull-request commits rather than a live
+merge:
 
-- PR #3, which has a known Unicode-format defect found during its original
-  review;
+- PR #3 at `590150e8fc6504b92873f0ad68f070c92e120138`, which has a known
+  Unicode-format defect found during its original review;
 - PR #5, a larger implementation PR that should test false-positive control.
 
 Do not show the model the original review comments before comparing its report

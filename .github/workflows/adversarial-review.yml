@@ -21,6 +21,10 @@ on:
         description: "Pull request number to review"
         required: true
         type: string
+      review_head_sha:
+        description: "Optional full PR-commit SHA for a historical replay"
+        required: false
+        type: string
       reasoning_effort:
         description: "GLM reasoning effort"
         required: true
@@ -70,6 +74,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ inputs.pr_number }}
+          REVIEW_HEAD_SHA: ${{ inputs.review_head_sha }}
           REASONING_EFFORT: ${{ inputs.reasoning_effort }}
           REVIEW_OUTPUT_DIR: ${{ runner.temp }}/adversarial-review
           FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
