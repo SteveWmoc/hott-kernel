@@ -1,0 +1,86 @@
+name: Adversarial Review
+
+on:
+  pull_request:
+    paths:
+      - ".github/adversarial-review/**"
+      - ".github/workflows/adversarial-review.yml"
+      - "docs/adversarial-review.md"
+      - "scripts/adversarial_review.py"
+      - "scripts/test_adversarial_review.py"
+  push:
+    paths:
+      - ".github/adversarial-review/**"
+      - ".github/workflows/adversarial-review.yml"
+      - "docs/adversarial-review.md"
+      - "scripts/adversarial_review.py"
+      - "scripts/test_adversarial_review.py"
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number to review"
+        required: true
+        type: string
+      reasoning_effort:
+        description: "GLM reasoning effort"
+        required: true
+        default: max
+        type: choice
+        options:
+          - high
+          - max
+
+permissions:
+  contents: read
+
+concurrency:
+  group: adversarial-review-${{ github.event.inputs.pr_number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate harness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out trusted harness
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Compile Python
+        run: python3 -m py_compile scripts/adversarial_review.py scripts/test_adversarial_review.py
+      - name: Run unit tests
+        run: python3 -m unittest discover -s scripts -p 'test_adversarial_review.py' -v
+
+  review:
+    name: GLM-5.3-Flash advisory review
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Check out trusted harness
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Run adversarial review
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+          REVIEW_OUTPUT_DIR: ${{ runner.temp }}/adversarial-review
+          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+          ZAI_API_URL: ${{ vars.ZAI_API_URL }}
+          ZAI_MODEL: ${{ vars.ZAI_MODEL }}
+        run: python3 scripts/adversarial_review.py
+      - name: Upload auditable review artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: adversarial-review-pr-${{ inputs.pr_number }}-run-${{ github.run_id }}
+          path: ${{ runner.temp }}/adversarial-review/
+          if-no-files-found: ignore
+          retention-days: 30
