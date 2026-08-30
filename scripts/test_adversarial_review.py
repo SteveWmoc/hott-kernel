@@ -1,3 +1,4 @@
+import io
 import json
 import tempfile
 import unittest
@@ -283,17 +284,12 @@ class UtilityTests(unittest.TestCase):
     def test_call_fireworks_requests_max_reasoning_and_structured_output(self):
         captured = {}
 
-        def fake_http(_method, url, **kwargs):
+        def fake_stream(url, _api_key, payload):
             captured["url"] = url
-            captured["payload"] = kwargs["payload"]
-            response = {
-                "choices": [
-                    {"message": {"content": json.dumps(clean_report())}}
-                ]
-            }
-            return json.dumps(response).encode("utf-8")
+            captured["payload"] = payload
+            return json.dumps(clean_report())
 
-        with mock.patch.object(review, "_http_bytes", side_effect=fake_http):
+        with mock.patch.object(review, "_fireworks_stream_content_once", side_effect=fake_stream):
             result = review.call_fireworks(
                 review.FIREWORKS_API_URL,
                 "fw_test-secret",
@@ -307,8 +303,84 @@ class UtilityTests(unittest.TestCase):
         self.assertEqual(captured["payload"]["reasoning_effort"], "max")
         self.assertEqual(captured["payload"]["response_format"], {"type": "json_object"})
         self.assertNotIn("thinking", captured["payload"])
+        self.assertTrue(captured["payload"]["stream"])
+        self.assertEqual(captured["payload"]["stream_options"]["buffer_ms"], 1000)
         self.assertEqual(captured["payload"]["model"], review.FIREWORKS_MODEL)
         self.assertEqual(captured["url"], review.FIREWORKS_API_URL)
+
+    def test_fireworks_stream_ignores_reasoning_and_collects_content(self):
+        report_text = json.dumps(clean_report())
+        midpoint = len(report_text) // 2
+        events = [
+            {
+                "choices": [
+                    {"delta": {"reasoning_content": "private reasoning"}, "finish_reason": None}
+                ]
+            },
+            {
+                "choices": [
+                    {"delta": {"content": report_text[:midpoint]}, "finish_reason": None}
+                ]
+            },
+            {
+                "choices": [
+                    {"delta": {"content": report_text[midpoint:]}, "finish_reason": "stop"}
+                ]
+            },
+        ]
+        stream = b"".join(
+            f"data: {json.dumps(event)}\n\n".encode("utf-8") for event in events
+        ) + b"data: [DONE]\n\n"
+
+        with mock.patch.object(review.urllib.request, "urlopen", return_value=io.BytesIO(stream)):
+            content = review._fireworks_stream_content_once(
+                review.FIREWORKS_API_URL,
+                "fw_test-secret",
+                {"stream": True},
+            )
+
+        self.assertEqual(content, report_text)
+        self.assertNotIn("private reasoning", content)
+
+    def test_fireworks_stream_retries_once_before_output(self):
+        with (
+            mock.patch.object(
+                review,
+                "_fireworks_stream_content_once",
+                side_effect=[
+                    review.TransientReviewError("temporary disconnect"),
+                    json.dumps(clean_report()),
+                ],
+            ) as streamed,
+            mock.patch.object(review.time, "sleep") as sleep,
+        ):
+            result = review.call_fireworks(
+                review.FIREWORKS_API_URL,
+                "fw_test-secret",
+                review.FIREWORKS_MODEL,
+                "max",
+                "system prompt",
+                {"packet_version": "0.1"},
+            )
+
+        self.assertEqual(result["verdict"], "advisory_clear")
+        self.assertEqual(streamed.call_count, 2)
+        sleep.assert_called_once_with(2)
+
+    def test_fireworks_stream_rejects_incomplete_output(self):
+        stream = (
+            b'data: {"choices":[{"delta":{"reasoning_content":"partial"},'
+            b'"finish_reason":null}]}\n\n'
+        )
+        with (
+            mock.patch.object(review.urllib.request, "urlopen", return_value=io.BytesIO(stream)),
+            self.assertRaises(review.ReviewError),
+        ):
+            review._fireworks_stream_content_once(
+                review.FIREWORKS_API_URL,
+                "fw_test-secret",
+                {"stream": True},
+            )
 
     def test_main_writes_artifacts_and_publishes_validated_comment(self):
         config = {

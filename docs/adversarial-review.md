@@ -64,6 +64,12 @@ publishing a misleading review. If a valid report is too large for a GitHub
 comment, the workflow publishes a severity-prioritized bounded view and retains
 the complete report in the run artifacts.
 
+The harness consumes Fireworks' server-sent event stream while discarding
+private reasoning chunks and retaining only final assistant content. This keeps
+long reasoning requests from leaving an idle HTTP connection. A retryable HTTP
+or network failure before any streamed output is retried once after a short
+delay; an interrupted partial stream is never retried automatically.
+
 ## Foundational firewall
 
 Ordinary implementation defects receive `P0` through `P3` findings. If a
