@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "max_changed_files": 200,
+  "max_diff_chars": 600000,
+  "max_changed_file_chars": 900000,
+  "max_contract_chars": 400000,
+  "contract_files": [
+    "README.md",
+    "CHARTER.md",
+    ".github/workflows/ci.yml",
+    "docs/core-v0.1.md",
+    "docs/core-format.md",
+    "docs/foundation-manifest-v0.1.md",
+    "docs/audit-model.md",
+    "docs/failure-classes.md",
+    "docs/metatheory.md",
+    "docs/implementability-review-v0.1.md",
+    "docs/decisions/0001-proof-relevance.md",
+    "docs/decisions/0002-universes.md",
+    "docs/decisions/0003-judgmental-equality.md",
+    "docs/decisions/0004-trusted-core.md",
+    "docs/decisions/0005-implementation-language.md",
+    "docs/decisions/0006-mixed-universe-formation.md",
+    "docs/decisions/0007-core-interchange-format.md",
+    "docs/decisions/0008-normalization-strategy.md",
+    "docs/decisions/0009-freeze-core-format.md",
+    "docs/decisions/0010-foundation-manifest.md",
+    "docs/decisions/0011-failure-classes.md",
+    "docs/decisions/0012-freeze-core-v0.1.md",
+    "tests/specification/accepted.md",
+    "tests/specification/rejected.md"
+  ]
+}
