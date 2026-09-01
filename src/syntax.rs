@@ -1,8 +1,8 @@
 use crate::error::FormatError;
-use core::fmt;
+use core::{cmp::Ordering, fmt};
 
 /// Canonical decimal representation of a mathematically unbounded natural.
-#[derive(Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Eq, Hash, PartialEq)]
 pub struct Natural(String);
 
 impl Natural {
@@ -24,6 +24,23 @@ impl Natural {
 
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+}
+
+impl Ord for Natural {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let left = self.as_str();
+        let right = other.as_str();
+
+        // Canonical decimals have no leading zeroes, so digit count orders
+        // magnitude and lexicographic order breaks equal-length ties.
+        left.len().cmp(&right.len()).then_with(|| left.cmp(right))
+    }
+}
+
+impl PartialOrd for Natural {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
