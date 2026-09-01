@@ -8,6 +8,15 @@ through exact evidence, reproduction, tests, and human resolution.
 The pilot is manual. It does not run on every pull request and it never changes
 mergeability or branch protection.
 
+Each paid dispatch selects two independent dimensions:
+
+- a `design` or `code` review phase; and
+- an automatically routed or explicitly selected risk profile.
+
+This permits an independent challenge before implementation and a separate
+exact-SHA check after implementation without pretending that either model pass
+is a merge gate.
+
 ## Security and review boundary
 
 - The workflow runs only when manually dispatched from `main`.
@@ -21,6 +30,9 @@ mergeability or branch protection.
   tools are exposed to the model.
 - Review profiles are checked-in prompt supplements selected from a fixed
   allowlist. A workflow input cannot supply prompt text or a prompt path.
+- The `auto` profile resolves from checked-in path rules after packet assembly.
+  Route order is an explicit risk priority; all matching profiles and the one
+  selected profile are recorded in the report metadata.
 - The model receives the unified diff, bounded complete changed-file contents,
   and the frozen contracts as they existed at the pull request's base commit.
 - Existing comments and reviews are excluded to reduce anchoring and preserve
@@ -60,11 +72,16 @@ unreviewed Actions variable to redirect source packets.
 
 1. Open **Actions → Adversarial Review → Run workflow**.
 2. Select the `main` branch.
-3. Enter the pull request number, select the `broad` review profile, and select
-   `max` reasoning for calibration.
+3. Enter the pull request number and choose a review phase:
+   - `design` challenges the proposal, contracts, invariants, and acceptance
+     criteria without treating absent implementation as a defect;
+   - `code` traces the finished implementation, tests, fixtures, and failure
+     behavior against the supplied contracts.
+4. Select `auto` for a checked-in path-routed focus, `broad` for an unrestricted
+   pass, or one explicit focused profile. Select `max` reasoning for calibration.
    Leave **review head sha** empty to review the current PR head. To replay an
    earlier state, enter the exact full SHA of a commit in that PR's history.
-4. Start the workflow.
+5. Start the workflow.
 
 After local harness tests pass, the review job constructs the packet, calls
 Fireworks, validates the returned JSON, and creates or updates one marked
@@ -77,13 +94,40 @@ A historical replay is visibly labelled with both the reviewed SHA and the
 current or final PR head. It uses a SHA-specific comment marker, so it neither
 overwrites nor masquerades as the ordinary current-head review.
 
-## Focused calibration profile
+Design and code comments have separate identities. Repeating the same phase and
+resolved profile updates that review, while a different phase or focus remains
+alongside it. A duplicate in-progress dispatch for the same pull request,
+phase, and requested profile is cancelled; unrelated review passes are not.
 
-The optional `schema-encoding` profile appends a checked-in focused prompt to
-the same base reviewer contract. It concentrates the second pass on textual
-grammars, JSON Schema, Unicode and UTF-8 boundaries, regex witnesses,
-canonical bytes, ordering, and discrepancies among prose, schemas, fixtures,
-and author claims.
+## Path-routed focused profiles
+
+The `auto` selector examines only the changed paths already included in the
+review packet and chooses the first matching route in this checked-in priority
+order. Renames are matched using both their previous and destination paths so a
+move cannot erase the risk classification:
+
+| Priority | Profile | Typical paths and risk |
+|---|---|---|
+| 1 | `foundational-consistency` | Charter, frozen Core rules, decisions, metatheory, audit and failure-class contracts |
+| 2 | `kernel-soundness` | Checker, conversion, substitution, normalization, syntax, and conformance tests |
+| 3 | `schema-encoding` | Schemas, manifests, canonical printing and bytes, hashes, and format contracts |
+| 4 | `parser-boundary` | Parser, malformed input, lexical rules, error ownership, and rejection fixtures |
+| 5 | `ci-supply-chain` | Workflows, scripts, dependency and toolchain pins, permissions, and credential boundaries |
+
+If no route matches, `auto` falls back to `broad`. If several routes match, the
+first one is selected and every match is retained in the audit metadata. An
+explicit profile bypasses routing, which keeps historical calibration and
+controlled comparisons possible. If the changed-file list reaches its reviewed
+bound, the collector probes for one additional file: equality is complete,
+while actual overflow makes `auto` fail closed rather than select from an
+incomplete path set. The operator must then raise the bound in a reviewed
+change or select an explicit profile.
+
+Every focused profile appends a checked-in prompt to the same base reviewer
+contract and selected phase prompt. The `schema-encoding` profile, for example,
+concentrates on textual grammars, JSON Schema, Unicode and UTF-8 boundaries,
+regex witnesses, canonical bytes, ordering, and discrepancies among prose,
+schemas, fixtures, and author claims.
 
 Profile selection does not change packet assembly. Replaying the same PR head
 with the same repository state therefore holds the model, reasoning effort,
@@ -102,6 +146,30 @@ full limit gives `max` reasoning room to terminate and emit the required JSON.
 The strict report validator and bounded GitHub renderer still constrain what
 can be published.
 
+## Usage and cost audit
+
+The streaming request asks Fireworks to include its token-usage object. A
+successful review fails closed if the usage record is missing, malformed, or
+internally inconsistent. The harness records:
+
+- prompt, cached-prompt, uncached-prompt, completion, and total token counts;
+- the pricing snapshot used for estimation;
+- a six-decimal estimated USD cost;
+- provider, model, reasoning effort, phase, requested and resolved profiles,
+  prompt and packet hashes, exact SHAs, workflow run, and UTC timestamp.
+
+The complete record is retained as `review-usage.json` and inside
+`review-result.json`; a compact version appears in the PR comment. The pinned
+estimate uses the model-page rates current when this harness was reviewed:
+$0.15/M input, $0.03/M cached input, and $0.50/M output tokens. Fireworks billing
+remains authoritative, so a pricing change requires a reviewed update to the
+constants and documentation rather than silently changing historical reports.
+
+The workflow remains manually dispatched and has a 45-minute job timeout. It
+does not maintain cross-run account state or attempt to enforce a monthly
+provider budget; the operator must track and enforce the monthly limit
+separately from this per-run audit record.
+
 ## Foundational firewall
 
 Ordinary implementation defects receive `P0` through `P3` findings. If a
@@ -111,15 +179,29 @@ verdict is `foundational_stop`. Such a result requires an explicit design
 decision and theory-version analysis; it is never treated as an automatic code
 fix.
 
-## Initial calibration
+A concrete interoperability divergence or undefined canonical byte sequence is
+at least `P2`, never a nonblocking `P3`. Before returning, the reviewer must
+cross-check its summary against its verdict and findings. These prompt rules
+encode lessons from the first historical calibration, while the strict schema
+still enforces the relationships that are mechanically decidable.
 
-The first runs should target historical pull-request commits rather than a live
-merge:
+## Calibration evidence
 
-- PR #3 at `590150e8fc6504b92873f0ad68f070c92e120138`, which has a known
-  Unicode-format defect found during its original review;
-- PR #5, a larger implementation PR that should test false-positive control.
+The first blind historical replay reviewed PR #3 at
+`590150e8fc6504b92873f0ad68f070c92e120138`, which contained a known Unicode
+surrogate defect. The broad pass missed it. With the packet, model, reasoning
+effort, and historical SHA held constant, the `schema-encoding` pass found the
+exact `a\uD800b` witness and the adjacent failure-class gap. It nevertheless
+downgraded the interoperability defect to `P3` and produced a summary that did
+not cleanly acknowledge its own finding.
 
-Do not show the model the original review comments before comparing its report
-with the known findings. Record whether each result is a true defect, a useful
-test proposal, a false positive, or an attempted change to frozen theory.
+That result established the operating policy encoded here: broad review is a
+search for surprises, focused review protects attention on the changed risk
+area, mechanically checkable invariants belong in deterministic tests, and all
+model output remains advisory. PR #5 and later clean revisions remain useful
+false-positive controls.
+
+Continue to grade historical or seeded cases without exposing their known
+answers in the packet. Record detection, false positives, severity accuracy,
+foundational-firewall handling, runtime, reported tokens, and estimated and
+billed cost whenever the model, prompt, routes, or pricing snapshot changes.

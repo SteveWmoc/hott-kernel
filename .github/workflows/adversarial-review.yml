@@ -25,14 +25,27 @@ on:
         description: "Optional full PR-commit SHA for a historical replay"
         required: false
         type: string
-      review_profile:
-        description: "Review profile"
+      review_phase:
+        description: "Review the proposed design or the implementation"
         required: true
-        default: broad
+        default: code
         type: choice
         options:
+          - design
+          - code
+      review_profile:
+        description: "Risk profile; auto selects one focus from changed paths"
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
           - broad
           - schema-encoding
+          - parser-boundary
+          - kernel-soundness
+          - foundational-consistency
+          - ci-supply-chain
       reasoning_effort:
         description: "GLM reasoning effort"
         required: true
@@ -46,8 +59,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: adversarial-review-${{ github.event.inputs.pr_number || github.ref }}
-  cancel-in-progress: false
+  group: >-
+    adversarial-review-${{ github.event.inputs.pr_number || github.ref }}-${{ github.event.inputs.review_phase || 'validate' }}-${{ github.event.inputs.review_profile || 'validate' }}-${{ github.event.inputs.review_head_sha || 'current' }}
+  cancel-in-progress: true
 
 jobs:
   validate:
@@ -83,6 +97,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ inputs.pr_number }}
           REVIEW_HEAD_SHA: ${{ inputs.review_head_sha }}
+          REVIEW_PHASE: ${{ inputs.review_phase }}
           REVIEW_PROFILE: ${{ inputs.review_profile }}
           REASONING_EFFORT: ${{ inputs.reasoning_effort }}
           REVIEW_OUTPUT_DIR: ${{ runner.temp }}/adversarial-review

@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "max_changed_files": 200,
   "max_diff_chars": 600000,
   "max_changed_file_chars": 900000,
@@ -29,5 +29,67 @@
     "docs/decisions/0012-freeze-core-v0.1.md",
     "tests/specification/accepted.md",
     "tests/specification/rejected.md"
+  ],
+  "profile_routes": [
+    {
+      "profile": "foundational-consistency",
+      "patterns": [
+        "CHARTER.md",
+        "docs/core-v0.1.md",
+        "docs/metatheory.md",
+        "docs/audit-model.md",
+        "docs/failure-classes.md",
+        "docs/decisions/**",
+        "tests/specification/**"
+      ]
+    },
+    {
+      "profile": "kernel-soundness",
+      "patterns": [
+        "src/syntax.rs",
+        "src/checker/**",
+        "src/kernel/**",
+        "src/conversion/**",
+        "src/substitution/**",
+        "src/normalization/**",
+        "tests/conformance/**",
+        "tests/kernel/**"
+      ]
+    },
+    {
+      "profile": "schema-encoding",
+      "patterns": [
+        "schemas/**",
+        "docs/core-format.md",
+        "docs/foundation-manifest-v0.1.md",
+        "src/format/printer.rs",
+        "tests/format/canonical/**",
+        "tests/format/manifests/**",
+        "tests/format/expected-hashes.json"
+      ]
+    },
+    {
+      "profile": "parser-boundary",
+      "patterns": [
+        "src/error.rs",
+        "src/format/mod.rs",
+        "src/format/parser.rs",
+        "tests/format/malformed/**",
+        "tests/format/noncanonical/**",
+        "tests/format/invalid-judgment/**",
+        "tests/format/unsupported/**"
+      ]
+    },
+    {
+      "profile": "ci-supply-chain",
+      "patterns": [
+        ".github/workflows/**",
+        ".github/adversarial-review/**",
+        "scripts/**",
+        "Cargo.toml",
+        "Cargo.lock",
+        "rust-toolchain.toml"
+      ]
+    }
   ]
 }
