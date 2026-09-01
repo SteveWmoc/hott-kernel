@@ -148,9 +148,11 @@ can be published.
 
 ## Usage and cost audit
 
-The streaming request asks Fireworks to include its token-usage object. A
-successful review fails closed if the usage record is missing, malformed, or
-internally inconsistent. The harness records:
+The streaming request asks Fireworks to include its token-usage object. Because
+earlier stream events can contain provisional counters, the harness treats the
+last usage event before the stream terminator as Fireworks' authoritative final
+totals. A successful review fails closed if that final record is missing,
+malformed, or internally inconsistent. The harness records:
 
 - prompt, cached-prompt, uncached-prompt, completion, and total token counts;
 - the pricing snapshot used for estimation;

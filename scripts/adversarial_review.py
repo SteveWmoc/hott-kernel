@@ -783,7 +783,7 @@ def _fireworks_stream_content_once(
     finish_reason: str | None = None
     received_data = False
     saw_done = False
-    raw_usage: dict[str, Any] | None = None
+    final_usage: dict[str, Any] | None = None
 
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
@@ -812,9 +812,10 @@ def _fireworks_stream_content_once(
                 if chunk_usage is not None:
                     if not isinstance(chunk_usage, dict):
                         raise ReviewError("Fireworks returned malformed usage statistics")
-                    if raw_usage is not None and raw_usage != chunk_usage:
-                        raise ReviewError("Fireworks returned conflicting usage statistics")
-                    raw_usage = chunk_usage
+                    # Fireworks defines the last SSE usage event as the final totals.
+                    # Earlier events can contain provisional counters, so retain the
+                    # latest object and validate it only after the stream completes.
+                    final_usage = chunk_usage
                 choices = chunk.get("choices")
                 if choices == []:
                     continue
@@ -862,9 +863,9 @@ def _fireworks_stream_content_once(
         raise ReviewError(f"Fireworks stopped with unexpected finish reason {finish_reason!r}")
     if not content_parts:
         raise ReviewError("Fireworks response did not contain assistant content")
-    if raw_usage is None:
+    if final_usage is None:
         raise ReviewError("Fireworks response did not contain usage statistics")
-    return "".join(content_parts), raw_usage
+    return "".join(content_parts), final_usage
 
 
 def call_fireworks(
