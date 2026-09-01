@@ -717,6 +717,105 @@ class UtilityTests(unittest.TestCase):
         self.assertNotIn("private reasoning", content)
         self.assertEqual(streamed_usage, raw_usage())
 
+    def test_fireworks_stream_uses_the_final_usage_snapshot(self):
+        report_text = json.dumps(clean_report())
+        provisional_usage = raw_usage(
+            prompt_tokens=1000,
+            cached_tokens=0,
+            completion_tokens=100,
+        )
+        final_usage = raw_usage(
+            prompt_tokens=1000,
+            cached_tokens=250,
+            completion_tokens=2000,
+        )
+        events = [
+            {"choices": [], "usage": provisional_usage},
+            {
+                "choices": [
+                    {
+                        "delta": {"content": report_text},
+                        "finish_reason": "stop",
+                    }
+                ]
+            },
+            {"choices": [], "usage": final_usage},
+        ]
+        stream = b"".join(
+            f"data: {json.dumps(event)}\n\n".encode("utf-8") for event in events
+        ) + b"data: [DONE]\n\n"
+
+        with mock.patch.object(review.urllib.request, "urlopen", return_value=io.BytesIO(stream)):
+            content, streamed_usage = review._fireworks_stream_content_once(
+                review.FIREWORKS_API_URL,
+                "fw_test-secret",
+                {"stream": True},
+            )
+
+        self.assertEqual(content, report_text)
+        self.assertEqual(streamed_usage, final_usage)
+
+    def test_fireworks_stream_rejects_a_malformed_final_usage_snapshot(self):
+        report_text = json.dumps(clean_report())
+        events = [
+            {"choices": [], "usage": raw_usage()},
+            {
+                "choices": [
+                    {
+                        "delta": {"content": report_text},
+                        "finish_reason": "stop",
+                    }
+                ]
+            },
+            {"choices": [], "usage": []},
+        ]
+        stream = b"".join(
+            f"data: {json.dumps(event)}\n\n".encode("utf-8") for event in events
+        ) + b"data: [DONE]\n\n"
+
+        with (
+            mock.patch.object(review.urllib.request, "urlopen", return_value=io.BytesIO(stream)),
+            self.assertRaisesRegex(review.ReviewError, "malformed usage statistics"),
+        ):
+            review._fireworks_stream_content_once(
+                review.FIREWORKS_API_URL,
+                "fw_test-secret",
+                {"stream": True},
+            )
+
+    def test_call_fireworks_validates_the_final_usage_totals(self):
+        report_text = json.dumps(clean_report())
+        invalid_final_usage = raw_usage()
+        invalid_final_usage["total_tokens"] += 1
+        events = [
+            {"choices": [], "usage": raw_usage()},
+            {
+                "choices": [
+                    {
+                        "delta": {"content": report_text},
+                        "finish_reason": "stop",
+                    }
+                ]
+            },
+            {"choices": [], "usage": invalid_final_usage},
+        ]
+        stream = b"".join(
+            f"data: {json.dumps(event)}\n\n".encode("utf-8") for event in events
+        ) + b"data: [DONE]\n\n"
+
+        with (
+            mock.patch.object(review.urllib.request, "urlopen", return_value=io.BytesIO(stream)),
+            self.assertRaisesRegex(review.ReviewError, "total_tokens is inconsistent"),
+        ):
+            review.call_fireworks(
+                review.FIREWORKS_API_URL,
+                "fw_test-secret",
+                review.FIREWORKS_MODEL,
+                "max",
+                "system prompt",
+                {"packet_version": "0.1"},
+            )
+
     def test_fireworks_stream_retries_once_before_output(self):
         with (
             mock.patch.object(
