@@ -8,6 +8,33 @@ from unittest import mock
 import adversarial_review as review
 
 
+def raw_usage(*, prompt_tokens=1000, cached_tokens=100, completion_tokens=2000):
+    return {
+        "prompt_tokens": prompt_tokens,
+        "completion_tokens": completion_tokens,
+        "total_tokens": prompt_tokens + completion_tokens,
+        "prompt_tokens_details": {"cached_tokens": cached_tokens},
+    }
+
+
+def usage_record():
+    return review.build_usage_record(raw_usage())
+
+
+def minimal_config(*, contract_files=None):
+    return {
+        "schema_version": 2,
+        "max_changed_files": 1,
+        "max_diff_chars": 1,
+        "max_changed_file_chars": 1,
+        "max_contract_chars": 1,
+        "contract_files": contract_files or ["README.md"],
+        "profile_routes": [
+            {"profile": "ci-supply-chain", "patterns": [".github/**"]}
+        ],
+    }
+
+
 def clean_report():
     return {
         "schema_version": "0.1",
@@ -84,13 +111,18 @@ class RenderingTests(unittest.TestCase):
             "current_head_sha": "a" * 40,
             "base_sha": "b" * 40,
             "review_mode": "current",
+            "review_phase": "code",
+            "requested_profile": "broad",
             "review_profile": "broad",
+            "matched_profiles": [],
             "provider": "Fireworks AI",
             "model": "accounts/fireworks/models/glm-5p3-flash",
             "reasoning_effort": "max",
             "harness_sha": "e" * 40,
             "prompt_sha256": "c" * 64,
             "packet_sha256": "d" * 64,
+            "usage": usage_record(),
+            "recorded_at_utc": "2026-09-01T15:00:00Z",
             "run_url": "https://github.com/example/project/actions/runs/1",
         }
 
@@ -134,8 +166,32 @@ class RenderingTests(unittest.TestCase):
         self.assertIn("profile=schema-encoding", rendered)
         self.assertIn("mode=historical", rendered)
         self.assertIn("Historical focused schema-and-encoding replay", rendered)
-        self.assertIn("Review profile | `schema-encoding`", rendered)
+        self.assertIn("Resolved profile | `schema-encoding`", rendered)
         self.assertNotIn(review.comment_marker_for("historical", "c" * 40) + "\n", rendered)
+
+    def test_design_review_has_a_distinct_marker_and_heading(self):
+        metadata = self.metadata()
+        metadata.update(
+            review_phase="design",
+            requested_profile="auto",
+            review_profile="foundational-consistency",
+            matched_profiles=["foundational-consistency"],
+        )
+
+        rendered = review.render_markdown(clean_report(), metadata)
+
+        self.assertIn("phase=design", rendered)
+        self.assertIn("Focused foundational-consistency design review", rendered)
+        self.assertIn("Review phase | `design`", rendered)
+        self.assertIn("Auto-route matches | `foundational-consistency`", rendered)
+
+    def test_renders_token_usage_and_cost_estimate(self):
+        rendered = review.render_markdown(clean_report(), self.metadata())
+
+        self.assertIn("Prompt tokens | 1000", rendered)
+        self.assertIn("Cached prompt tokens | 100", rendered)
+        self.assertIn("Completion tokens | 2000", rendered)
+        self.assertIn("Estimated cost | $0.001138 USD", rendered)
 
     def test_escapes_model_markdown_and_flattens_lines(self):
         report = clean_report()
@@ -181,28 +237,21 @@ class RenderingTests(unittest.TestCase):
 
 class ConfigurationTests(unittest.TestCase):
     def test_loads_minimal_valid_config(self):
-        config = {
-            "schema_version": 1,
-            "max_changed_files": 1,
-            "max_diff_chars": 1,
-            "max_changed_file_chars": 1,
-            "max_contract_chars": 1,
-            "contract_files": ["README.md"],
-        }
+        config = minimal_config()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "config.json"
             path.write_text(json.dumps(config), encoding="utf-8")
             self.assertEqual(review.load_config(path)["contract_files"], ["README.md"])
 
+    def test_checked_in_config_routes_every_focused_profile(self):
+        root = Path(__file__).resolve().parent.parent
+        config = review.load_config(root / ".github/adversarial-review/config.json")
+
+        routed = {route["profile"] for route in config["profile_routes"]}
+        self.assertEqual(routed, set(review.REVIEW_PROFILE_FILES) - {"broad"})
+
     def test_rejects_parent_traversal(self):
-        config = {
-            "schema_version": 1,
-            "max_changed_files": 1,
-            "max_diff_chars": 1,
-            "max_changed_file_chars": 1,
-            "max_contract_chars": 1,
-            "contract_files": ["../secret"],
-        }
+        config = minimal_config(contract_files=["../secret"])
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "config.json"
             path.write_text(json.dumps(config), encoding="utf-8")
@@ -213,18 +262,83 @@ class ConfigurationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             base = root / "base.md"
+            phase = root / review.REVIEW_PHASE_FILES["code"]
             focused = root / review.REVIEW_PROFILE_FILES["schema-encoding"]
             focused.parent.mkdir(parents=True)
             base.write_text("Base contract\n", encoding="utf-8")
+            phase.parent.mkdir(parents=True, exist_ok=True)
+            phase.write_text("Code contract\n", encoding="utf-8")
             focused.write_text("Focused contract\n", encoding="utf-8")
 
-            prompt = review.compose_review_prompt(root, base, "schema-encoding")
+            prompt = review.compose_review_prompt(root, base, "code", "schema-encoding")
 
-        self.assertEqual(prompt, "Base contract\n\nFocused contract\n")
+        self.assertEqual(
+            prompt,
+            "Base contract\n\nCode contract\n\nFocused contract\n",
+        )
 
     def test_rejects_an_unknown_review_profile(self):
         with self.assertRaises(review.ReviewError):
             review.validate_review_profile("untrusted-profile")
+
+    def test_auto_route_uses_checked_in_risk_priority(self):
+        routes = [
+            {"profile": "foundational-consistency", "patterns": ["docs/decisions/**"]},
+            {"profile": "kernel-soundness", "patterns": ["src/kernel/**"]},
+        ]
+
+        resolved, matches = review.resolve_review_profile(
+            "auto",
+            ["src/kernel/check.rs", "docs/decisions/0013.md"],
+            routes,
+        )
+
+        self.assertEqual(resolved, "foundational-consistency")
+        self.assertEqual(matches, ["foundational-consistency", "kernel-soundness"])
+
+    def test_auto_route_falls_back_to_broad(self):
+        resolved, matches = review.resolve_review_profile(
+            "auto",
+            ["README.md"],
+            [{"profile": "parser-boundary", "patterns": ["src/format/**"]}],
+        )
+
+        self.assertEqual((resolved, matches), ("broad", []))
+
+    def test_auto_route_rejects_a_truncated_changed_file_list(self):
+        packet = {
+            "coverage": {"changed_file_list_truncated": True},
+            "changed_files": [{"path": "src/format/parser.rs"}],
+        }
+        with self.assertRaises(review.ReviewError):
+            review.resolve_packet_review_profile(
+                "auto",
+                packet,
+                [{"profile": "parser-boundary", "patterns": ["src/format/**"]}],
+            )
+
+    def test_explicit_profile_bypasses_path_routing(self):
+        resolved, matches = review.resolve_review_profile(
+            "kernel-soundness",
+            ["schemas/foundation.json"],
+            [{"profile": "schema-encoding", "patterns": ["schemas/**"]}],
+        )
+
+        self.assertEqual((resolved, matches), ("kernel-soundness", []))
+
+    def test_rejects_unknown_review_phase(self):
+        with self.assertRaises(review.ReviewError):
+            review.validate_review_phase("deployment")
+
+    def test_base_prompt_pins_calibration_safeguards(self):
+        root = Path(__file__).resolve().parent.parent
+        prompt = (root / ".github/adversarial-review/prompt.md").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("never merely `P3`", prompt)
+        self.assertIn("the proposed remedy changes a frozen decision", prompt)
+        self.assertIn("consistency check across `verdict`, `summary`", prompt)
 
 
 class UtilityTests(unittest.TestCase):
@@ -470,10 +584,10 @@ class UtilityTests(unittest.TestCase):
         def fake_stream(url, _api_key, payload):
             captured["url"] = url
             captured["payload"] = payload
-            return json.dumps(clean_report())
+            return json.dumps(clean_report()), raw_usage()
 
         with mock.patch.object(review, "_fireworks_stream_content_once", side_effect=fake_stream):
-            result = review.call_fireworks(
+            result, usage = review.call_fireworks(
                 review.FIREWORKS_API_URL,
                 "fw_test-secret",
                 review.FIREWORKS_MODEL,
@@ -483,11 +597,15 @@ class UtilityTests(unittest.TestCase):
             )
 
         self.assertEqual(result["verdict"], "advisory_clear")
+        self.assertEqual(usage["prompt_tokens"], 1000)
         self.assertEqual(captured["payload"]["reasoning_effort"], "max")
         self.assertEqual(captured["payload"]["response_format"], {"type": "json_object"})
         self.assertEqual(captured["payload"]["max_tokens"], review.FIREWORKS_MAX_TOKENS)
         self.assertNotIn("thinking", captured["payload"])
         self.assertTrue(captured["payload"]["stream"])
+        self.assertFalse(
+            captured["payload"]["stream_options"]["include_internal_content"]
+        )
         self.assertEqual(captured["payload"]["stream_options"]["buffer_ms"], 1000)
         self.assertEqual(captured["payload"]["model"], review.FIREWORKS_MODEL)
         self.assertEqual(captured["url"], review.FIREWORKS_API_URL)
@@ -511,13 +629,14 @@ class UtilityTests(unittest.TestCase):
                     {"delta": {"content": report_text[midpoint:]}, "finish_reason": "stop"}
                 ]
             },
+            {"choices": [], "usage": raw_usage()},
         ]
         stream = b"".join(
             f"data: {json.dumps(event)}\n\n".encode("utf-8") for event in events
         ) + b"data: [DONE]\n\n"
 
         with mock.patch.object(review.urllib.request, "urlopen", return_value=io.BytesIO(stream)):
-            content = review._fireworks_stream_content_once(
+            content, streamed_usage = review._fireworks_stream_content_once(
                 review.FIREWORKS_API_URL,
                 "fw_test-secret",
                 {"stream": True},
@@ -525,6 +644,7 @@ class UtilityTests(unittest.TestCase):
 
         self.assertEqual(content, report_text)
         self.assertNotIn("private reasoning", content)
+        self.assertEqual(streamed_usage, raw_usage())
 
     def test_fireworks_stream_retries_once_before_output(self):
         with (
@@ -533,12 +653,12 @@ class UtilityTests(unittest.TestCase):
                 "_fireworks_stream_content_once",
                 side_effect=[
                     review.TransientReviewError("temporary disconnect"),
-                    json.dumps(clean_report()),
+                    (json.dumps(clean_report()), raw_usage()),
                 ],
             ) as streamed,
             mock.patch.object(review.time, "sleep") as sleep,
         ):
-            result = review.call_fireworks(
+            result, usage = review.call_fireworks(
                 review.FIREWORKS_API_URL,
                 "fw_test-secret",
                 review.FIREWORKS_MODEL,
@@ -548,6 +668,7 @@ class UtilityTests(unittest.TestCase):
             )
 
         self.assertEqual(result["verdict"], "advisory_clear")
+        self.assertEqual(usage["completion_tokens"], 2000)
         self.assertEqual(streamed.call_count, 2)
         sleep.assert_called_once_with(2)
 
@@ -566,17 +687,51 @@ class UtilityTests(unittest.TestCase):
                 {"stream": True},
             )
 
-    def test_main_writes_artifacts_and_publishes_validated_comment(self):
-        config = {
-            "schema_version": 1,
-            "max_changed_files": 1,
-            "max_diff_chars": 1,
-            "max_changed_file_chars": 1,
-            "max_contract_chars": 1,
-            "contract_files": ["README.md"],
+    def test_fireworks_stream_rejects_complete_output_without_usage(self):
+        event = {
+            "choices": [
+                {
+                    "delta": {"content": json.dumps(clean_report())},
+                    "finish_reason": "stop",
+                }
+            ]
         }
+        stream = (
+            f"data: {json.dumps(event)}\n\ndata: [DONE]\n\n".encode("utf-8")
+        )
+        with (
+            mock.patch.object(review.urllib.request, "urlopen", return_value=io.BytesIO(stream)),
+            self.assertRaises(review.ReviewError),
+        ):
+            review._fireworks_stream_content_once(
+                review.FIREWORKS_API_URL,
+                "fw_test-secret",
+                {"stream": True},
+            )
+
+    def test_usage_record_accounts_for_cached_prompt_tokens(self):
+        usage = review.build_usage_record(
+            raw_usage(prompt_tokens=1_000_000, cached_tokens=250_000, completion_tokens=100_000)
+        )
+
+        self.assertEqual(usage["uncached_prompt_tokens"], 750_000)
+        self.assertEqual(usage["estimated_cost_usd"], "0.170000")
+        self.assertEqual(
+            usage["rates_usd_per_million_tokens"],
+            {"input": "0.15", "cached_input": "0.03", "output": "0.50"},
+        )
+
+    def test_usage_record_rejects_an_inconsistent_total(self):
+        usage = raw_usage()
+        usage["total_tokens"] += 1
+        with self.assertRaises(review.ReviewError):
+            review.build_usage_record(usage)
+
+    def test_main_writes_artifacts_and_publishes_validated_comment(self):
+        config = minimal_config()
         packet = {
             "packet_version": "0.1",
+            "changed_files": [],
             "pull_request": {
                 "base_sha": "b" * 40,
                 "head_sha": "h" * 40,
@@ -607,6 +762,8 @@ class UtilityTests(unittest.TestCase):
                 "GITHUB_TOKEN": "github-secret",
                 "GITHUB_RUN_ID": "123",
                 "PR_NUMBER": "7",
+                "REVIEW_PHASE": "code",
+                "REVIEW_PROFILE": "broad",
                 "REASONING_EFFORT": "max",
                 "REVIEWER_CONFIG": str(config_path),
                 "REVIEWER_PROMPT": str(prompt_path),
@@ -616,7 +773,11 @@ class UtilityTests(unittest.TestCase):
             with (
                 mock.patch.dict("os.environ", environment, clear=True),
                 mock.patch.object(review, "assemble_packet", return_value=packet),
-                mock.patch.object(review, "call_fireworks", return_value=clean_report()),
+                mock.patch.object(
+                    review,
+                    "call_fireworks",
+                    return_value=(clean_report(), usage_record()),
+                ),
                 mock.patch.object(review, "verify_pr_shas"),
                 mock.patch.object(review, "publish_comment", side_effect=fake_publish),
             ):
@@ -625,6 +786,13 @@ class UtilityTests(unittest.TestCase):
             self.assertTrue((output_path / "review-packet.json").is_file())
             self.assertTrue((output_path / "review-result.json").is_file())
             self.assertTrue((output_path / "review-comment.md").is_file())
+            self.assertTrue((output_path / "review-usage.json").is_file())
+            usage_audit = json.loads(
+                (output_path / "review-usage.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(usage_audit["resolved_profile"], "broad")
+            self.assertEqual(usage_audit["usage"]["estimated_cost_usd"], "0.001138")
+            self.assertEqual(usage_audit["reviewed_head_sha"], "h" * 40)
             self.assertEqual(published["repository"], "example/project")
             self.assertEqual(published["pr_number"], 7)
             self.assertEqual(published["marker"], review.COMMENT_MARKER)

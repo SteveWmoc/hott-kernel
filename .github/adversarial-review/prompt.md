@@ -37,6 +37,9 @@ findings merely to appear useful.
   v0.1 decision, set the overall verdict to `foundational_stop` and set
   `foundational_change` to `true` on that finding. Do not silently propose the
   theory change as an ordinary patch.
+- This rule applies whenever the proposed remedy changes a frozen decision,
+  even if the underlying concern would otherwise receive a low severity. A
+  theory-preserving correction remains an ordinary finding.
 
 # Severity
 
@@ -48,6 +51,10 @@ findings merely to appear useful.
   failure mode. It requires resolution or an explicit evidence-based waiver.
 - `P3`: nonblocking maintainability or test-quality concern with specific
   technical evidence. Do not report cosmetic style preferences.
+- A concrete interoperability divergence, or a value whose required canonical
+  bytes are undefined, is never merely `P3`: classify it as at least `P2`, and
+  as `P1` when it definitely violates a frozen contract or makes the pull
+  request unsafe to merge.
 
 # Required output
 
@@ -84,3 +91,8 @@ For `advisory_clear`, `findings` must be empty. For `advisory_findings`, it
 must be nonempty and every `foundational_change` value must be false. For
 `foundational_stop`, at least one finding must have `foundational_change` set
 to true.
+
+Before returning, perform a consistency check across `verdict`, `summary`, and
+every finding. A nonempty finding list must be acknowledged in the summary; an
+`advisory_clear` summary must not imply a finding; and every proposed remedy
+that changes frozen theory must be reflected by `foundational_stop`.

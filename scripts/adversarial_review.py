@@ -20,6 +20,9 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
+from decimal import Decimal, ROUND_HALF_UP
+from fnmatch import fnmatchcase
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +34,9 @@ FIREWORKS_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
 FIREWORKS_MAX_TOKENS = 131_072
 FIREWORKS_MODEL = "accounts/fireworks/models/glm-5p3-flash"
 PROVIDER_NAME = "Fireworks AI"
+FIREWORKS_INPUT_USD_PER_MILLION = Decimal("0.15")
+FIREWORKS_CACHED_INPUT_USD_PER_MILLION = Decimal("0.03")
+FIREWORKS_OUTPUT_USD_PER_MILLION = Decimal("0.50")
 GITHUB_API_VERSION = "2022-11-28"
 REPORT_SCHEMA_VERSION = "0.1"
 USER_AGENT = "hott-kernel-adversarial-review/0.1"
@@ -40,10 +46,21 @@ ALLOWED_SEVERITIES = {"P0", "P1", "P2", "P3"}
 ALLOWED_CONFIDENCE = {"low", "medium", "high"}
 ALLOWED_FIREWORKS_API_URLS = {FIREWORKS_API_URL}
 SEVERITY_PRIORITY = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
+REVIEW_PHASE_FILES = {
+    "code": ".github/adversarial-review/phases/code.md",
+    "design": ".github/adversarial-review/phases/design.md",
+}
 REVIEW_PROFILE_FILES = {
     "broad": None,
     "schema-encoding": ".github/adversarial-review/profiles/schema-encoding.md",
+    "parser-boundary": ".github/adversarial-review/profiles/parser-boundary.md",
+    "kernel-soundness": ".github/adversarial-review/profiles/kernel-soundness.md",
+    "foundational-consistency": (
+        ".github/adversarial-review/profiles/foundational-consistency.md"
+    ),
+    "ci-supply-chain": ".github/adversarial-review/profiles/ci-supply-chain.md",
 }
+ALLOWED_REQUESTED_PROFILES = {"auto", *REVIEW_PROFILE_FILES}
 FINDING_ID = re.compile(r"AR-[0-9]{3}\Z")
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 FULL_GIT_SHA = re.compile(r"[0-9a-f]{40}\Z")
@@ -263,8 +280,8 @@ def load_config(path: Path) -> dict[str, Any]:
         config = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise ReviewError(f"cannot load reviewer config {path}: {error}") from error
-    if not isinstance(config, dict) or config.get("schema_version") != 1:
-        raise ReviewError("reviewer config schema_version must be 1")
+    if not isinstance(config, dict) or config.get("schema_version") != 2:
+        raise ReviewError("reviewer config schema_version must be 2")
     for key in (
         "max_changed_files",
         "max_diff_chars",
@@ -283,6 +300,36 @@ def load_config(path: Path) -> dict[str, Any]:
             raise ReviewError(f"unsafe contract path: {contract}")
     if len(set(contracts)) != len(contracts):
         raise ReviewError("reviewer config contract_files contains duplicates")
+
+    routes = config.get("profile_routes")
+    if not isinstance(routes, list) or not routes or len(routes) > 20:
+        raise ReviewError("reviewer config profile_routes is invalid")
+    seen_profiles: set[str] = set()
+    for route_index, route in enumerate(routes):
+        label = f"profile_routes[{route_index}]"
+        if not isinstance(route, dict) or set(route) != {"profile", "patterns"}:
+            raise ReviewError(f"reviewer config {label} is invalid")
+        profile = route.get("profile")
+        if profile not in REVIEW_PROFILE_FILES or profile == "broad":
+            raise ReviewError(f"reviewer config {label}.profile is invalid")
+        if profile in seen_profiles:
+            raise ReviewError(f"reviewer config has duplicate route for profile {profile}")
+        seen_profiles.add(profile)
+        patterns = route.get("patterns")
+        if not isinstance(patterns, list) or not patterns or len(patterns) > 100:
+            raise ReviewError(f"reviewer config {label}.patterns is invalid")
+        for pattern_index, pattern in enumerate(patterns):
+            pattern_label = f"{label}.patterns[{pattern_index}]"
+            pattern = require_string(pattern, pattern_label, maximum=500)
+            if (
+                pattern.startswith("/")
+                or ".." in Path(pattern).parts
+                or "\n" in pattern
+                or "\t" in pattern
+            ):
+                raise ReviewError(f"unsafe route pattern: {pattern}")
+        if len(set(patterns)) != len(patterns):
+            raise ReviewError(f"reviewer config {label}.patterns contains duplicates")
     return config
 
 
@@ -569,13 +616,143 @@ def validate_review_profile(profile: str) -> str:
     return profile
 
 
+def validate_requested_review_profile(profile: str) -> str:
+    if profile not in ALLOWED_REQUESTED_PROFILES:
+        allowed = ", ".join(sorted(ALLOWED_REQUESTED_PROFILES))
+        raise ReviewError(f"REVIEW_PROFILE must be one of: {allowed}")
+    return profile
+
+
+def validate_review_phase(phase: str) -> str:
+    if phase not in REVIEW_PHASE_FILES:
+        allowed = ", ".join(sorted(REVIEW_PHASE_FILES))
+        raise ReviewError(f"REVIEW_PHASE must be one of: {allowed}")
+    return phase
+
+
+def resolve_review_profile(
+    requested_profile: str,
+    changed_paths: list[str],
+    routes: list[dict[str, Any]],
+) -> tuple[str, list[str]]:
+    """Resolve `auto` by the first matching checked-in route.
+
+    Route order is a deliberate risk priority. All matching profiles are
+    recorded for auditability even though one focused pass is selected.
+    """
+    requested = validate_requested_review_profile(requested_profile)
+    if requested != "auto":
+        return validate_review_profile(requested), []
+
+    matched_profiles: list[str] = []
+    for route in routes:
+        profile = validate_review_profile(route["profile"])
+        patterns = route["patterns"]
+        if any(
+            fnmatchcase(path, pattern)
+            for path in changed_paths
+            for pattern in patterns
+        ):
+            matched_profiles.append(profile)
+    return (matched_profiles[0] if matched_profiles else "broad"), matched_profiles
+
+
+def resolve_packet_review_profile(
+    requested_profile: str,
+    packet: dict[str, Any],
+    routes: list[dict[str, Any]],
+) -> tuple[str, list[str]]:
+    requested = validate_requested_review_profile(requested_profile)
+    coverage = packet.get("coverage")
+    if (
+        requested == "auto"
+        and isinstance(coverage, dict)
+        and coverage.get("changed_file_list_truncated") is True
+    ):
+        raise ReviewError(
+            "auto profile routing requires the complete changed-file list; "
+            "select an explicit profile or raise the reviewed file bound"
+        )
+    changed_files = packet.get("changed_files")
+    if not isinstance(changed_files, list):
+        raise ReviewError("review packet changed_files is malformed")
+    changed_paths: list[str] = []
+    for index, entry in enumerate(changed_files):
+        if not isinstance(entry, dict):
+            raise ReviewError("review packet changed_files is malformed")
+        changed_paths.append(
+            require_string(
+                entry.get("path"),
+                f"review packet changed_files[{index}].path",
+                maximum=1000,
+            )
+        )
+    return resolve_review_profile(requested, changed_paths, routes)
+
+
+def _usage_integer(value: Any, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ReviewError(f"Fireworks usage {label} must be a nonnegative integer")
+    return value
+
+
+def build_usage_record(raw_usage: Any) -> dict[str, Any]:
+    if not isinstance(raw_usage, dict):
+        raise ReviewError("Fireworks response did not contain usage statistics")
+    prompt_tokens = _usage_integer(raw_usage.get("prompt_tokens"), "prompt_tokens")
+    completion_tokens = _usage_integer(
+        raw_usage.get("completion_tokens"), "completion_tokens"
+    )
+    total_tokens = _usage_integer(raw_usage.get("total_tokens"), "total_tokens")
+    if total_tokens != prompt_tokens + completion_tokens:
+        raise ReviewError("Fireworks usage total_tokens is inconsistent")
+
+    prompt_details = raw_usage.get("prompt_tokens_details")
+    if prompt_details is None:
+        cached_tokens = 0
+    elif isinstance(prompt_details, dict):
+        cached_tokens = _usage_integer(
+            prompt_details.get("cached_tokens", 0),
+            "prompt_tokens_details.cached_tokens",
+        )
+    else:
+        raise ReviewError("Fireworks usage prompt_tokens_details must be an object")
+    if cached_tokens > prompt_tokens:
+        raise ReviewError("Fireworks cached prompt tokens exceed prompt tokens")
+
+    uncached_tokens = prompt_tokens - cached_tokens
+    million = Decimal(1_000_000)
+    estimated_cost = (
+        Decimal(uncached_tokens) * FIREWORKS_INPUT_USD_PER_MILLION
+        + Decimal(cached_tokens) * FIREWORKS_CACHED_INPUT_USD_PER_MILLION
+        + Decimal(completion_tokens) * FIREWORKS_OUTPUT_USD_PER_MILLION
+    ) / million
+    estimated_cost = estimated_cost.quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP)
+    return {
+        "schema_version": 1,
+        "prompt_tokens": prompt_tokens,
+        "cached_prompt_tokens": cached_tokens,
+        "uncached_prompt_tokens": uncached_tokens,
+        "completion_tokens": completion_tokens,
+        "total_tokens": total_tokens,
+        "rates_usd_per_million_tokens": {
+            "input": str(FIREWORKS_INPUT_USD_PER_MILLION),
+            "cached_input": str(FIREWORKS_CACHED_INPUT_USD_PER_MILLION),
+            "output": str(FIREWORKS_OUTPUT_USD_PER_MILLION),
+        },
+        "estimated_cost_usd": format(estimated_cost, "f"),
+        "pricing_reference": "https://fireworks.ai/models/fireworks/glm-5p3-flash",
+        "billing_note": "Estimate from reported tokens and pinned rates; provider billing is authoritative.",
+    }
+
+
 def _fireworks_stream_content_once(
     api_url: str,
     api_key: str,
     request_body: dict[str, Any],
     *,
     timeout: int = 1200,
-) -> str:
+) -> tuple[str, dict[str, Any]]:
     headers = {
         "Accept": "text/event-stream",
         "Content-Type": "application/json",
@@ -588,6 +765,7 @@ def _fireworks_stream_content_once(
     finish_reason: str | None = None
     received_data = False
     saw_done = False
+    raw_usage: dict[str, Any] | None = None
 
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
@@ -612,6 +790,13 @@ def _fireworks_stream_content_once(
                     raise ReviewError("Fireworks returned a malformed stream event") from error
                 if not isinstance(chunk, dict):
                     raise ReviewError("Fireworks returned a malformed stream event")
+                chunk_usage = chunk.get("usage")
+                if chunk_usage is not None:
+                    if not isinstance(chunk_usage, dict):
+                        raise ReviewError("Fireworks returned malformed usage statistics")
+                    if raw_usage is not None and raw_usage != chunk_usage:
+                        raise ReviewError("Fireworks returned conflicting usage statistics")
+                    raw_usage = chunk_usage
                 choices = chunk.get("choices")
                 if choices == []:
                     continue
@@ -659,7 +844,9 @@ def _fireworks_stream_content_once(
         raise ReviewError(f"Fireworks stopped with unexpected finish reason {finish_reason!r}")
     if not content_parts:
         raise ReviewError("Fireworks response did not contain assistant content")
-    return "".join(content_parts)
+    if raw_usage is None:
+        raise ReviewError("Fireworks response did not contain usage statistics")
+    return "".join(content_parts), raw_usage
 
 
 def call_fireworks(
@@ -669,7 +856,7 @@ def call_fireworks(
     reasoning_effort: str,
     prompt: str,
     packet: dict[str, Any],
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], dict[str, Any]]:
     user_message = (
         "Review the following packet under the system contract. Return the required JSON object.\n"
         "<BEGIN_REVIEW_PACKET>\n"
@@ -690,6 +877,7 @@ def call_fireworks(
         "stream": True,
         "stream_options": {
             "include_usage": True,
+            "include_internal_content": False,
             "buffer_tokens": 16,
             "buffer_ms": 1000,
         },
@@ -698,7 +886,9 @@ def call_fireworks(
     api_key = validate_fireworks_api_key(api_key)
     for attempt in range(2):
         try:
-            content = _fireworks_stream_content_once(api_url, api_key, request_body)
+            content, raw_usage = _fireworks_stream_content_once(
+                api_url, api_key, request_body
+            )
             break
         except TransientReviewError as error:
             if attempt == 1:
@@ -707,7 +897,7 @@ def call_fireworks(
                 ) from error
             print(f"Transient Fireworks failure; retrying once in 2 seconds: {error}", file=sys.stderr)
             time.sleep(2)
-    return extract_json_object(content)
+    return extract_json_object(content), build_usage_record(raw_usage)
 
 
 def neutralize_mentions(text: str) -> str:
@@ -739,72 +929,106 @@ def comment_marker_for(
     review_mode: str,
     head_sha: str,
     review_profile: str = "broad",
+    review_phase: str = "code",
 ) -> str:
-    if review_profile == "broad":
+    if review_phase == "code" and review_profile == "broad":
         if review_mode == "current":
             return COMMENT_MARKER
         return f"<!-- adversarial-review:v0.1 historical-head={head_sha} -->"
+    if review_phase == "code":
+        return (
+            f"<!-- adversarial-review:v0.1 profile={review_profile} "
+            f"mode={review_mode} head={head_sha} -->"
+        )
     return (
-        f"<!-- adversarial-review:v0.1 profile={review_profile} "
+        f"<!-- adversarial-review:v0.1 phase={review_phase} profile={review_profile} "
         f"mode={review_mode} head={head_sha} -->"
     )
 
 
-def review_heading(metadata: dict[str, str], maximum: int | None = None) -> str:
+def review_heading(metadata: dict[str, Any], maximum: int | None = None) -> str:
     review_mode = metadata.get("review_mode", "current")
+    review_phase = metadata.get("review_phase", "code")
     review_profile = metadata.get("review_profile", "broad")
-    if review_profile == "schema-encoding":
-        prefix = (
-            "Historical focused schema-and-encoding replay"
-            if review_mode == "historical"
-            else "Focused schema-and-encoding review"
-        )
-    else:
+    profile_labels = {
+        "schema-encoding": "schema-and-encoding",
+        "parser-boundary": "parser-boundary",
+        "kernel-soundness": "kernel-soundness",
+        "foundational-consistency": "foundational-consistency",
+        "ci-supply-chain": "CI-and-supply-chain",
+    }
+    if review_phase == "code" and review_profile == "broad":
         prefix = (
             "Historical adversarial-review replay"
             if review_mode == "historical"
             else "Independent adversarial review"
         )
+    elif review_phase == "code":
+        label = profile_labels[review_profile]
+        prefix = (
+            f"Historical focused {label} replay"
+            if review_mode == "historical"
+            else f"Focused {label} review"
+        )
+    else:
+        subject = (
+            f"Focused {profile_labels[review_profile]} design review"
+            if review_profile in profile_labels
+            else "Independent adversarial design review"
+        )
+        prefix = f"Historical {subject.lower()} replay" if review_mode == "historical" else subject
     return f"## {prefix} — {plain_markdown(metadata['model'], maximum)}"
 
 
-def review_notice(metadata: dict[str, str]) -> str:
+def review_notice(metadata: dict[str, Any]) -> str:
     review_mode = metadata.get("review_mode", "current")
+    review_phase = metadata.get("review_phase", "code")
     review_profile = metadata.get("review_profile", "broad")
-    if review_mode == "historical" and review_profile == "schema-encoding":
-        return (
-            "> Historical calibration replay of an earlier PR commit, focused on schema "
-            "and encoding boundaries. Not a review of the pull request's current or final "
-            "head. Advisory model output; no PR code was executed."
-        )
+    phase_scope = "design proposal" if review_phase == "design" else "implementation"
     if review_mode == "historical":
         return (
-            "> Historical calibration replay of an earlier PR commit, not a review of the "
-            "pull request's current or final head. Advisory model output; no PR code was executed."
+            f"> Historical calibration replay of an earlier PR commit's {phase_scope}, "
+            "not a review of the pull request's current or final head. Advisory model "
+            "output; no PR code was executed."
         )
-    if review_profile == "schema-encoding":
+    if review_profile != "broad":
         return (
-            "> Focused advisory model output for schema and encoding boundaries, not a "
-            "trusted proof or automatic merge decision. No PR code was executed."
+            f"> Focused advisory model output for the pull request's {phase_scope}, not "
+            "a trusted proof or automatic merge decision. No PR code was executed."
         )
     return (
-        "> Advisory model output, not a trusted proof or automatic merge decision. "
-        "No PR code was executed."
+        f"> Advisory model output for the pull request's {phase_scope}, not a trusted "
+        "proof or automatic merge decision. No PR code was executed."
     )
 
 
-def render_markdown(report: dict[str, Any], metadata: dict[str, str]) -> str:
+def render_markdown(report: dict[str, Any], metadata: dict[str, Any]) -> str:
     verdict_labels = {
         "advisory_clear": "Advisory clear",
         "advisory_findings": "Advisory findings",
         "foundational_stop": "FOUNDATIONAL STOP",
     }
     review_mode = metadata.get("review_mode", "current")
+    review_phase = metadata.get("review_phase", "code")
+    requested_profile = metadata.get("requested_profile", metadata.get("review_profile", "broad"))
     review_profile = metadata.get("review_profile", "broad")
+    matched_profiles = metadata.get("matched_profiles", [])
+    usage = metadata.get("usage", {})
+    rates = usage.get("rates_usd_per_million_tokens", {})
+    rate_snapshot = (
+        f"input {rates.get('input', 'unavailable')} / "
+        f"cached input {rates.get('cached_input', 'unavailable')} / "
+        f"output {rates.get('output', 'unavailable')} USD per 1M tokens"
+    )
     lines = [
         metadata.get(
             "comment_marker",
-            comment_marker_for(review_mode, metadata["head_sha"], review_profile),
+            comment_marker_for(
+                review_mode,
+                metadata["head_sha"],
+                review_profile,
+                review_phase,
+            ),
         ),
         review_heading(metadata),
         "",
@@ -817,9 +1041,14 @@ def render_markdown(report: dict[str, Any], metadata: dict[str, str]) -> str:
         "| Audit field | Value |",
         "|---|---|",
         f"| Review mode | {markdown_code(review_mode)} |",
-        f"| Review profile | {markdown_code(review_profile)} |",
+        f"| Review phase | {markdown_code(review_phase)} |",
+        f"| Requested profile | {markdown_code(requested_profile)} |",
+        f"| Resolved profile | {markdown_code(review_profile)} |",
         f"| Reviewed PR head | {markdown_code(metadata['head_sha'])} |",
     ]
+    if requested_profile == "auto":
+        route_value = ", ".join(matched_profiles) if matched_profiles else "fallback: broad"
+        lines.append(f"| Auto-route matches | {markdown_code(route_value)} |")
     if review_mode == "historical":
         lines.append(
             f"| Current/final PR head | {markdown_code(metadata['current_head_sha'])} |"
@@ -833,6 +1062,12 @@ def render_markdown(report: dict[str, Any], metadata: dict[str, str]) -> str:
             f"| Harness commit | {markdown_code(metadata['harness_sha'])} |",
             f"| Prompt SHA-256 | {markdown_code(metadata['prompt_sha256'])} |",
             f"| Packet SHA-256 | {markdown_code(metadata['packet_sha256'])} |",
+            f"| Prompt tokens | {usage.get('prompt_tokens', 'unavailable')} |",
+            f"| Cached prompt tokens | {usage.get('cached_prompt_tokens', 'unavailable')} |",
+            f"| Completion tokens | {usage.get('completion_tokens', 'unavailable')} |",
+            f"| Estimated cost | ${usage.get('estimated_cost_usd', 'unavailable')} USD |",
+            f"| Cost rate snapshot | {markdown_code(rate_snapshot)} |",
+            f"| Recorded at | {markdown_code(metadata.get('recorded_at_utc', 'unavailable'))} |",
             f"| Workflow run | [Open run]({metadata['run_url']}) |",
         ]
     )
@@ -885,7 +1120,7 @@ def render_markdown(report: dict[str, Any], metadata: dict[str, str]) -> str:
     return render_compact_markdown(report, metadata)
 
 
-def render_compact_markdown(report: dict[str, Any], metadata: dict[str, str]) -> str:
+def render_compact_markdown(report: dict[str, Any], metadata: dict[str, Any]) -> str:
     """Render a severity-prioritized, bounded view of an oversized report."""
     verdict_labels = {
         "advisory_clear": "Advisory clear",
@@ -906,11 +1141,20 @@ def render_compact_markdown(report: dict[str, Any], metadata: dict[str, str]) ->
         for severity in ("P0", "P1", "P2", "P3")
     }
     review_mode = metadata.get("review_mode", "current")
+    review_phase = metadata.get("review_phase", "code")
+    requested_profile = metadata.get("requested_profile", metadata.get("review_profile", "broad"))
     review_profile = metadata.get("review_profile", "broad")
+    matched_profiles = metadata.get("matched_profiles", [])
+    usage = metadata.get("usage", {})
     lines = [
         metadata.get(
             "comment_marker",
-            comment_marker_for(review_mode, metadata["head_sha"], review_profile),
+            comment_marker_for(
+                review_mode,
+                metadata["head_sha"],
+                review_profile,
+                review_phase,
+            ),
         ),
         review_heading(metadata, 100),
         "",
@@ -931,9 +1175,14 @@ def render_compact_markdown(report: dict[str, Any], metadata: dict[str, str]) ->
         "| Audit field | Value |",
         "|---|---|",
         f"| Review mode | {markdown_code(review_mode, 20)} |",
-        f"| Review profile | {markdown_code(review_profile, 40)} |",
+        f"| Review phase | {markdown_code(review_phase, 20)} |",
+        f"| Requested profile | {markdown_code(requested_profile, 40)} |",
+        f"| Resolved profile | {markdown_code(review_profile, 40)} |",
         f"| Reviewed PR head | {markdown_code(metadata['head_sha'], 100)} |",
     ]
+    if requested_profile == "auto":
+        route_value = ", ".join(matched_profiles) if matched_profiles else "fallback: broad"
+        lines.append(f"| Auto-route matches | {markdown_code(route_value, 200)} |")
     if review_mode == "historical":
         lines.append(
             f"| Current/final PR head | {markdown_code(metadata['current_head_sha'], 100)} |"
@@ -947,6 +1196,11 @@ def render_compact_markdown(report: dict[str, Any], metadata: dict[str, str]) ->
             f"| Harness commit | {markdown_code(metadata['harness_sha'], 100)} |",
             f"| Prompt SHA-256 | {markdown_code(metadata['prompt_sha256'], 100)} |",
             f"| Packet SHA-256 | {markdown_code(metadata['packet_sha256'], 100)} |",
+            f"| Prompt tokens | {usage.get('prompt_tokens', 'unavailable')} |",
+            f"| Cached prompt tokens | {usage.get('cached_prompt_tokens', 'unavailable')} |",
+            f"| Completion tokens | {usage.get('completion_tokens', 'unavailable')} |",
+            f"| Estimated cost | ${usage.get('estimated_cost_usd', 'unavailable')} USD |",
+            f"| Recorded at | {markdown_code(metadata.get('recorded_at_utc', 'unavailable'), 40)} |",
             f"| Workflow run | [Open run]({metadata['run_url']}) |",
         ]
     )
@@ -1065,13 +1319,20 @@ def read_prompt(path: Path) -> str:
     return prompt
 
 
-def compose_review_prompt(root: Path, base_prompt_path: Path, review_profile: str) -> str:
+def compose_review_prompt(
+    root: Path,
+    base_prompt_path: Path,
+    review_phase: str,
+    review_profile: str,
+) -> str:
     base_prompt = read_prompt(base_prompt_path).rstrip()
+    phase_path = REVIEW_PHASE_FILES[validate_review_phase(review_phase)]
+    phase_prompt = read_prompt(root / phase_path).strip()
     profile_path = REVIEW_PROFILE_FILES[validate_review_profile(review_profile)]
     if profile_path is None:
-        return base_prompt + "\n"
+        return base_prompt + "\n\n" + phase_prompt + "\n"
     focused_prompt = read_prompt(root / profile_path).strip()
-    return base_prompt + "\n\n" + focused_prompt + "\n"
+    return base_prompt + "\n\n" + phase_prompt + "\n\n" + focused_prompt + "\n"
 
 
 def main() -> int:
@@ -1093,8 +1354,11 @@ def main() -> int:
         raise ReviewError("PR_NUMBER must be a positive decimal integer")
     pr_number = int(raw_pr_number)
     requested_head_sha = os.environ.get("REVIEW_HEAD_SHA", "")
-    review_profile = validate_review_profile(
-        os.environ.get("REVIEW_PROFILE", "broad") or "broad"
+    review_phase = validate_review_phase(
+        os.environ.get("REVIEW_PHASE", "code") or "code"
+    )
+    requested_profile = validate_requested_review_profile(
+        os.environ.get("REVIEW_PROFILE", "auto") or "auto"
     )
 
     reasoning_effort = os.environ.get("REASONING_EFFORT", "max") or "max"
@@ -1110,13 +1374,23 @@ def main() -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     config = load_config(config_path)
-    prompt = compose_review_prompt(root, prompt_path, review_profile)
     packet = assemble_packet(
         repository,
         pr_number,
         token,
         config,
         requested_head_sha=requested_head_sha,
+    )
+    review_profile, matched_profiles = resolve_packet_review_profile(
+        requested_profile,
+        packet,
+        config["profile_routes"],
+    )
+    prompt = compose_review_prompt(
+        root,
+        prompt_path,
+        review_phase,
+        review_profile,
     )
     packet_text = canonical_json(packet)
     (output_dir / "review-packet.json").write_text(
@@ -1129,7 +1403,14 @@ def main() -> int:
         "starting Fireworks inference.",
         flush=True,
     )
-    report = call_fireworks(api_url, api_key, model, reasoning_effort, prompt, packet)
+    report, usage = call_fireworks(
+        api_url,
+        api_key,
+        model,
+        reasoning_effort,
+        prompt,
+        packet,
+    )
     pr_meta = packet["pull_request"]
     run_url = (
         f"https://github.com/{repository}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}"
@@ -1141,10 +1422,20 @@ def main() -> int:
         "head_sha": pr_meta["head_sha"],
         "current_head_sha": pr_meta["current_head_sha"],
         "review_mode": pr_meta["review_mode"],
+        "review_phase": review_phase,
+        "requested_profile": requested_profile,
         "review_profile": review_profile,
+        "matched_profiles": matched_profiles,
         "provider": PROVIDER_NAME,
         "model": model,
         "reasoning_effort": reasoning_effort,
+        "usage": usage,
+        "recorded_at_utc": (
+            datetime.now(timezone.utc)
+            .replace(microsecond=0)
+            .isoformat()
+            .replace("+00:00", "Z")
+        ),
         "harness_sha": os.environ.get("GITHUB_SHA", "unknown"),
         "prompt_sha256": sha256_text(prompt),
         "packet_sha256": sha256_text(packet_text),
@@ -1154,6 +1445,33 @@ def main() -> int:
         metadata["review_mode"],
         metadata["head_sha"],
         metadata["review_profile"],
+        metadata["review_phase"],
+    )
+    usage_audit = {
+        "schema_version": 1,
+        "repository": repository,
+        "pull_request_number": pr_number,
+        "base_sha": metadata["base_sha"],
+        "reviewed_head_sha": metadata["head_sha"],
+        "current_head_sha": metadata["current_head_sha"],
+        "review_mode": metadata["review_mode"],
+        "review_phase": metadata["review_phase"],
+        "requested_profile": metadata["requested_profile"],
+        "resolved_profile": metadata["review_profile"],
+        "matched_profiles": metadata["matched_profiles"],
+        "provider": metadata["provider"],
+        "model": metadata["model"],
+        "reasoning_effort": metadata["reasoning_effort"],
+        "harness_sha": metadata["harness_sha"],
+        "prompt_sha256": metadata["prompt_sha256"],
+        "packet_sha256": metadata["packet_sha256"],
+        "workflow_run": metadata["run_url"],
+        "recorded_at_utc": metadata["recorded_at_utc"],
+        "usage": usage,
+    }
+    (output_dir / "review-usage.json").write_text(
+        json.dumps(usage_audit, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
     )
     result = {"metadata": metadata, "report": report}
     (output_dir / "review-result.json").write_text(
@@ -1173,7 +1491,8 @@ def main() -> int:
 
     print(
         f"Published {report['verdict']} for {repository}#{pr_number} at {pr_meta['head_sha']} "
-        f"with {len(report['findings'])} finding(s)."
+        f"with {len(report['findings'])} finding(s); estimated cost "
+        f"${usage['estimated_cost_usd']}."
     )
     return 0
 
