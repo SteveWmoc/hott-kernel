@@ -336,15 +336,17 @@ def load_config(path: Path) -> dict[str, Any]:
 def list_changed_files(repository: str, pr_number: int, token: str, maximum: int) -> tuple[list[dict[str, Any]], bool]:
     files: list[dict[str, Any]] = []
     page = 1
-    while len(files) < maximum:
+    while len(files) <= maximum:
         batch = github_json(repository, f"/pulls/{pr_number}/files?per_page=100&page={page}", token)
         if not isinstance(batch, list):
             raise ReviewError("GitHub returned malformed changed-file metadata")
-        files.extend(batch[: maximum - len(files)])
+        files.extend(batch[: maximum + 1 - len(files)])
+        if len(files) > maximum:
+            return files[:maximum], True
         if len(batch) < 100:
             return files, False
         page += 1
-    return files, True
+    raise ReviewError("internal error while bounding changed-file metadata")
 
 
 def fetch_diff(repository: str, pr_number: int, token: str) -> str:
@@ -428,7 +430,7 @@ def list_comparison_files(
     files = comparison.get("files")
     if not isinstance(files, list) or any(not isinstance(item, dict) for item in files):
         raise ReviewError("GitHub returned malformed comparison file metadata")
-    return files[:maximum], len(files) >= maximum
+    return files[:maximum], len(files) > maximum
 
 
 def fetch_comparison_diff(
@@ -523,6 +525,13 @@ def assemble_packet(
             "deletions": item.get("deletions"),
             "changes": item.get("changes"),
         }
+        previous_filename = item.get("previous_filename")
+        if previous_filename is not None:
+            entry["previous_path"] = require_string(
+                previous_filename,
+                "previous changed filename",
+                maximum=1000,
+            )
         if changed_budget <= 0:
             entry["content_status"] = "omitted: changed-file budget exhausted"
             changed_content_truncated = True
@@ -687,6 +696,15 @@ def resolve_packet_review_profile(
                 maximum=1000,
             )
         )
+        previous_path = entry.get("previous_path")
+        if previous_path is not None:
+            changed_paths.append(
+                require_string(
+                    previous_path,
+                    f"review packet changed_files[{index}].previous_path",
+                    maximum=1000,
+                )
+            )
     return resolve_review_profile(requested, changed_paths, routes)
 
 

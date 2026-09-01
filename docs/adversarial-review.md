@@ -103,7 +103,8 @@ phase, and requested profile is cancelled; unrelated review passes are not.
 
 The `auto` selector examines only the changed paths already included in the
 review packet and chooses the first matching route in this checked-in priority
-order:
+order. Renames are matched using both their previous and destination paths so a
+move cannot erase the risk classification:
 
 | Priority | Profile | Typical paths and risk |
 |---|---|---|
@@ -117,9 +118,10 @@ If no route matches, `auto` falls back to `broad`. If several routes match, the
 first one is selected and every match is retained in the audit metadata. An
 explicit profile bypasses routing, which keeps historical calibration and
 controlled comparisons possible. If the changed-file list reaches its reviewed
-bound, `auto` fails closed rather than selecting from an incomplete path set;
-the operator must raise the bound in a reviewed change or select an explicit
-profile.
+bound, the collector probes for one additional file: equality is complete,
+while actual overflow makes `auto` fail closed rather than select from an
+incomplete path set. The operator must then raise the bound in a reviewed
+change or select an explicit profile.
 
 Every focused profile appends a checked-in prompt to the same base reviewer
 contract and selected phase prompt. The `schema-encoding` profile, for example,

@@ -317,6 +317,25 @@ class ConfigurationTests(unittest.TestCase):
                 [{"profile": "parser-boundary", "patterns": ["src/format/**"]}],
             )
 
+    def test_auto_route_matches_the_previous_path_of_a_rename(self):
+        packet = {
+            "coverage": {"changed_file_list_truncated": False},
+            "changed_files": [
+                {
+                    "path": "archive/old-parser.rs",
+                    "previous_path": "src/format/parser.rs",
+                }
+            ],
+        }
+
+        resolved, matches = review.resolve_packet_review_profile(
+            "auto",
+            packet,
+            [{"profile": "parser-boundary", "patterns": ["src/format/**"]}],
+        )
+
+        self.assertEqual((resolved, matches), ("parser-boundary", ["parser-boundary"]))
+
     def test_explicit_profile_bypasses_path_routing(self):
         resolved, matches = review.resolve_review_profile(
             "kernel-soundness",
@@ -346,6 +365,56 @@ class UtilityTests(unittest.TestCase):
         text, truncated = review.bounded("abcdef", 5)
         self.assertTrue(truncated)
         self.assertEqual(len(text), 5)
+
+    def test_changed_file_limit_distinguishes_equality_from_overflow(self):
+        first_page = [{"filename": f"file-{index}"} for index in range(100)]
+        with mock.patch.object(
+            review,
+            "github_json",
+            side_effect=[first_page, []],
+        ) as exact_api:
+            exact_files, exact_truncated = review.list_changed_files(
+                "example/project", 7, "token", 100
+            )
+        with mock.patch.object(
+            review,
+            "github_json",
+            side_effect=[first_page, [{"filename": "overflow"}]],
+        ) as overflow_api:
+            overflow_files, overflow_truncated = review.list_changed_files(
+                "example/project", 7, "token", 100
+            )
+
+        self.assertEqual(len(exact_files), 100)
+        self.assertFalse(exact_truncated)
+        self.assertEqual(exact_api.call_count, 2)
+        self.assertEqual(len(overflow_files), 100)
+        self.assertTrue(overflow_truncated)
+        self.assertEqual(overflow_api.call_count, 2)
+
+    def test_comparison_file_limit_distinguishes_equality_from_overflow(self):
+        def comparison(count):
+            return {
+                "merge_base_commit": {"sha": "b" * 40},
+                "files": [{"filename": f"file-{index}"} for index in range(count)],
+            }
+
+        with mock.patch.object(
+            review,
+            "github_json",
+            side_effect=[comparison(2), comparison(3)],
+        ):
+            exact_files, exact_truncated = review.list_comparison_files(
+                "example/project", "b" * 40, "h" * 40, "token", 2
+            )
+            overflow_files, overflow_truncated = review.list_comparison_files(
+                "example/project", "b" * 40, "h" * 40, "token", 2
+            )
+
+        self.assertEqual(len(exact_files), 2)
+        self.assertFalse(exact_truncated)
+        self.assertEqual(len(overflow_files), 2)
+        self.assertTrue(overflow_truncated)
 
     def test_fireworks_url_is_restricted(self):
         with self.assertRaises(review.ReviewError):
@@ -464,8 +533,9 @@ class UtilityTests(unittest.TestCase):
         }
         changed = [
             {
-                "filename": "src/lib.rs",
-                "status": "modified",
+                "filename": "src/library.rs",
+                "previous_filename": "src/lib.rs",
+                "status": "renamed",
                 "additions": 1,
                 "deletions": 1,
                 "changes": 2,
@@ -500,7 +570,8 @@ class UtilityTests(unittest.TestCase):
             packet = review.assemble_packet("example/project", 7, "token", config)
 
         self.assertIn(("CHARTER.md", "b" * 40), raw_calls)
-        self.assertIn(("src/lib.rs", "a" * 40), raw_calls)
+        self.assertIn(("src/library.rs", "a" * 40), raw_calls)
+        self.assertEqual(packet["changed_files"][0]["previous_path"], "src/lib.rs")
         self.assertEqual(packet["pull_request"]["review_mode"], "current")
         self.assertEqual(packet["pull_request"]["current_head_sha"], "a" * 40)
         self.assertFalse(packet["coverage"]["comments_and_prior_reviews_included"])
