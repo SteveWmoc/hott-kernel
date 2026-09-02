@@ -33,6 +33,77 @@ impl Natural {
                 .checked_add(usize::from(digit - b'0'))
         })
     }
+
+    pub(crate) fn try_add_usize(&self, mut addend: usize) -> Result<Self, FormatError> {
+        let capacity = self
+            .0
+            .len()
+            .max(decimal_digits(addend))
+            .checked_add(1)
+            .ok_or(FormatError::resource_exhausted())?;
+        let mut reversed = Vec::new();
+        reversed
+            .try_reserve_exact(capacity)
+            .map_err(|_| FormatError::resource_exhausted())?;
+
+        let mut source = self.0.bytes().rev();
+        loop {
+            let source_digit = source.next();
+            if source_digit.is_none() && addend == 0 {
+                break;
+            }
+
+            let sum = source_digit.map_or(0, |digit| usize::from(digit - b'0')) + addend % 10;
+            addend /= 10;
+            if sum >= 10 {
+                addend += 1;
+            }
+            let digit = u8::try_from(sum % 10).expect("sum modulo ten is a decimal digit");
+            reversed.push(b'0' + digit);
+        }
+
+        reversed.reverse();
+        let decimal = String::from_utf8(reversed).expect("decimal arithmetic emits ASCII");
+        Ok(Self(decimal))
+    }
+
+    pub(crate) fn try_predecessor(&self) -> Result<Option<Self>, FormatError> {
+        if self.0 == "0" {
+            return Ok(None);
+        }
+
+        let mut digits = Vec::new();
+        digits
+            .try_reserve_exact(self.0.len())
+            .map_err(|_| FormatError::resource_exhausted())?;
+        digits.extend_from_slice(self.0.as_bytes());
+
+        for digit in digits.iter_mut().rev() {
+            if *digit == b'0' {
+                *digit = b'9';
+            } else {
+                *digit -= 1;
+                break;
+            }
+        }
+        if digits.len() > 1 && digits[0] == b'0' {
+            let len = digits.len();
+            digits.copy_within(1.., 0);
+            digits.truncate(len - 1);
+        }
+
+        let decimal = String::from_utf8(digits).expect("decimal arithmetic emits ASCII");
+        Ok(Some(Self(decimal)))
+    }
+}
+
+fn decimal_digits(mut value: usize) -> usize {
+    let mut digits = 1;
+    while value >= 10 {
+        value /= 10;
+        digits += 1;
+    }
+    digits
 }
 
 impl Ord for Natural {
@@ -165,6 +236,10 @@ impl Arena {
             .map_err(|_| FormatError::resource_exhausted())?;
         self.terms.push(term);
         Ok(TermId::from_index(next))
+    }
+
+    pub(crate) fn truncate(&mut self, len: usize) {
+        self.terms.truncate(len);
     }
 }
 
