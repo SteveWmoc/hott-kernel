@@ -13,9 +13,12 @@ judgments, computation rules, bidirectional algorithm, conversion relation,
 interchange format, semantic projection, foundation manifest, and failure
 classes are now versioned implementation contracts.
 
-There is intentionally no kernel implementation yet. Implementation may now
-begin against the frozen specification and conformance fixtures; code does not
-silently supersede either one.
+**Phase 1 implementation is underway.** The safe-Rust format layer implements
+the Core AST, strict parser, and canonical and semantic printers. The first
+logical checker layer validates local scope and sequential global-reference
+availability; its success does not yet assert that declarations are well
+typed. Code does not silently supersede the frozen specification or
+conformance fixtures.
 
 ## Purpose
 
@@ -73,9 +76,9 @@ See the [project charter](CHARTER.md) for the governing commitments and the
 1. Freeze the Core v0.1 judgments, rules, formats, and audit schema.
    **Complete.**
 2. Implement the Core AST, strict parser, canonical printer, and byte-for-byte
-   round-trip tests in safe Rust.
+   round-trip tests in safe Rust. **Complete.**
 3. Implement the bidirectional checker, conversion, and deterministic
-   foundation manifests in safe Rust.
+   foundation manifests in safe Rust. **In progress.**
 4. Add a surface elaborator and modules.
 5. Develop path algebra, equivalences, and homotopy levels.
 6. Add univalence and selected higher inductive types as auditable extensions

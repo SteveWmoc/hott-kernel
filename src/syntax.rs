@@ -25,6 +25,14 @@ impl Natural {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+
+    pub(crate) fn to_usize(&self) -> Option<usize> {
+        self.0.bytes().try_fold(0usize, |value, digit| {
+            value
+                .checked_mul(10)?
+                .checked_add(usize::from(digit - b'0'))
+        })
+    }
 }
 
 impl Ord for Natural {
