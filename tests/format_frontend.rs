@@ -1,5 +1,5 @@
 use hott_kernel::{
-    FormatErrorClass, parse_canonical, parse_transport, print_canonical, print_semantic,
+    FormatErrorClass, Natural, parse_canonical, parse_transport, print_canonical, print_semantic,
 };
 
 const CANONICAL: &[(&[u8], &[u8])] = &[
@@ -183,6 +183,24 @@ fn naturals_are_not_limited_to_machine_words() {
         print_canonical(&module).unwrap().as_slice(),
         input.as_bytes()
     );
+}
+
+#[test]
+fn natural_ordering_is_numeric() {
+    for pair in ["0", "1", "9", "10", "11", "99", "100", "999", "1000"].windows(2) {
+        let smaller = Natural::from_decimal(pair[0]).unwrap();
+        let larger = Natural::from_decimal(pair[1]).unwrap();
+        assert!(
+            smaller < larger,
+            "{} must be less than {}",
+            pair[0],
+            pair[1]
+        );
+    }
+
+    let shorter = Natural::from_decimal(&"9".repeat(512)).unwrap();
+    let longer = Natural::from_decimal(&format!("1{}", "0".repeat(512))).unwrap();
+    assert!(shorter < longer);
 }
 
 fn decode_hex(text: &str) -> Vec<u8> {
