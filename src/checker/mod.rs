@@ -2,8 +2,9 @@
 //!
 //! The public checker layer currently validates only local and global
 //! reference availability. Internal structural transformations, checked
-//! context/environment state, reduction, normalization, and conversion support
-//! the later bidirectional typing layer.
+//! context/environment state, reduction, normalization, conversion, and the
+//! motive-free bidirectional typing fragment support the later complete
+//! checker.
 
 mod error;
 mod references;
@@ -19,6 +20,10 @@ mod reduce;
 mod state;
 #[cfg_attr(not(test), allow(dead_code))]
 mod transform;
+#[cfg_attr(not(test), allow(dead_code))]
+mod typecheck;
+#[cfg(test)]
+mod typecheck_tests;
 
 pub use error::{CheckError, CheckErrorClass, ReferenceKind};
 pub use references::check_references;

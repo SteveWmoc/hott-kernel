@@ -38,7 +38,7 @@ impl CheckError {
         self.declaration_index
     }
 
-    /// Arena term responsible for a logical reference failure, when available.
+    /// Arena term responsible for a logical checker failure, when available.
     pub const fn term_id(&self) -> Option<TermId> {
         self.term_id
     }
@@ -46,6 +46,15 @@ impl CheckError {
     /// Whether the unavailable reference was local or global, when applicable.
     pub const fn reference_kind(&self) -> Option<ReferenceKind> {
         self.reference_kind
+    }
+
+    pub(super) const fn invalid_judgment(declaration_index: usize, term_id: TermId) -> Self {
+        Self {
+            class: CheckErrorClass::InvalidJudgment,
+            declaration_index,
+            term_id: Some(term_id),
+            reference_kind: None,
+        }
     }
 
     pub(super) const fn invalid_reference(
