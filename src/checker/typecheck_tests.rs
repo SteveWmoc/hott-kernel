@@ -261,7 +261,7 @@ fn transparent_type_aliases_are_exposed_but_noncumulativity_is_not_relaxed() {
 }
 
 #[test]
-fn motive_driven_eliminators_defer_without_mutating_state() {
+fn malformed_motive_eliminators_fail_without_mutating_state() {
     let mut arena = Arena::new();
     let nat = arena.push(Term::Nat).unwrap();
     let zero = arena.push(Term::Zero).unwrap();
@@ -273,20 +273,17 @@ fn motive_driven_eliminators_defer_without_mutating_state() {
     let mut context = LocalContext::new();
     let checkpoint = arena.len();
 
-    assert_eq!(
-        synthesize_motive_free(&mut arena, &globals, &mut context, product).unwrap(),
-        None
-    );
+    let error = synthesize_motive_free(&mut arena, &globals, &mut context, product).unwrap_err();
+    assert_eq!(error.class(), CheckErrorClass::InvalidJudgment);
     assert_eq!(arena.len(), checkpoint);
     assert!(context.is_empty());
 
     let lambda = arena.push(Term::Lam(j)).unwrap();
     let expected = arena.push(Term::Pi(nat, nat)).unwrap();
     let checkpoint = arena.len();
-    assert_eq!(
-        check_motive_free(&mut arena, &globals, &mut context, lambda, expected).unwrap(),
-        None
-    );
+    let error =
+        check_motive_free(&mut arena, &globals, &mut context, lambda, expected).unwrap_err();
+    assert_eq!(error.class(), CheckErrorClass::InvalidJudgment);
     assert_eq!(arena.len(), checkpoint);
     assert!(context.is_empty());
 }

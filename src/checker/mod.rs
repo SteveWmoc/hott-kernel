@@ -2,9 +2,8 @@
 //!
 //! The public checker layer currently validates only local and global
 //! reference availability. Internal structural transformations, checked
-//! context/environment state, reduction, normalization, conversion, and the
-//! motive-free bidirectional typing fragment support the later complete
-//! checker.
+//! context/environment state, reduction, normalization, conversion, motive
+//! recognition, and bidirectional typing support the later complete checker.
 
 mod error;
 mod references;
@@ -14,6 +13,10 @@ mod references;
 mod convert;
 #[cfg(test)]
 mod convert_coverage;
+#[cfg(test)]
+mod motive_tests;
+#[cfg_attr(not(test), allow(dead_code))]
+mod motives;
 #[cfg_attr(not(test), allow(dead_code))]
 mod reduce;
 #[cfg_attr(not(test), allow(dead_code))]
