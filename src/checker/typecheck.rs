@@ -1,39 +1,60 @@
 use super::CheckError;
 use super::convert::convert;
+use super::motives::{
+    JMotiveInput, apply_unary_motive, build_j_branch_type, build_j_result_type,
+    build_nat_step_type, validate_j_motive_type, validate_unary_motive_type,
+};
 use super::reduce::{expose_pi, expose_sigma, whnf};
 use super::state::{CheckedGlobals, LocalContext};
 use super::transform::{TransformError, substitute_top};
 use crate::error::{FormatError, FormatErrorClass};
 use crate::syntax::{Arena, Natural, Term, TermId};
 
-/// Synthesize a type for the Core v0.1 fragment that does not require motive
-/// decomposition.
+/// Synthesize a type for the complete Core v0.1 term language.
 ///
-/// `Ok(None)` is deliberately not a rejection. It means that the requested
-/// derivation encountered one of the four motive-driven eliminators (`J`,
-/// empty elimination, unit elimination, or natural-number elimination), whose
-/// exact motive recognition is staged for the next trusted slice. On `Err` or
-/// `Ok(None)`, all arena and local-context changes made by this operation are
-/// rolled back.
+/// On logical or resource failure, arena and local-context changes made by the
+/// operation are rolled back. Successful synthesis may retain derived arena
+/// nodes because the returned `TermId` can refer to them.
+pub(super) fn synthesize_core(
+    arena: &mut Arena,
+    globals: &CheckedGlobals,
+    context: &mut LocalContext,
+    term: TermId,
+) -> Result<TermId, CheckError> {
+    match run(arena, globals, context, Goal::Synthesize(term))? {
+        Value::Term(ty) => Ok(ty),
+        _ => unreachable!("synthesis produces exactly one synthesized type"),
+    }
+}
+
+/// Check a term against an already validated expected type in Core v0.1.
+///
+/// Successful checking is arena-neutral because no derived `TermId` escapes.
+pub(super) fn check_core(
+    arena: &mut Arena,
+    globals: &CheckedGlobals,
+    context: &mut LocalContext,
+    term: TermId,
+    expected: TermId,
+) -> Result<(), CheckError> {
+    match run(arena, globals, context, Goal::Check(term, expected))? {
+        Value::Checked => Ok(()),
+        _ => unreachable!("checking produces exactly one checked marker"),
+    }
+}
+
+// Compatibility shims keep the PR #20 regression file mechanically stable.
+#[cfg(test)]
 pub(super) fn synthesize_motive_free(
     arena: &mut Arena,
     globals: &CheckedGlobals,
     context: &mut LocalContext,
     term: TermId,
 ) -> Result<Option<TermId>, CheckError> {
-    match run(arena, globals, context, Goal::Synthesize(term))? {
-        Some(Value::Term(ty)) => Ok(Some(ty)),
-        None => Ok(None),
-        Some(_) => unreachable!("synthesis produces exactly one synthesized type"),
-    }
+    synthesize_core(arena, globals, context, term).map(Some)
 }
 
-/// Check a term against an already validated expected type in the motive-free
-/// Core v0.1 fragment.
-///
-/// As with [`synthesize_motive_free`], `Ok(None)` means only that motive-driven
-/// eliminator support is required; it carries no logical verdict. Successful
-/// checking is arena-neutral because no derived `TermId` escapes.
+#[cfg(test)]
 pub(super) fn check_motive_free(
     arena: &mut Arena,
     globals: &CheckedGlobals,
@@ -41,11 +62,7 @@ pub(super) fn check_motive_free(
     term: TermId,
     expected: TermId,
 ) -> Result<Option<()>, CheckError> {
-    match run(arena, globals, context, Goal::Check(term, expected))? {
-        Some(Value::Checked) => Ok(Some(())),
-        None => Ok(None),
-        Some(_) => unreachable!("checking produces exactly one checked marker"),
-    }
+    check_core(arena, globals, context, term, expected).map(|()| Some(()))
 }
 
 #[derive(Clone, Copy)]
@@ -59,7 +76,7 @@ fn run(
     globals: &CheckedGlobals,
     context: &mut LocalContext,
     goal: Goal,
-) -> Result<Option<Value>, CheckError> {
+) -> Result<Value, CheckError> {
     let arena_checkpoint = arena.len();
     let context_checkpoint = context.len();
     let declaration_index = globals.next_declaration_index();
@@ -82,7 +99,7 @@ fn run(
     );
 
     match result {
-        Ok(MachineOutcome::Complete) => {
+        Ok(()) => {
             assert_eq!(
                 context.len(),
                 context_checkpoint,
@@ -93,12 +110,7 @@ fn run(
             if matches!(goal, Goal::Check(_, _)) {
                 arena.truncate(arena_checkpoint);
             }
-            Ok(Some(value))
-        }
-        Ok(MachineOutcome::Deferred) => {
-            restore_context(context, context_checkpoint);
-            arena.truncate(arena_checkpoint);
-            Ok(None)
+            Ok(value)
         }
         Err(error) => {
             restore_context(context, context_checkpoint);
@@ -115,7 +127,7 @@ fn run_machine(
     declaration_index: usize,
     tasks: &mut Vec<Task>,
     values: &mut Vec<Value>,
-) -> Result<MachineOutcome, CheckError> {
+) -> Result<(), CheckError> {
     while let Some(task) = tasks.pop() {
         match task {
             Task::Synthesize(source) => {
@@ -223,11 +235,325 @@ fn run_machine(
                         )?;
                         push_task(tasks, declaration_index, Task::InferUniverse(ty))?;
                     }
-                    Term::J(_, _, _, _, _, _)
-                    | Term::EmptyElim(_, _)
-                    | Term::UnitElim(_, _, _)
-                    | Term::NatElim(_, _, _, _) => return Ok(MachineOutcome::Deferred),
+                    Term::J(ty, base, motive, branch, endpoint, path) => {
+                        push_task(
+                            tasks,
+                            declaration_index,
+                            Task::JAfterUniverse {
+                                ty,
+                                base,
+                                motive,
+                                branch,
+                                endpoint,
+                                path,
+                            },
+                        )?;
+                        push_task(tasks, declaration_index, Task::InferUniverse(ty))?;
+                    }
+                    Term::EmptyElim(motive, scrutinee) => {
+                        push_task(
+                            tasks,
+                            declaration_index,
+                            Task::EmptyAfterMotive { motive, scrutinee },
+                        )?;
+                        push_task(tasks, declaration_index, Task::Synthesize(motive))?;
+                    }
+                    Term::UnitElim(motive, branch, scrutinee) => {
+                        push_task(
+                            tasks,
+                            declaration_index,
+                            Task::UnitAfterMotive {
+                                motive,
+                                branch,
+                                scrutinee,
+                            },
+                        )?;
+                        push_task(tasks, declaration_index, Task::Synthesize(motive))?;
+                    }
+                    Term::NatElim(motive, zero_case, step, scrutinee) => {
+                        push_task(
+                            tasks,
+                            declaration_index,
+                            Task::NatAfterMotive {
+                                motive,
+                                zero_case,
+                                step,
+                                scrutinee,
+                            },
+                        )?;
+                        push_task(tasks, declaration_index, Task::Synthesize(motive))?;
+                    }
                 }
+            }
+            Task::JAfterUniverse {
+                ty,
+                base,
+                motive,
+                branch,
+                endpoint,
+                path,
+            } => {
+                let _ = pop_level(values);
+                push_task(
+                    tasks,
+                    declaration_index,
+                    Task::JAfterBase {
+                        ty,
+                        base,
+                        motive,
+                        branch,
+                        endpoint,
+                        path,
+                    },
+                )?;
+                push_task(tasks, declaration_index, Task::Check(base, ty))?;
+            }
+            Task::JAfterBase {
+                ty,
+                base,
+                motive,
+                branch,
+                endpoint,
+                path,
+            } => {
+                pop_checked(values);
+                push_task(
+                    tasks,
+                    declaration_index,
+                    Task::JAfterMotive {
+                        ty,
+                        base,
+                        motive,
+                        branch,
+                        endpoint,
+                        path,
+                    },
+                )?;
+                push_task(tasks, declaration_index, Task::Synthesize(motive))?;
+            }
+            Task::JAfterMotive {
+                ty,
+                base,
+                motive,
+                branch,
+                endpoint,
+                path,
+            } => {
+                let motive_type = pop_term(values);
+                let _ = validate_j_motive_type(
+                    arena,
+                    globals,
+                    context,
+                    declaration_index,
+                    JMotiveInput {
+                        motive,
+                        motive_type,
+                        ty,
+                        base,
+                    },
+                )?;
+                let branch_type = build_j_branch_type(arena, declaration_index, motive, base)?;
+                push_task(
+                    tasks,
+                    declaration_index,
+                    Task::JAfterBranch {
+                        ty,
+                        base,
+                        motive,
+                        endpoint,
+                        path,
+                    },
+                )?;
+                push_task(tasks, declaration_index, Task::Check(branch, branch_type))?;
+            }
+            Task::JAfterBranch {
+                ty,
+                base,
+                motive,
+                endpoint,
+                path,
+            } => {
+                pop_checked(values);
+                push_task(
+                    tasks,
+                    declaration_index,
+                    Task::JAfterEndpoint {
+                        ty,
+                        base,
+                        motive,
+                        endpoint,
+                        path,
+                    },
+                )?;
+                push_task(tasks, declaration_index, Task::Check(endpoint, ty))?;
+            }
+            Task::JAfterEndpoint {
+                ty,
+                base,
+                motive,
+                endpoint,
+                path,
+            } => {
+                pop_checked(values);
+                let path_type = append(arena, declaration_index, Term::Id(ty, base, endpoint))?;
+                push_task(
+                    tasks,
+                    declaration_index,
+                    Task::JAfterPath {
+                        motive,
+                        endpoint,
+                        path,
+                    },
+                )?;
+                push_task(tasks, declaration_index, Task::Check(path, path_type))?;
+            }
+            Task::JAfterPath {
+                motive,
+                endpoint,
+                path,
+            } => {
+                pop_checked(values);
+                let result = build_j_result_type(arena, declaration_index, motive, endpoint, path)?;
+                push_value(values, declaration_index, Value::Term(result))?;
+            }
+            Task::EmptyAfterMotive { motive, scrutinee } => {
+                let motive_type = pop_term(values);
+                let empty = append(arena, declaration_index, Term::Empty)?;
+                let _ = validate_unary_motive_type(
+                    arena,
+                    globals,
+                    context,
+                    declaration_index,
+                    motive,
+                    motive_type,
+                    empty,
+                )?;
+                push_task(
+                    tasks,
+                    declaration_index,
+                    Task::EmptyAfterScrutinee { motive, scrutinee },
+                )?;
+                push_task(tasks, declaration_index, Task::Check(scrutinee, empty))?;
+            }
+            Task::EmptyAfterScrutinee { motive, scrutinee } => {
+                pop_checked(values);
+                let result = apply_unary_motive(arena, declaration_index, motive, scrutinee)?;
+                push_value(values, declaration_index, Value::Term(result))?;
+            }
+            Task::UnitAfterMotive {
+                motive,
+                branch,
+                scrutinee,
+            } => {
+                let motive_type = pop_term(values);
+                let unit = append(arena, declaration_index, Term::Unit)?;
+                let _ = validate_unary_motive_type(
+                    arena,
+                    globals,
+                    context,
+                    declaration_index,
+                    motive,
+                    motive_type,
+                    unit,
+                )?;
+                let star = append(arena, declaration_index, Term::Star)?;
+                let branch_type = apply_unary_motive(arena, declaration_index, motive, star)?;
+                push_task(
+                    tasks,
+                    declaration_index,
+                    Task::UnitAfterBranch {
+                        motive,
+                        scrutinee,
+                        unit,
+                    },
+                )?;
+                push_task(tasks, declaration_index, Task::Check(branch, branch_type))?;
+            }
+            Task::UnitAfterBranch {
+                motive,
+                scrutinee,
+                unit,
+            } => {
+                pop_checked(values);
+                push_task(
+                    tasks,
+                    declaration_index,
+                    Task::UnitAfterScrutinee { motive, scrutinee },
+                )?;
+                push_task(tasks, declaration_index, Task::Check(scrutinee, unit))?;
+            }
+            Task::UnitAfterScrutinee { motive, scrutinee } => {
+                pop_checked(values);
+                let result = apply_unary_motive(arena, declaration_index, motive, scrutinee)?;
+                push_value(values, declaration_index, Value::Term(result))?;
+            }
+            Task::NatAfterMotive {
+                motive,
+                zero_case,
+                step,
+                scrutinee,
+            } => {
+                let motive_type = pop_term(values);
+                let nat = append(arena, declaration_index, Term::Nat)?;
+                let _ = validate_unary_motive_type(
+                    arena,
+                    globals,
+                    context,
+                    declaration_index,
+                    motive,
+                    motive_type,
+                    nat,
+                )?;
+                let zero = append(arena, declaration_index, Term::Zero)?;
+                let zero_type = apply_unary_motive(arena, declaration_index, motive, zero)?;
+                push_task(
+                    tasks,
+                    declaration_index,
+                    Task::NatAfterZero {
+                        motive,
+                        step,
+                        scrutinee,
+                        nat,
+                    },
+                )?;
+                push_task(tasks, declaration_index, Task::Check(zero_case, zero_type))?;
+            }
+            Task::NatAfterZero {
+                motive,
+                step,
+                scrutinee,
+                nat,
+            } => {
+                pop_checked(values);
+                let step_type = build_nat_step_type(arena, declaration_index, motive)?;
+                push_task(
+                    tasks,
+                    declaration_index,
+                    Task::NatAfterStep {
+                        motive,
+                        scrutinee,
+                        nat,
+                    },
+                )?;
+                push_task(tasks, declaration_index, Task::Check(step, step_type))?;
+            }
+            Task::NatAfterStep {
+                motive,
+                scrutinee,
+                nat,
+            } => {
+                pop_checked(values);
+                push_task(
+                    tasks,
+                    declaration_index,
+                    Task::NatAfterScrutinee { motive, scrutinee },
+                )?;
+                push_task(tasks, declaration_index, Task::Check(scrutinee, nat))?;
+            }
+            Task::NatAfterScrutinee { motive, scrutinee } => {
+                pop_checked(values);
+                let result = apply_unary_motive(arena, declaration_index, motive, scrutinee)?;
+                push_value(values, declaration_index, Value::Term(result))?;
             }
             Task::Check(source, expected) => {
                 let term = arena
@@ -432,7 +758,7 @@ fn run_machine(
         }
     }
 
-    Ok(MachineOutcome::Complete)
+    Ok(())
 }
 
 #[derive(Clone, Copy)]
@@ -508,6 +834,92 @@ enum Task {
         codomain: TermId,
     },
     PairAfterSecond,
+    JAfterUniverse {
+        ty: TermId,
+        base: TermId,
+        motive: TermId,
+        branch: TermId,
+        endpoint: TermId,
+        path: TermId,
+    },
+    JAfterBase {
+        ty: TermId,
+        base: TermId,
+        motive: TermId,
+        branch: TermId,
+        endpoint: TermId,
+        path: TermId,
+    },
+    JAfterMotive {
+        ty: TermId,
+        base: TermId,
+        motive: TermId,
+        branch: TermId,
+        endpoint: TermId,
+        path: TermId,
+    },
+    JAfterBranch {
+        ty: TermId,
+        base: TermId,
+        motive: TermId,
+        endpoint: TermId,
+        path: TermId,
+    },
+    JAfterEndpoint {
+        ty: TermId,
+        base: TermId,
+        motive: TermId,
+        endpoint: TermId,
+        path: TermId,
+    },
+    JAfterPath {
+        motive: TermId,
+        endpoint: TermId,
+        path: TermId,
+    },
+    EmptyAfterMotive {
+        motive: TermId,
+        scrutinee: TermId,
+    },
+    EmptyAfterScrutinee {
+        motive: TermId,
+        scrutinee: TermId,
+    },
+    UnitAfterMotive {
+        motive: TermId,
+        branch: TermId,
+        scrutinee: TermId,
+    },
+    UnitAfterBranch {
+        motive: TermId,
+        scrutinee: TermId,
+        unit: TermId,
+    },
+    UnitAfterScrutinee {
+        motive: TermId,
+        scrutinee: TermId,
+    },
+    NatAfterMotive {
+        motive: TermId,
+        zero_case: TermId,
+        step: TermId,
+        scrutinee: TermId,
+    },
+    NatAfterZero {
+        motive: TermId,
+        step: TermId,
+        scrutinee: TermId,
+        nat: TermId,
+    },
+    NatAfterStep {
+        motive: TermId,
+        scrutinee: TermId,
+        nat: TermId,
+    },
+    NatAfterScrutinee {
+        motive: TermId,
+        scrutinee: TermId,
+    },
     CheckAfterSynthesis {
         source: TermId,
         expected: TermId,
@@ -518,12 +930,6 @@ enum Value {
     Term(TermId),
     Level(Natural),
     Checked,
-}
-
-#[derive(Clone, Copy)]
-enum MachineOutcome {
-    Complete,
-    Deferred,
 }
 
 fn push_task(
