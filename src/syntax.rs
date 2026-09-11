@@ -309,4 +309,10 @@ impl Module {
     pub fn declarations(&self) -> &[Declaration] {
         &self.declarations
     }
+
+    /// Split access used by the checker so declarations can remain borrowed
+    /// while the arena is used as transactional scratch space.
+    pub(crate) fn checking_parts(&mut self) -> (&mut Arena, &[Declaration]) {
+        (&mut self.arena, &self.declarations)
+    }
 }

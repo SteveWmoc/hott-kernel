@@ -43,6 +43,20 @@ pub(super) fn check_core(
     }
 }
 
+/// Execute the frozen `inferUniverse(A)` operation and return its literal
+/// universe level. No checker-derived arena node escapes this operation.
+pub(super) fn infer_universe_core(
+    arena: &mut Arena,
+    globals: &CheckedGlobals,
+    context: &mut LocalContext,
+    subject: TermId,
+) -> Result<Natural, CheckError> {
+    match run(arena, globals, context, Goal::InferUniverse(subject))? {
+        Value::Level(level) => Ok(level),
+        _ => unreachable!("universe inference produces exactly one level"),
+    }
+}
+
 // Compatibility shims keep the PR #20 regression file mechanically stable.
 #[cfg(test)]
 pub(super) fn synthesize_motive_free(
@@ -69,6 +83,7 @@ pub(super) fn check_motive_free(
 enum Goal {
     Synthesize(TermId),
     Check(TermId, TermId),
+    InferUniverse(TermId),
 }
 
 fn run(
@@ -86,6 +101,7 @@ fn run(
     let initial = match goal {
         Goal::Synthesize(term) => Task::Synthesize(term),
         Goal::Check(term, expected) => Task::Check(term, expected),
+        Goal::InferUniverse(subject) => Task::InferUniverse(subject),
     };
     push_task(&mut tasks, declaration_index, initial)?;
 
@@ -107,7 +123,7 @@ fn run(
             );
             assert_eq!(values.len(), 1, "typing produces exactly one result");
             let value = values.pop().expect("one typing result exists");
-            if matches!(goal, Goal::Check(_, _)) {
+            if !matches!(goal, Goal::Synthesize(_)) {
                 arena.truncate(arena_checkpoint);
             }
             Ok(value)

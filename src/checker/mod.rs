@@ -1,10 +1,11 @@
 //! Logical checks over parsed Core v0.1 syntax.
 //!
-//! The public checker layer currently validates only local and global
-//! reference availability. Internal structural transformations, checked
-//! context/environment state, reduction, normalization, conversion, motive
-//! recognition, and bidirectional typing support the later complete checker.
+//! The public checker layer exposes both reference-only validation and the
+//! complete frozen Core v0.1 one-pass declaration checker. Structural
+//! transformations, checked state, reduction, normalization, conversion,
+//! motive recognition, and bidirectional typing remain internal TCB layers.
 
+mod declarations;
 mod error;
 mod references;
 // Land and audit frozen checker primitives before their public consumers so
@@ -28,5 +29,6 @@ mod typecheck;
 #[cfg(test)]
 mod typecheck_tests;
 
+pub use declarations::check_module;
 pub use error::{CheckError, CheckErrorClass, ReferenceKind};
 pub use references::check_references;

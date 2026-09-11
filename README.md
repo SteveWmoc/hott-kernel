@@ -14,10 +14,12 @@ interchange format, semantic projection, foundation manifest, and failure
 classes are now versioned implementation contracts.
 
 **Phase 1 implementation is underway.** The safe-Rust format layer implements
-the Core AST, strict parser, and canonical and semantic printers. The first
-logical checker layer validates local scope and sequential global-reference
-availability; its success does not yet assert that declarations are well
-typed. Code does not silently supersede the frozen specification or
+the Core AST, strict parser, and canonical and semantic printers. The public
+checker now validates complete Core v0.1 modules in one forward pass using the
+frozen bidirectional typing, motive-recognition, and beta-delta-iota conversion
+rules. The 13 accepted and 19 rejected logical conformance modules are executable
+checker regressions. Deterministic foundation-manifest extraction remains Phase
+1 work. Code does not silently supersede the frozen specification or
 conformance fixtures.
 
 ## Purpose
