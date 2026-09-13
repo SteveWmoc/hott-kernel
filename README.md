@@ -14,15 +14,16 @@ interchange format, semantic projection, foundation manifest, and failure
 classes are now versioned implementation contracts.
 
 **Phase 1 implementation is underway.** The safe-Rust format layer implements
-the Core AST, strict parser, and canonical and semantic printers. The public
-checker validates complete Core v0.1 modules in one forward pass using the
-frozen bidirectional typing, motive-recognition, and beta-delta-iota conversion
-rules. The 13 accepted and 19 rejected logical conformance modules are executable
-checker regressions. Deterministic structural foundation-audit extraction now
-reports direct and transitive kernel-feature, postulate, and declaration
-dependencies for accepted modules. Artifact/semantic hashing and complete JSON
-foundation-manifest packaging remain Phase 1 work. Code does not silently
-supersede the frozen specification or conformance fixtures.
+the Core AST, strict parser, canonical and semantic printers, and the frozen
+SHA-256 artifact and semantic identities. The public checker validates complete
+Core v0.1 modules in one forward pass using the frozen bidirectional typing,
+motive-recognition, and beta-delta-iota conversion rules. The 13 accepted and 19
+rejected logical conformance modules are executable checker regressions.
+Deterministic structural foundation-audit extraction reports direct and
+transitive kernel-feature, postulate, and declaration dependencies for accepted
+modules. Complete JSON foundation-manifest packaging and asserted-provenance
+handling remain Phase 1 work. Code does not silently supersede the frozen
+specification or conformance fixtures.
 
 ## Purpose
 
