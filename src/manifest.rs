@@ -7,6 +7,12 @@ use crate::error::FormatError;
 use crate::format::{ARTIFACT_FORMAT, ModuleHashes, SEMANTIC_PROJECTION, compute_module_hashes};
 use crate::syntax::Module;
 
+mod parser;
+pub use parser::{
+    ParsedAuditDependencies, ParsedDeclarationAudit, ParsedFoundationManifest,
+    ParsedManifestGenerator, ParsedProvenanceRecord, parse_foundation_manifest,
+};
+
 pub const FOUNDATION_MANIFEST_SCHEMA: &str = "hott-foundation-manifest/0.1";
 pub const KERNEL_THEORY: &str = "mltt-core";
 pub const KERNEL_VERSION: &str = "0.1";

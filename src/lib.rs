@@ -5,8 +5,9 @@
 //! This crate implements syntax, canonical serialization, exact artifact and
 //! semantic hashing, reference-availability validation, full Core v0.1
 //! declaration checking, deterministic structural foundation-audit extraction,
-//! and deterministic Foundation Manifest v0.1 generation. Manifest parsing,
-//! comparison, and asserted-provenance validation remain separate Phase 1 work.
+//! deterministic Foundation Manifest v0.1 generation, and strict manifest JSON
+//! parsing/schema validation. Deterministic manifest comparison remains separate
+//! Phase 1 work.
 
 pub mod checker;
 pub mod error;
@@ -26,6 +27,8 @@ pub use format::{
 };
 pub use manifest::{
     FOUNDATION_MANIFEST_SCHEMA, FoundationManifest, KERNEL_THEORY, KERNEL_VERSION,
-    ManifestBuildError, build_foundation_manifest, print_foundation_manifest,
+    ManifestBuildError, ParsedAuditDependencies, ParsedDeclarationAudit, ParsedFoundationManifest,
+    ParsedManifestGenerator, ParsedProvenanceRecord, build_foundation_manifest,
+    parse_foundation_manifest, print_foundation_manifest,
 };
 pub use syntax::{Arena, Declaration, Module, Natural, Term, TermId};
