@@ -21,11 +21,15 @@ motive-recognition, and beta-delta-iota conversion rules. The 13 accepted and 19
 rejected logical conformance modules are executable checker regressions.
 Deterministic structural foundation-audit extraction reports direct and
 transitive kernel-feature, postulate, and declaration dependencies for accepted
-modules. The crate now combines those checked audit records with the frozen
-artifact identities and emits complete `hott-foundation-manifest/0.1` JSON with
-an empty asserted-provenance array. Manifest parsing/comparison and validation
-of user-supplied asserted provenance remain Phase 1 work. Code does not silently
-supersede the frozen specification or conformance fixtures.
+modules. The crate combines those checked audit records with the frozen artifact
+identities and emits complete `hott-foundation-manifest/0.1` JSON with an empty
+asserted-provenance array. A separate strict manifest parser validates UTF-8 and
+JSON encoding, the frozen schema, decoded Unicode strings, duplicate keys,
+canonical set ordering, backward dependency indices, and asserted-provenance
+shape/order without treating untrusted input as recomputed audit data.
+Deterministic comparison of a supplied manifest with a checked Core artifact
+remains Phase 1 work. Code does not silently supersede the frozen specification
+or conformance fixtures.
 
 ## Purpose
 
