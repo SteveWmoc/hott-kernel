@@ -8,10 +8,12 @@ use crate::format::{ARTIFACT_FORMAT, ModuleHashes, SEMANTIC_PROJECTION, compute_
 use crate::syntax::Module;
 
 mod parser;
+mod verify;
 pub use parser::{
     ParsedAuditDependencies, ParsedDeclarationAudit, ParsedFoundationManifest,
     ParsedManifestGenerator, ParsedProvenanceRecord, parse_foundation_manifest,
 };
+pub use verify::{ManifestVerifyError, ManifestVerifyErrorClass, verify_foundation_manifest};
 
 pub const FOUNDATION_MANIFEST_SCHEMA: &str = "hott-foundation-manifest/0.1";
 pub const KERNEL_THEORY: &str = "mltt-core";
