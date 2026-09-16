@@ -26,10 +26,11 @@ identities and emits complete `hott-foundation-manifest/0.1` JSON with an empty
 asserted-provenance array. A separate strict manifest parser validates UTF-8 and
 JSON encoding, the frozen schema, decoded Unicode strings, duplicate keys,
 canonical set ordering, backward dependency indices, and asserted-provenance
-shape/order without treating untrusted input as recomputed audit data.
-Deterministic comparison of a supplied manifest with a checked Core artifact
-remains Phase 1 work. Code does not silently supersede the frozen specification
-or conformance fixtures.
+shape/order without treating untrusted input as recomputed audit data. A
+byte-level verifier now requires canonical Core bytes, recomputes both hashes and
+the checked structural audit, and compares the supplied deterministic manifest
+fields while preserving asserted provenance only for separate reporting. Code
+does not silently supersede the frozen specification or conformance fixtures.
 
 ## Purpose
 
