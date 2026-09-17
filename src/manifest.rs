@@ -70,6 +70,46 @@ pub enum ManifestBuildError {
     Format(FormatError),
 }
 
+/// Stable public classification of complete Foundation Manifest generation failures.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub enum ManifestBuildErrorClass {
+    MalformedEncoding,
+    UnsupportedVersion,
+    NoncanonicalArtifact,
+    InvalidJudgment,
+    ResourceExhausted,
+}
+
+impl ManifestBuildError {
+    pub const fn class(&self) -> ManifestBuildErrorClass {
+        match self {
+            Self::Check(error) => match error.class() {
+                crate::checker::CheckErrorClass::InvalidJudgment => {
+                    ManifestBuildErrorClass::InvalidJudgment
+                }
+                crate::checker::CheckErrorClass::ResourceExhausted => {
+                    ManifestBuildErrorClass::ResourceExhausted
+                }
+            },
+            Self::Format(error) => match error.class() {
+                crate::error::FormatErrorClass::MalformedEncoding => {
+                    ManifestBuildErrorClass::MalformedEncoding
+                }
+                crate::error::FormatErrorClass::UnsupportedVersion => {
+                    ManifestBuildErrorClass::UnsupportedVersion
+                }
+                crate::error::FormatErrorClass::NoncanonicalArtifact => {
+                    ManifestBuildErrorClass::NoncanonicalArtifact
+                }
+                crate::error::FormatErrorClass::ResourceExhausted => {
+                    ManifestBuildErrorClass::ResourceExhausted
+                }
+            },
+        }
+    }
+}
+
 impl fmt::Display for ManifestBuildError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -98,6 +138,19 @@ impl From<FormatError> for ManifestBuildError {
     fn from(error: FormatError) -> Self {
         Self::Format(error)
     }
+}
+
+/// Generate deterministic Foundation Manifest v0.1 JSON from canonical Core bytes.
+///
+/// The byte-level producer requires the supplied Core artifact itself to be
+/// canonical; it never silently canonicalizes transport input before hashing.
+/// After parsing, it runs the complete checker and structural audit, computes
+/// the frozen artifact identities, and emits the same stable JSON representation
+/// as `print_foundation_manifest` with empty asserted provenance.
+pub fn generate_foundation_manifest(core_bytes: &[u8]) -> Result<Vec<u8>, ManifestBuildError> {
+    let mut module = crate::format::parse_canonical(core_bytes)?;
+    let manifest = build_foundation_manifest(&mut module)?;
+    Ok(print_foundation_manifest(&manifest)?)
 }
 
 /// Check a complete Core v0.1 module and construct its deterministic manifest.

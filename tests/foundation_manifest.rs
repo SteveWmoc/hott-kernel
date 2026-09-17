@@ -1,7 +1,13 @@
 use hott_kernel::{
-    CheckErrorClass, ManifestBuildError, build_foundation_manifest, parse_canonical,
-    print_canonical, print_foundation_manifest,
+    CheckErrorClass, ManifestBuildError, ManifestBuildErrorClass, build_foundation_manifest,
+    generate_foundation_manifest, parse_canonical, print_canonical, print_foundation_manifest,
+    verify_foundation_manifest,
 };
+
+fn generate_class(core: &[u8], expected: ManifestBuildErrorClass) {
+    let error = generate_foundation_manifest(core).unwrap_err();
+    assert_eq!(error.class(), expected);
+}
 
 #[test]
 fn identity_manifest_matches_frozen_fixture_byte_for_byte() {
@@ -173,5 +179,50 @@ fn multi_record_dependency_arrays_have_deterministic_layout() {
     assert_eq!(
         manifest.audit().declarations()[2].transitive().postulates(),
         &[0]
+    );
+}
+
+#[test]
+fn byte_level_generation_matches_frozen_identity_and_reverifies() {
+    let core = include_bytes!("format/canonical/identity-u0.core");
+    let json = generate_foundation_manifest(core).expect("canonical identity must generate");
+
+    assert_eq!(
+        json.as_slice(),
+        include_bytes!("format/manifests/identity-u0.manifest.json")
+    );
+    let supplied = verify_foundation_manifest(core, &json).expect("generated manifest must verify");
+    assert!(supplied.asserted_provenance().is_empty());
+}
+
+#[test]
+fn byte_level_generation_rejects_malformed_core() {
+    generate_class(b"(", ManifestBuildErrorClass::MalformedEncoding);
+}
+
+#[test]
+fn byte_level_generation_rejects_unsupported_core_version() {
+    let source = core::str::from_utf8(include_bytes!("format/canonical/identity-u0.core")).unwrap();
+    let unsupported = source.replacen("(format 0 1)", "(format 0 2)", 1);
+    generate_class(
+        unsupported.as_bytes(),
+        ManifestBuildErrorClass::UnsupportedVersion,
+    );
+}
+
+#[test]
+fn byte_level_generation_rejects_noncanonical_core() {
+    let canonical = include_bytes!("format/canonical/identity-u0.core");
+    let mut noncanonical = Vec::with_capacity(canonical.len() + 1);
+    noncanonical.push(b' ');
+    noncanonical.extend_from_slice(canonical);
+    generate_class(&noncanonical, ManifestBuildErrorClass::NoncanonicalArtifact);
+}
+
+#[test]
+fn byte_level_generation_preserves_invalid_judgment_classification() {
+    generate_class(
+        include_bytes!("conformance/rejected/bad-body.core"),
+        ManifestBuildErrorClass::InvalidJudgment,
     );
 }

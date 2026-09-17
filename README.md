@@ -23,7 +23,9 @@ Deterministic structural foundation-audit extraction reports direct and
 transitive kernel-feature, postulate, and declaration dependencies for accepted
 modules. The crate combines those checked audit records with the frozen artifact
 identities and emits complete `hott-foundation-manifest/0.1` JSON with an empty
-asserted-provenance array. A separate strict manifest parser validates UTF-8 and
+asserted-provenance array, either from a checked module or directly from canonical
+Core artifact bytes without silently canonicalizing the input. A separate strict
+manifest parser validates UTF-8 and
 JSON encoding, the frozen schema, decoded Unicode strings, duplicate keys,
 canonical set ordering, backward dependency indices, and asserted-provenance
 shape/order without treating untrusted input as recomputed audit data. A
