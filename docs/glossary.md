@@ -158,7 +158,14 @@ independently and is not checker input.
 ## Surface elaborator
 
 An untrusted program translating convenient user syntax into fully explicit
-core terms. Its output must be checked by the kernel.
+core terms. Surface v0.1 performs deterministic name resolution and structural
+translation only; its output must still be checked by the kernel.
+
+## Surface module
+
+A named Surface v0.1 source compilation unit that elaborates to exactly one
+Core v0.1 module. Its module name is diagnostic metadata and is not emitted into
+Core v0.1. Surface v0.1 has no imports.
 
 ## Transparent definition
 

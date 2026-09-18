@@ -13,10 +13,10 @@ judgments, computation rules, bidirectional algorithm, conversion relation,
 interchange format, semantic projection, foundation manifest, and failure
 classes are now versioned implementation contracts.
 
-**Phase 1 implementation is underway.** The safe-Rust format layer implements
-the Core AST, strict parser, canonical and semantic printers, and the frozen
-SHA-256 artifact and semantic identities. The public checker validates complete
-Core v0.1 modules in one forward pass using the frozen bidirectional typing,
+**Roadmap item 3 is complete.** The safe-Rust format layer implements the Core
+AST, strict parser, canonical and semantic printers, and the frozen SHA-256
+artifact and semantic identities. The public checker validates complete Core
+v0.1 modules in one forward pass using the frozen bidirectional typing,
 motive-recognition, and beta-delta-iota conversion rules. The 13 accepted and 19
 rejected logical conformance modules are executable checker regressions.
 Deterministic structural foundation-audit extraction reports direct and
@@ -25,14 +25,18 @@ modules. The crate combines those checked audit records with the frozen artifact
 identities and emits complete `hott-foundation-manifest/0.1` JSON with an empty
 asserted-provenance array, either from a checked module or directly from canonical
 Core artifact bytes without silently canonicalizing the input. A separate strict
-manifest parser validates UTF-8 and
-JSON encoding, the frozen schema, decoded Unicode strings, duplicate keys,
-canonical set ordering, backward dependency indices, and asserted-provenance
-shape/order without treating untrusted input as recomputed audit data. A
-byte-level verifier now requires canonical Core bytes, recomputes both hashes and
-the checked structural audit, and compares the supplied deterministic manifest
-fields while preserving asserted provenance only for separate reporting. Code
-does not silently supersede the frozen specification or conformance fixtures.
+manifest parser validates UTF-8 and JSON encoding, the frozen schema, decoded
+Unicode strings, duplicate keys, canonical set ordering, backward dependency
+indices, and asserted-provenance shape/order without treating untrusted input as
+recomputed audit data. A byte-level verifier requires canonical Core bytes,
+recomputes both hashes and the checked structural audit, and compares the supplied
+deterministic manifest fields while preserving asserted provenance only for
+separate reporting.
+
+**Surface v0.1 is specified for implementation.** It is an untrusted named
+syntax layer that resolves local and earlier-global names to explicit Core terms
+without adding inference rules, implicit arguments, metavariables, tactics, or
+imports. See [Surface v0.1](docs/surface-v0.1.md).
 
 ## Purpose
 
@@ -79,6 +83,7 @@ See the [project charter](CHARTER.md) for the governing commitments and the
 - [Result and failure classes](docs/failure-classes.md)
 - [Metatheory and validation program](docs/metatheory.md)
 - [Core v0.1 implementability review](docs/implementability-review-v0.1.md)
+- [Surface v0.1](docs/surface-v0.1.md)
 - [Foundational decisions](docs/decisions/)
 - [Accepted specification examples](tests/specification/accepted.md)
 - [Rejected specification examples](tests/specification/rejected.md)
@@ -92,8 +97,9 @@ See the [project charter](CHARTER.md) for the governing commitments and the
 2. Implement the Core AST, strict parser, canonical printer, and byte-for-byte
    round-trip tests in safe Rust. **Complete.**
 3. Implement the bidirectional checker, conversion, and deterministic
-   foundation manifests in safe Rust. **In progress.**
-4. Add a surface elaborator and modules.
+   foundation manifests in safe Rust. **Complete.**
+4. Add a surface elaborator and modules. **Surface v0.1 specified; implementation
+   next.**
 5. Develop path algebra, equivalences, and homotopy levels.
 6. Add univalence and selected higher inductive types as auditable extensions
    or postulates, according to their exact presentation.
