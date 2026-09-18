@@ -368,11 +368,14 @@ $$
 $$
 
 In serialized core syntax, the motive `C` occurs in a synthesis position. If
-the surface motive is a lambda, the surface elaborator is responsible for
-inserting an `ann` that gives its full dependent function type, including the
-target universe $\mathcal U_j$. The core checker never invents $j$ or any
-other universe level. [Section 15.2](#152-synthesis) specifies this algorithmic
-requirement; it does not alter the declarative rule above.
+the source-language motive is a lambda, the resulting Core term must contain
+an `ann` that gives its full dependent function type, including the target
+universe $\mathcal U_j$. How an untrusted surface language obtains that
+annotation is outside Core v0.1: it may require the user to write it explicitly
+or may insert it by a separately specified elaboration procedure. The core
+checker never invents $j$ or any other universe level.
+[Section 15.2](#152-synthesis) specifies this algorithmic requirement; it does
+not alter the declarative rule above.
 
 Computation at reflexivity:
 
@@ -724,12 +727,14 @@ The eliminators synthesize as follows:
   $\mathbb N$, and returns $C\,n$.
 
 The checker obtains $j$ by exposing the synthesized motive type; it never
-solves for a hidden universe metavariable. Consequently a lambda motive must
-carry an `ann` whose type exhibits the relevant universe level. The surface
-elaborator is responsible for inserting such annotations when translating
-surface motives; the core checker will not guess them. Expected branch types
-are instantiated internally from the already checked motive, so this process
-adds no new typing rule.
+solves for a hidden universe metavariable. Consequently a lambda motive in
+Core must carry an `ann` whose type exhibits the relevant universe level.
+Producing that annotated Core term is the responsibility of the untrusted
+source-language layer, but Core v0.1 does not prescribe whether the annotation
+was written explicitly by the user or inserted by a separately specified
+elaborator. The core checker will not guess it. Expected branch types are
+instantiated internally from the already checked motive, so this process adds
+no new typing rule.
 
 ### 15.3 Checking
 
