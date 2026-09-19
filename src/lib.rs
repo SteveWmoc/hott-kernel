@@ -13,6 +13,7 @@ pub mod checker;
 pub mod error;
 pub mod format;
 pub mod manifest;
+pub mod surface;
 pub mod syntax;
 
 pub use checker::{
@@ -32,5 +33,9 @@ pub use manifest::{
     ParsedManifestGenerator, ParsedProvenanceRecord, build_foundation_manifest,
     generate_foundation_manifest, parse_foundation_manifest, print_foundation_manifest,
     verify_foundation_manifest,
+};
+pub use surface::{
+    SURFACE_FORMAT, SurfaceArena, SurfaceDeclaration, SurfaceError, SurfaceErrorClass,
+    SurfaceIdentifier, SurfaceModule, SurfaceTerm, SurfaceTermId, parse_surface,
 };
 pub use syntax::{Arena, Declaration, Module, Natural, Term, TermId};

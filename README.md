@@ -33,10 +33,12 @@ recomputes both hashes and the checked structural audit, and compares the suppli
 deterministic manifest fields while preserving asserted provenance only for
 separate reporting.
 
-**Surface v0.1 is specified for implementation.** It is an untrusted named
-syntax layer that resolves local and earlier-global names to explicit Core terms
-without adding inference rules, implicit arguments, metavariables, tactics, or
-imports. See [Surface v0.1](docs/surface-v0.1.md).
+**Surface v0.1 implementation is underway.** The first implementation slice
+defines its named AST and strict dependency-free parser, including the frozen
+version envelope, comment/whitespace rules, identifier and reserved-word
+grammar, exact term/declaration arities, and iterative parsing of deep terms.
+Name resolution and translation to Core remain separate later slices. See
+[Surface v0.1](docs/surface-v0.1.md).
 
 ## Purpose
 
@@ -98,8 +100,8 @@ See the [project charter](CHARTER.md) for the governing commitments and the
    round-trip tests in safe Rust. **Complete.**
 3. Implement the bidirectional checker, conversion, and deterministic
    foundation manifests in safe Rust. **Complete.**
-4. Add a surface elaborator and modules. **Surface v0.1 specified; implementation
-   next.**
+4. Add a surface elaborator and modules. **Surface v0.1 specified; strict parser
+   implementation underway.**
 5. Develop path algebra, equivalences, and homotopy levels.
 6. Add univalence and selected higher inductive types as auditable extensions
    or postulates, according to their exact presentation.
