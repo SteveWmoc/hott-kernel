@@ -2,8 +2,10 @@ use core::fmt;
 
 use crate::syntax::Natural;
 
+mod elaborate;
 mod parser;
 
+pub use elaborate::elaborate_surface;
 pub use parser::parse_surface;
 
 pub const SURFACE_FORMAT: &str = "hott-surface/0.1";
@@ -52,6 +54,20 @@ impl SurfaceError {
         Self {
             class: SurfaceErrorClass::ReservedIdentifier,
             offset: Some(offset),
+        }
+    }
+
+    const fn duplicate_global() -> Self {
+        Self {
+            class: SurfaceErrorClass::DuplicateGlobalDeclarationName,
+            offset: None,
+        }
+    }
+
+    const fn unknown_name() -> Self {
+        Self {
+            class: SurfaceErrorClass::UnknownName,
+            offset: None,
         }
     }
 

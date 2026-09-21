@@ -36,6 +36,6 @@ pub use manifest::{
 };
 pub use surface::{
     SURFACE_FORMAT, SurfaceArena, SurfaceDeclaration, SurfaceError, SurfaceErrorClass,
-    SurfaceIdentifier, SurfaceModule, SurfaceTerm, SurfaceTermId, parse_surface,
+    SurfaceIdentifier, SurfaceModule, SurfaceTerm, SurfaceTermId, elaborate_surface, parse_surface,
 };
 pub use syntax::{Arena, Declaration, Module, Natural, Term, TermId};

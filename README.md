@@ -33,12 +33,13 @@ recomputes both hashes and the checked structural audit, and compares the suppli
 deterministic manifest fields while preserving asserted provenance only for
 separate reporting.
 
-**Surface v0.1 implementation is underway.** The first implementation slice
-defines its named AST and strict dependency-free parser, including the frozen
-version envelope, comment/whitespace rules, identifier and reserved-word
-grammar, exact term/declaration arities, and iterative parsing of deep terms.
-Name resolution and translation to Core remain separate later slices. See
-[Surface v0.1](docs/surface-v0.1.md).
+**Surface v0.1 implementation is underway.** The named AST and strict
+dependency-free parser implement the frozen lexical and grammatical contract.
+Deterministic elaboration now resolves nearest local binders and earlier global
+declarations into explicit Core de Bruijn/global indices, rejects unknown and
+duplicate global names, and translates all Surface constructors structurally
+without invoking the Core checker. Canonical Core-byte emission remains the
+next separate slice. See [Surface v0.1](docs/surface-v0.1.md).
 
 ## Purpose
 
@@ -100,8 +101,8 @@ See the [project charter](CHARTER.md) for the governing commitments and the
    round-trip tests in safe Rust. **Complete.**
 3. Implement the bidirectional checker, conversion, and deterministic
    foundation manifests in safe Rust. **Complete.**
-4. Add a surface elaborator and modules. **Surface v0.1 specified; strict parser
-   implementation underway.**
+4. Add a surface elaborator and modules. **Surface v0.1 parser complete; name
+   resolution and Core translation implemented; byte-level compilation next.**
 5. Develop path algebra, equivalences, and homotopy levels.
 6. Add univalence and selected higher inductive types as auditable extensions
    or postulates, according to their exact presentation.
