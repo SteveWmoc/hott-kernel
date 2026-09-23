@@ -2,9 +2,11 @@ use core::fmt;
 
 use crate::syntax::Natural;
 
+mod compile;
 mod elaborate;
 mod parser;
 
+pub use compile::{SurfaceCompileError, compile_surface};
 pub use elaborate::elaborate_surface;
 pub use parser::parse_surface;
 

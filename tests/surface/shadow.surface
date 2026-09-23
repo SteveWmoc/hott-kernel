@@ -1,0 +1,7 @@
+(surface 0 1)
+(module Shadow)
+(postulate A (universe 0))
+(postulate choose
+  (pi A (universe 0)
+    (pi x (ref A)
+      (ref A))))

@@ -84,6 +84,7 @@
         "docs/surface-v0.1.md",
         "src/surface/**",
         "tests/surface/**",
+        "tests/surface*.rs",
         "tests/format/malformed/**",
         "tests/format/noncanonical/**",
         "tests/format/invalid-judgment/**",
