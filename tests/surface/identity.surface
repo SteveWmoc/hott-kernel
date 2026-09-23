@@ -1,0 +1,9 @@
+; comments and layout are intentionally noncanonical source presentation
+(surface 0 1)
+(module Identity)
+
+(postulate A (universe 0))
+
+(transparent identity_map
+  (pi x (ref A) (ref A))
+  (lam x (ref x)))

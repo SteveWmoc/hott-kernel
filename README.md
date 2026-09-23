@@ -35,11 +35,13 @@ separate reporting.
 
 **Surface v0.1 implementation is underway.** The named AST and strict
 dependency-free parser implement the frozen lexical and grammatical contract.
-Deterministic elaboration now resolves nearest local binders and earlier global
+Deterministic elaboration resolves nearest local binders and earlier global
 declarations into explicit Core de Bruijn/global indices, rejects unknown and
-duplicate global names, and translates all Surface constructors structurally
-without invoking the Core checker. Canonical Core-byte emission remains the
-next separate slice. See [Surface v0.1](docs/surface-v0.1.md).
+duplicate global names, and translates all Surface constructors structurally.
+The public byte-level compiler now composes parsing, elaboration, and the
+existing canonical Core printer to emit deterministic Core v0.1 artifacts
+without invoking the Core checker. The optional compile-and-check wrapper
+remains the next separate slice. See [Surface v0.1](docs/surface-v0.1.md).
 
 ## Purpose
 
@@ -101,8 +103,8 @@ See the [project charter](CHARTER.md) for the governing commitments and the
    round-trip tests in safe Rust. **Complete.**
 3. Implement the bidirectional checker, conversion, and deterministic
    foundation manifests in safe Rust. **Complete.**
-4. Add a surface elaborator and modules. **Surface v0.1 parser complete; name
-   resolution and Core translation implemented; byte-level compilation next.**
+4. Add a surface elaborator and modules. **Surface v0.1 parser, name resolution,
+   Core translation, and byte-level compilation implemented; checked wrapper next.**
 5. Develop path algebra, equivalences, and homotopy levels.
 6. Add univalence and selected higher inductive types as auditable extensions
    or postulates, according to their exact presentation.
