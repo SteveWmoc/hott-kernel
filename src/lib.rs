@@ -35,8 +35,8 @@ pub use manifest::{
     verify_foundation_manifest,
 };
 pub use surface::{
-    SURFACE_FORMAT, SurfaceArena, SurfaceCompileError, SurfaceDeclaration, SurfaceError,
-    SurfaceErrorClass, SurfaceIdentifier, SurfaceModule, SurfaceTerm, SurfaceTermId,
-    compile_surface, elaborate_surface, parse_surface,
+    SURFACE_FORMAT, SurfaceArena, SurfaceCheckError, SurfaceCompileError, SurfaceDeclaration,
+    SurfaceError, SurfaceErrorClass, SurfaceIdentifier, SurfaceModule, SurfaceTerm, SurfaceTermId,
+    compile_and_check_surface, compile_surface, elaborate_surface, parse_surface,
 };
 pub use syntax::{Arena, Declaration, Module, Natural, Term, TermId};

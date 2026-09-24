@@ -2,10 +2,12 @@ use core::fmt;
 
 use crate::syntax::Natural;
 
+mod checked;
 mod compile;
 mod elaborate;
 mod parser;
 
+pub use checked::{SurfaceCheckError, compile_and_check_surface};
 pub use compile::{SurfaceCompileError, compile_surface};
 pub use elaborate::elaborate_surface;
 pub use parser::parse_surface;
