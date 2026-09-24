@@ -45,6 +45,42 @@ the same canonical bytes. Surface v0.1 still intentionally has no imports,
 implicit arguments, metavariables, tactics, or richer notation. See
 [Surface v0.1](docs/surface-v0.1.md).
 
+## Release compatibility
+
+The crate is versioned `0.1.0`. Its first release line implements this exact
+compatibility envelope:
+
+| Layer | Version |
+| --- | --- |
+| Kernel theory | `mltt-core/0.1` |
+| Core text transport | `hott-core/0.1` |
+| Semantic projection | `hott-semantic/0.1` |
+| Surface format | `hott-surface/0.1` |
+| Foundation manifest | `hott-foundation-manifest/0.1` |
+| Feature vocabulary | `mltt-core-features/0.1` |
+| Rust toolchain / minimum Rust | `1.98.1` |
+
+These versioned contracts have compatibility rules independent of the Cargo
+package version. In particular, the frozen Core theory and serialized formats
+must not change silently. The Rust library API is still pre-1.0 and may evolve
+without implying a change to the accepted theory.
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes and
+[RELEASING.md](RELEASING.md) for the release procedure.
+
+## Build and validation
+
+The repository pins Rust through `rust-toolchain.toml`, including `rustfmt`
+and Clippy. The release checks are:
+
+```text
+cargo fmt --all --check
+cargo clippy --all-targets --locked -- -D warnings
+cargo test --all-targets --locked
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --locked
+cargo package --locked
+```
+
 ## Purpose
 
 Most proof assistants can report named axioms used by a declaration, but their
