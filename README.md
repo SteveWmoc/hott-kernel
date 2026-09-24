@@ -33,15 +33,17 @@ recomputes both hashes and the checked structural audit, and compares the suppli
 deterministic manifest fields while preserving asserted provenance only for
 separate reporting.
 
-**Surface v0.1 implementation is underway.** The named AST and strict
+**Surface v0.1 base implementation is complete.** The named AST and strict
 dependency-free parser implement the frozen lexical and grammatical contract.
 Deterministic elaboration resolves nearest local binders and earlier global
 declarations into explicit Core de Bruijn/global indices, rejects unknown and
 duplicate global names, and translates all Surface constructors structurally.
-The public byte-level compiler now composes parsing, elaboration, and the
-existing canonical Core printer to emit deterministic Core v0.1 artifacts
-without invoking the Core checker. The optional compile-and-check wrapper
-remains the next separate slice. See [Surface v0.1](docs/surface-v0.1.md).
+The byte-level compiler emits deterministic canonical Core v0.1 artifacts
+without invoking the checker, while a separate checked wrapper delegates
+logical validity exactly to the existing frozen Core checker before emitting
+the same canonical bytes. Surface v0.1 still intentionally has no imports,
+implicit arguments, metavariables, tactics, or richer notation. See
+[Surface v0.1](docs/surface-v0.1.md).
 
 ## Purpose
 
@@ -103,8 +105,8 @@ See the [project charter](CHARTER.md) for the governing commitments and the
    round-trip tests in safe Rust. **Complete.**
 3. Implement the bidirectional checker, conversion, and deterministic
    foundation manifests in safe Rust. **Complete.**
-4. Add a surface elaborator and modules. **Surface v0.1 parser, name resolution,
-   Core translation, and byte-level compilation implemented; checked wrapper next.**
+4. Add a surface elaborator and modules. **Surface v0.1 base implementation
+   complete; imports and richer surface conveniences remain later-version work.**
 5. Develop path algebra, equivalences, and homotopy levels.
 6. Add univalence and selected higher inductive types as auditable extensions
    or postulates, according to their exact presentation.
