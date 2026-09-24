@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata in this file."
+title: "hott-kernel"
+type: software
+
+authors:
+  - family-names: "Sabean"
+    given-names: "Steven"
+
+version: 0.1.0
+date-released: 2026-09-24
+
+repository-code: "https://github.com/SteveWmoc/hott-kernel"
+url: "https://github.com/SteveWmoc/hott-kernel/releases/tag/v0.1.0"
+
+license: MIT
+
+abstract: >-
+  hott-kernel is a small, auditable formalizer for proof-relevant dependent
+  type theory and homotopy type theory. Version 0.1.0 implements the frozen
+  mltt-core/0.1 theory in safe Rust, including strict Core parsing and
+  canonical serialization, bidirectional type checking, beta-delta-iota
+  conversion, deterministic foundation auditing and manifests, and the
+  hott-surface/0.1 named surface language with deterministic elaboration to
+  explicit Core terms.
+
+keywords:
+  - homotopy type theory
+  - dependent type theory
+  - proof assistant
+  - formal verification
+  - type theory
+  - Rust
