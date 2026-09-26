@@ -27,6 +27,17 @@ fn path_inverse_u0_checks_without_postulates_or_extensions() {
     assert!(inverse.direct().extensions().is_empty());
     assert!(inverse.direct().postulates().is_empty());
     assert!(inverse.direct().declarations().is_empty());
+    assert_eq!(
+        inverse.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(inverse.transitive().extensions().is_empty());
+    assert!(inverse.transitive().postulates().is_empty());
+    assert!(inverse.transitive().declarations().is_empty());
 
     let inverse_refl = &declarations[1];
     assert_eq!(inverse_refl.display_name(), "path_inverse_refl");
@@ -42,6 +53,15 @@ fn path_inverse_u0_checks_without_postulates_or_extensions() {
     assert!(inverse_refl.direct().extensions().is_empty());
     assert!(inverse_refl.direct().postulates().is_empty());
     assert_eq!(inverse_refl.direct().declarations(), &[0]);
+    assert_eq!(
+        inverse_refl.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(inverse_refl.transitive().extensions().is_empty());
     assert_eq!(inverse_refl.transitive().declarations(), &[0]);
     assert!(inverse_refl.transitive().postulates().is_empty());
 }
