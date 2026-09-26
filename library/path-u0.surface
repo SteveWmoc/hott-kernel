@@ -1,0 +1,44 @@
+; First checked HoTT path algebra, specialized explicitly to universe 0.
+(surface 0 1)
+(module PathU0)
+
+(transparent path_inverse
+  (pi A (universe 0)
+    (pi x (ref A)
+      (pi y (ref A)
+        (pi p (id (ref A) (ref x) (ref y))
+          (id (ref A) (ref y) (ref x))))))
+  (lam A
+    (lam x
+      (lam y
+        (lam p
+          (j
+            (ref A)
+            (ref x)
+            (ann
+              (lam endpoint
+                (lam path
+                  (id (ref A) (ref endpoint) (ref x))))
+              (pi endpoint (ref A)
+                (pi path (id (ref A) (ref x) (ref endpoint))
+                  (universe 0))))
+            (refl (ref x))
+            (ref y)
+            (ref p)))))))
+
+(transparent path_inverse_refl
+  (pi A (universe 0)
+    (pi x (ref A)
+      (id
+        (id (ref A) (ref x) (ref x))
+        (app
+          (app
+            (app
+              (app (ref path_inverse) (ref A))
+              (ref x))
+            (ref x))
+          (refl (ref x)))
+        (refl (ref x)))))
+  (lam A
+    (lam x
+      (refl (refl (ref x))))))
