@@ -5,7 +5,13 @@ are recorded here.
 
 ## [Unreleased]
 
-Development after the first tagged release will be recorded here.
+### Added
+
+- Began the checked HoTT library with explicit universe-zero path inversion,
+  defined from `J`, and its reflexivity computation law.
+- Documented library-layer discipline: Surface source remains untrusted,
+  universe levels remain explicit, and the constructive base library introduces
+  no postulates or extensions.
 
 ## [0.1.0] - 2026-09-24
 
