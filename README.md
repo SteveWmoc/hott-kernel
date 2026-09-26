@@ -45,6 +45,12 @@ the same canonical bytes. Surface v0.1 still intentionally has no imports,
 implicit arguments, metavariables, tactics, or richer notation. See
 [Surface v0.1](docs/surface-v0.1.md).
 
+**Roadmap item 5 is underway.** The checked HoTT library now begins with
+universe-zero path inversion derived solely from the Core identity eliminator
+`J`, together with its reflexivity computation law. The library layer is
+ordinary untrusted Surface source: it introduces no new kernel rule, postulate,
+or extension. See [library/README.md](library/README.md).
+
 ## Release compatibility
 
 The crate is versioned `0.1.0`. Its first release line implements this exact
