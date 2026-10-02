@@ -4,14 +4,14 @@ use hott_kernel::{
 };
 
 #[test]
-fn path_inverse_u0_checks_without_postulates_or_extensions() {
+fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let source = include_bytes!("../library/path-u0.surface");
     let core = compile_and_check_surface(source).expect("path library must elaborate and check");
     let mut module = parse_canonical(&core).expect("checked Surface output must be canonical Core");
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 2);
+    assert_eq!(declarations.len(), 4);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -64,4 +64,62 @@ fn path_inverse_u0_checks_without_postulates_or_extensions() {
     assert!(inverse_refl.transitive().extensions().is_empty());
     assert_eq!(inverse_refl.transitive().declarations(), &[0]);
     assert!(inverse_refl.transitive().postulates().is_empty());
+
+    let concat = &declarations[2];
+    assert_eq!(concat.display_name(), "path_concat");
+    assert_eq!(concat.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        concat.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(concat.direct().extensions().is_empty());
+    assert!(concat.direct().postulates().is_empty());
+    assert!(concat.direct().declarations().is_empty());
+    assert_eq!(
+        concat.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(concat.transitive().extensions().is_empty());
+    assert!(concat.transitive().postulates().is_empty());
+    assert!(concat.transitive().declarations().is_empty());
+
+    let concat_right_refl = &declarations[3];
+    assert_eq!(
+        concat_right_refl.display_name(),
+        "path_concat_right_refl"
+    );
+    assert_eq!(
+        concat_right_refl.kind(),
+        AuditDeclarationKind::Transparent
+    );
+    assert_eq!(
+        concat_right_refl.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(concat_right_refl.direct().extensions().is_empty());
+    assert!(concat_right_refl.direct().postulates().is_empty());
+    assert_eq!(concat_right_refl.direct().declarations(), &[2]);
+    assert_eq!(
+        concat_right_refl.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(concat_right_refl.transitive().extensions().is_empty());
+    assert!(concat_right_refl.transitive().postulates().is_empty());
+    assert_eq!(concat_right_refl.transitive().declarations(), &[2]);
 }
