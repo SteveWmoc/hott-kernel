@@ -92,14 +92,8 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     assert!(concat.transitive().declarations().is_empty());
 
     let concat_right_refl = &declarations[3];
-    assert_eq!(
-        concat_right_refl.display_name(),
-        "path_concat_right_refl"
-    );
-    assert_eq!(
-        concat_right_refl.kind(),
-        AuditDeclarationKind::Transparent
-    );
+    assert_eq!(concat_right_refl.display_name(), "path_concat_right_refl");
+    assert_eq!(concat_right_refl.kind(), AuditDeclarationKind::Transparent);
     assert_eq!(
         concat_right_refl.direct().kernel_features(),
         &[
