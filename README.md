@@ -45,11 +45,12 @@ the same canonical bytes. Surface v0.1 still intentionally has no imports,
 implicit arguments, metavariables, tactics, or richer notation. See
 [Surface v0.1](docs/surface-v0.1.md).
 
-**Roadmap item 5 is underway.** The checked HoTT library now begins with
-universe-zero path inversion derived solely from the Core identity eliminator
-`J`, together with its reflexivity computation law. The library layer is
-ordinary untrusted Surface source: it introduces no new kernel rule, postulate,
-or extension. See [library/README.md](library/README.md).
+**Roadmap item 5 is underway.** The checked HoTT library now contains
+universe-zero path inversion and path concatenation, both derived solely from
+the Core identity eliminator `J`, together with their reflexivity computation
+laws. The library layer is ordinary untrusted Surface source: it introduces no
+new kernel rule, postulate, or extension. See
+[library/README.md](library/README.md).
 
 ## Release compatibility
 

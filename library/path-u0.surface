@@ -42,3 +42,57 @@
   (lam A
     (lam x
       (refl (refl (ref x))))))
+
+; Concatenation eliminates the second path, so p · refl computes to p.
+(transparent path_concat
+  (pi A (universe 0)
+    (pi x (ref A)
+      (pi y (ref A)
+        (pi z (ref A)
+          (pi p (id (ref A) (ref x) (ref y))
+            (pi q (id (ref A) (ref y) (ref z))
+              (id (ref A) (ref x) (ref z))))))))
+  (lam A
+    (lam x
+      (lam y
+        (lam z
+          (lam p
+            (lam q
+              (j
+                (ref A)
+                (ref y)
+                (ann
+                  (lam endpoint
+                    (lam path
+                      (id (ref A) (ref x) (ref endpoint))))
+                  (pi endpoint (ref A)
+                    (pi path (id (ref A) (ref y) (ref endpoint))
+                      (universe 0))))
+                (ref p)
+                (ref z)
+                (ref q)))))))))
+
+(transparent path_concat_right_refl
+  (pi A (universe 0)
+    (pi x (ref A)
+      (pi y (ref A)
+        (pi p (id (ref A) (ref x) (ref y))
+          (id
+            (id (ref A) (ref x) (ref y))
+            (app
+              (app
+                (app
+                  (app
+                    (app
+                      (app (ref path_concat) (ref A))
+                      (ref x))
+                    (ref y))
+                  (ref y))
+                (ref p))
+              (refl (ref y)))
+            (ref p))))))
+  (lam A
+    (lam x
+      (lam y
+        (lam p
+          (refl (ref p)))))))
