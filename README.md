@@ -47,9 +47,8 @@ implicit arguments, metavariables, tactics, or richer notation. See
 
 **Roadmap item 5 is underway.** The checked HoTT library now contains
 universe-zero path inversion and path concatenation, both derived solely from
-the Core identity eliminator `J`. Concatenation records its judgmental
-right-unit computation and its propositional left-unit law by path induction.
-The library layer is ordinary untrusted Surface source: it introduces no
+the Core identity eliminator `J`, together with their reflexivity computation
+laws. The library layer is ordinary untrusted Surface source: it introduces no
 new kernel rule, postulate, or extension. See
 [library/README.md](library/README.md).
 

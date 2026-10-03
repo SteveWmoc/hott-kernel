@@ -8,9 +8,8 @@ are recorded here.
 ### Added
 
 - Began the checked HoTT library with explicit universe-zero path inversion
-  and path concatenation, both defined from `J`, including the judgmental
-  right-unit computation for concatenation and a propositional left-unit law
-  proved by path induction.
+  and path concatenation, both defined from `J`, together with their
+  reflexivity computation laws.
 - Documented library-layer discipline: Surface source remains untrusted,
   universe levels remain explicit, and the constructive base library introduces
   no postulates or extensions.
