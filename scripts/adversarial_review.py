@@ -46,6 +46,75 @@ ALLOWED_SEVERITIES = {"P0", "P1", "P2", "P3"}
 ALLOWED_CONFIDENCE = {"low", "medium", "high"}
 ALLOWED_FIREWORKS_API_URLS = {FIREWORKS_API_URL}
 SEVERITY_PRIORITY = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
+REPORT_FIELDS = frozenset(
+    {"schema_version", "verdict", "summary", "findings", "limitations"}
+)
+FINDING_FIELDS = frozenset(
+    {
+        "id",
+        "severity",
+        "title",
+        "claim",
+        "requirement",
+        "evidence",
+        "reproduction",
+        "confidence",
+        "foundational_change",
+    }
+)
+EVIDENCE_FIELDS = frozenset({"path", "line", "detail"})
+REPORT_JSON_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "schema_version": {"type": "string", "enum": [REPORT_SCHEMA_VERSION]},
+        "verdict": {"type": "string", "enum": sorted(ALLOWED_VERDICTS)},
+        "summary": {"type": "string"},
+        "findings": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "severity": {"type": "string", "enum": sorted(ALLOWED_SEVERITIES)},
+                    "title": {"type": "string"},
+                    "claim": {"type": "string"},
+                    "requirement": {"type": "string"},
+                    "evidence": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "path": {"type": "string"},
+                                "line": {"type": "string"},
+                                "detail": {"type": "string"},
+                            },
+                            "required": ["path", "line", "detail"],
+                            "additionalProperties": False,
+                        },
+                    },
+                    "reproduction": {"type": "string"},
+                    "confidence": {"type": "string", "enum": sorted(ALLOWED_CONFIDENCE)},
+                    "foundational_change": {"type": "boolean"},
+                },
+                "required": [
+                    "id",
+                    "severity",
+                    "title",
+                    "claim",
+                    "requirement",
+                    "evidence",
+                    "reproduction",
+                    "confidence",
+                    "foundational_change",
+                ],
+                "additionalProperties": False,
+            },
+        },
+        "limitations": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["schema_version", "verdict", "summary", "findings", "limitations"],
+    "additionalProperties": False,
+}
 REVIEW_PHASE_FILES = {
     "code": ".github/adversarial-review/phases/code.md",
     "design": ".github/adversarial-review/phases/design.md",
@@ -107,8 +176,14 @@ def require_string(value: Any, label: str, *, maximum: int, allow_empty: bool = 
 def validate_report(report: Any) -> dict[str, Any]:
     if not isinstance(report, dict):
         raise ReviewError("review response must be a JSON object")
-    if set(report) != {"schema_version", "verdict", "summary", "findings", "limitations"}:
-        raise ReviewError("review response has missing or unexpected top-level fields")
+    report_fields = set(report)
+    if report_fields != REPORT_FIELDS:
+        missing = sorted(REPORT_FIELDS - report_fields)
+        unexpected = sorted(report_fields - REPORT_FIELDS)
+        raise ReviewError(
+            "review response top-level fields mismatch: "
+            f"missing={missing!r}, unexpected={unexpected!r}"
+        )
     if report.get("schema_version") != REPORT_SCHEMA_VERSION:
         raise ReviewError(f"schema_version must be {REPORT_SCHEMA_VERSION!r}")
 
@@ -133,17 +208,7 @@ def validate_report(report: Any) -> dict[str, Any]:
         label = f"findings[{index}]"
         if not isinstance(finding, dict):
             raise ReviewError(f"{label} must be an object")
-        if set(finding) != {
-            "id",
-            "severity",
-            "title",
-            "claim",
-            "requirement",
-            "evidence",
-            "reproduction",
-            "confidence",
-            "foundational_change",
-        }:
+        if set(finding) != FINDING_FIELDS:
             raise ReviewError(f"{label} has missing or unexpected fields")
 
         finding_id = require_string(finding.get("id"), f"{label}.id", maximum=20)
@@ -171,7 +236,7 @@ def validate_report(report: Any) -> dict[str, Any]:
             item_label = f"{label}.evidence[{evidence_index}]"
             if not isinstance(item, dict):
                 raise ReviewError(f"{item_label} must be an object")
-            if set(item) != {"path", "line", "detail"}:
+            if set(item) != EVIDENCE_FIELDS:
                 raise ReviewError(f"{item_label} has missing or unexpected fields")
             require_string(item.get("path"), f"{item_label}.path", maximum=500)
             require_string(item.get("line"), f"{item_label}.line", maximum=200)
@@ -892,7 +957,7 @@ def call_fireworks(
         "temperature": 1.0,
         "top_p": 0.95,
         "max_tokens": FIREWORKS_MAX_TOKENS,
-        "response_format": {"type": "json_object"},
+        "response_format": {"type": "json_object", "schema": REPORT_JSON_SCHEMA},
         "stream": True,
         "stream_options": {
             "include_usage": True,
