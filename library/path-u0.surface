@@ -201,7 +201,7 @@
                               (ref z))
                             (ref w))
                           (ref q))
-                        (ref r)))))))))))
+                        (ref r))))))))))))
   (lam A
     (lam x
       (lam y
@@ -276,4 +276,4 @@
                           (ref p))
                         (ref q)))
                     (ref w)
-                    (ref r)))))))))))
+                    (ref r))))))))))
