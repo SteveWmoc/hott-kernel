@@ -941,9 +941,15 @@ def call_fireworks(
     reasoning_effort: str,
     prompt: str,
     packet: dict[str, Any],
+    *,
+    raw_response_path: Path | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     user_message = (
         "Review the following packet under the system contract. Return the required JSON object.\n"
+        "The final answer must match this JSON Schema exactly:\n"
+        "<BEGIN_RESPONSE_SCHEMA>\n"
+        f"{json.dumps(REPORT_JSON_SCHEMA, ensure_ascii=False, sort_keys=True)}\n"
+        "<END_RESPONSE_SCHEMA>\n"
         "<BEGIN_REVIEW_PACKET>\n"
         f"{json.dumps(packet, ensure_ascii=False, sort_keys=True)}\n"
         "<END_REVIEW_PACKET>"
@@ -958,13 +964,6 @@ def call_fireworks(
         "temperature": 1.0,
         "top_p": 0.95,
         "max_tokens": FIREWORKS_MAX_TOKENS,
-        "response_format": {
-            "type": "json_schema",
-            "json_schema": {
-                "name": REPORT_SCHEMA_NAME,
-                "schema": REPORT_JSON_SCHEMA,
-            },
-        },
         "stream": True,
         "stream_options": {
             "include_usage": True,
@@ -988,6 +987,13 @@ def call_fireworks(
                 ) from error
             print(f"Transient Fireworks failure; retrying once in 2 seconds: {error}", file=sys.stderr)
             time.sleep(2)
+    if raw_response_path is not None:
+        try:
+            raw_response_path.write_text(content, encoding="utf-8")
+        except OSError as error:
+            raise ReviewError(
+                f"cannot write raw review response {raw_response_path}: {error}"
+            ) from error
     return extract_json_object(content), build_usage_record(raw_usage)
 
 
@@ -1501,6 +1507,7 @@ def main() -> int:
         reasoning_effort,
         prompt,
         packet,
+        raw_response_path=output_dir / "review-response.txt",
     )
     pr_meta = packet["pull_request"]
     run_url = (
