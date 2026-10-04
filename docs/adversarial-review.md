@@ -143,11 +143,14 @@ delay; an interrupted partial stream is never retried automatically.
 The completion allowance is pinned to `131072`, GLM-5.3-Flash's documented
 maximum. Reasoning tokens and final answer tokens share that allowance; the
 full limit gives `max` reasoning room to terminate and emit the required JSON.
-The Fireworks request uses the documented `json_schema` response format and
-supplies the report JSON Schema so constrained decoding must produce the
-required field structure. The local strict report validator then independently
-enforces the schema and cross-field invariants before the bounded GitHub
-renderer can publish anything.
+Because Fireworks documents that `json_schema` response formatting disables
+reasoning output, the harness omits `response_format` and includes the exact
+report JSON Schema in the prompt instead. This preserves reasoning-mode
+behavior while the local strict report validator independently enforces the
+schema and cross-field invariants before the bounded GitHub renderer can
+publish anything. The raw final assistant content is saved as
+`review-response.txt` before parsing or validation, so malformed responses
+remain auditable even when the review fails closed.
 
 ## Usage and cost audit
 

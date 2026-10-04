@@ -661,7 +661,7 @@ class UtilityTests(unittest.TestCase):
         self.assertTrue(packet["coverage"]["historical_replay"])
         self.assertEqual(packet["unified_diff"], "historical diff")
 
-    def test_call_fireworks_requests_max_reasoning_and_structured_output(self):
+    def test_call_fireworks_preserves_reasoning_and_prompts_for_structured_output(self):
         captured = {}
 
         def fake_stream(url, _api_key, payload):
@@ -682,24 +682,13 @@ class UtilityTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "advisory_clear")
         self.assertEqual(usage["prompt_tokens"], 1000)
         self.assertEqual(captured["payload"]["reasoning_effort"], "max")
-        self.assertEqual(
-            captured["payload"]["response_format"],
-            {
-                "type": "json_schema",
-                "json_schema": {
-                    "name": review.REPORT_SCHEMA_NAME,
-                    "schema": review.REPORT_JSON_SCHEMA,
-                },
-            },
-        )
-        schema = captured["payload"]["response_format"]["json_schema"]["schema"]
-        self.assertFalse(schema["additionalProperties"])
-        self.assertEqual(set(schema["required"]), review.REPORT_FIELDS)
-        self.assertFalse(schema["properties"]["findings"]["items"]["additionalProperties"])
-        self.assertFalse(
-            schema["properties"]["findings"]["items"]["properties"]["evidence"]["items"][
-                "additionalProperties"
-            ]
+        self.assertNotIn("response_format", captured["payload"])
+        user_message = captured["payload"]["messages"][1]["content"]
+        self.assertIn("<BEGIN_RESPONSE_SCHEMA>", user_message)
+        self.assertIn("<END_RESPONSE_SCHEMA>", user_message)
+        self.assertIn(
+            json.dumps(review.REPORT_JSON_SCHEMA, ensure_ascii=False, sort_keys=True),
+            user_message,
         )
         self.assertEqual(captured["payload"]["max_tokens"], review.FIREWORKS_MAX_TOKENS)
         self.assertNotIn("thinking", captured["payload"])
@@ -710,6 +699,36 @@ class UtilityTests(unittest.TestCase):
         self.assertEqual(captured["payload"]["stream_options"]["buffer_ms"], 1000)
         self.assertEqual(captured["payload"]["model"], review.FIREWORKS_MODEL)
         self.assertEqual(captured["url"], review.FIREWORKS_API_URL)
+
+    def test_call_fireworks_preserves_raw_response_before_validation_failure(self):
+        malformed = clean_report()
+        malformed["unexpected"] = "schema drift"
+
+        with tempfile.TemporaryDirectory() as directory:
+            response_path = Path(directory) / "review-response.txt"
+            with mock.patch.object(
+                review,
+                "_fireworks_stream_content_once",
+                return_value=(json.dumps(malformed), raw_usage()),
+            ):
+                with self.assertRaisesRegex(
+                    review.ReviewError,
+                    r"unexpected=\['unexpected'\]",
+                ):
+                    review.call_fireworks(
+                        review.FIREWORKS_API_URL,
+                        "fw_test-secret",
+                        review.FIREWORKS_MODEL,
+                        "high",
+                        "system prompt",
+                        {"packet_version": "0.1"},
+                        raw_response_path=response_path,
+                    )
+
+            self.assertEqual(
+                response_path.read_text(encoding="utf-8"),
+                json.dumps(malformed),
+            )
 
     def test_fireworks_stream_ignores_reasoning_and_collects_content(self):
         report_text = json.dumps(clean_report())
