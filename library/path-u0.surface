@@ -147,3 +147,133 @@
             (refl (refl (ref x)))
             (ref y)
             (ref p)))))))
+
+; Associativity is proved by eliminating the third path.
+(transparent path_concat_assoc
+  (pi A (universe 0)
+    (pi x (ref A)
+      (pi y (ref A)
+        (pi z (ref A)
+          (pi w (ref A)
+            (pi p (id (ref A) (ref x) (ref y))
+              (pi q (id (ref A) (ref y) (ref z))
+                (pi r (id (ref A) (ref z) (ref w))
+                  (id
+                    (id (ref A) (ref x) (ref w))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (ref path_concat) (ref A))
+                              (ref x))
+                            (ref z))
+                          (ref w))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (ref path_concat) (ref A))
+                                  (ref x))
+                                (ref y))
+                              (ref z))
+                            (ref p))
+                          (ref q)))
+                      (ref r))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (ref path_concat) (ref A))
+                              (ref x))
+                            (ref y))
+                          (ref w))
+                        (ref p))
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (ref path_concat) (ref A))
+                                (ref y))
+                              (ref z))
+                            (ref w))
+                          (ref q))
+                        (ref r))))))))))))
+  (lam A
+    (lam x
+      (lam y
+        (lam z
+          (lam w
+            (lam p
+              (lam q
+                (lam r
+                  (j
+                    (ref A)
+                    (ref z)
+                    (ann
+                      (lam endpoint
+                        (lam path
+                          (id
+                            (id (ref A) (ref x) (ref endpoint))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app (ref path_concat) (ref A))
+                                      (ref x))
+                                    (ref z))
+                                  (ref endpoint))
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (ref path_concat) (ref A))
+                                          (ref x))
+                                        (ref y))
+                                      (ref z))
+                                    (ref p))
+                                  (ref q)))
+                              (ref path))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app (ref path_concat) (ref A))
+                                      (ref x))
+                                    (ref y))
+                                  (ref endpoint))
+                                (ref p))
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref path_concat) (ref A))
+                                        (ref y))
+                                      (ref z))
+                                    (ref endpoint))
+                                  (ref q))
+                                (ref path))))))
+                      (pi endpoint (ref A)
+                        (pi path (id (ref A) (ref z) (ref endpoint))
+                          (universe 0))))
+                    (refl
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (ref path_concat) (ref A))
+                                (ref x))
+                              (ref y))
+                            (ref z))
+                          (ref p))
+                        (ref q)))
+                    (ref w)
+                    (ref r)))))))))))
