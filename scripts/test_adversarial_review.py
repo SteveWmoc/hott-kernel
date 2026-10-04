@@ -684,9 +684,15 @@ class UtilityTests(unittest.TestCase):
         self.assertEqual(captured["payload"]["reasoning_effort"], "max")
         self.assertEqual(
             captured["payload"]["response_format"],
-            {"type": "json_object", "schema": review.REPORT_JSON_SCHEMA},
+            {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": review.REPORT_SCHEMA_NAME,
+                    "schema": review.REPORT_JSON_SCHEMA,
+                },
+            },
         )
-        schema = captured["payload"]["response_format"]["schema"]
+        schema = captured["payload"]["response_format"]["json_schema"]["schema"]
         self.assertFalse(schema["additionalProperties"])
         self.assertEqual(set(schema["required"]), review.REPORT_FIELDS)
         self.assertFalse(schema["properties"]["findings"]["items"]["additionalProperties"])

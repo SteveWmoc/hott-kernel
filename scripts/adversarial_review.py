@@ -39,6 +39,7 @@ FIREWORKS_CACHED_INPUT_USD_PER_MILLION = Decimal("0.03")
 FIREWORKS_OUTPUT_USD_PER_MILLION = Decimal("0.50")
 GITHUB_API_VERSION = "2022-11-28"
 REPORT_SCHEMA_VERSION = "0.1"
+REPORT_SCHEMA_NAME = "AdversarialReview"
 USER_AGENT = "hott-kernel-adversarial-review/0.1"
 
 ALLOWED_VERDICTS = {"advisory_clear", "advisory_findings", "foundational_stop"}
@@ -957,7 +958,13 @@ def call_fireworks(
         "temperature": 1.0,
         "top_p": 0.95,
         "max_tokens": FIREWORKS_MAX_TOKENS,
-        "response_format": {"type": "json_object", "schema": REPORT_JSON_SCHEMA},
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": REPORT_SCHEMA_NAME,
+                "schema": REPORT_JSON_SCHEMA,
+            },
+        },
         "stream": True,
         "stream_options": {
             "include_usage": True,
