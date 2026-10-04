@@ -96,7 +96,19 @@ class ReportValidationTests(unittest.TestCase):
     def test_rejects_unexpected_fields(self):
         report = clean_report()
         report["untrusted_extra"] = "ignored data must not enter the artifact"
-        with self.assertRaises(review.ReviewError):
+        with self.assertRaisesRegex(
+            review.ReviewError,
+            r"missing=\[\], unexpected=\['untrusted_extra'\]",
+        ):
+            review.validate_report(report)
+
+    def test_reports_missing_top_level_fields(self):
+        report = clean_report()
+        del report["limitations"]
+        with self.assertRaisesRegex(
+            review.ReviewError,
+            r"missing=\['limitations'\], unexpected=\[\]",
+        ):
             review.validate_report(report)
 
     def test_extracts_fenced_json(self):
@@ -670,7 +682,19 @@ class UtilityTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "advisory_clear")
         self.assertEqual(usage["prompt_tokens"], 1000)
         self.assertEqual(captured["payload"]["reasoning_effort"], "max")
-        self.assertEqual(captured["payload"]["response_format"], {"type": "json_object"})
+        self.assertEqual(
+            captured["payload"]["response_format"],
+            {"type": "json_object", "schema": review.REPORT_JSON_SCHEMA},
+        )
+        schema = captured["payload"]["response_format"]["schema"]
+        self.assertFalse(schema["additionalProperties"])
+        self.assertEqual(set(schema["required"]), review.REPORT_FIELDS)
+        self.assertFalse(schema["properties"]["findings"]["items"]["additionalProperties"])
+        self.assertFalse(
+            schema["properties"]["findings"]["items"]["properties"]["evidence"]["items"][
+                "additionalProperties"
+            ]
+        )
         self.assertEqual(captured["payload"]["max_tokens"], review.FIREWORKS_MAX_TOKENS)
         self.assertNotIn("thinking", captured["payload"])
         self.assertTrue(captured["payload"]["stream"])
