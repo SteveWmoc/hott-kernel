@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 6);
+    assert_eq!(declarations.len(), 8);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -168,4 +168,56 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     assert!(concat_assoc.transitive().extensions().is_empty());
     assert!(concat_assoc.transitive().postulates().is_empty());
     assert_eq!(concat_assoc.transitive().declarations(), &[2]);
+
+    let transport = &declarations[6];
+    assert_eq!(transport.display_name(), "transport");
+    assert_eq!(transport.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        transport.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(transport.direct().extensions().is_empty());
+    assert!(transport.direct().postulates().is_empty());
+    assert!(transport.direct().declarations().is_empty());
+    assert_eq!(
+        transport.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(transport.transitive().extensions().is_empty());
+    assert!(transport.transitive().postulates().is_empty());
+    assert!(transport.transitive().declarations().is_empty());
+
+    let transport_refl = &declarations[7];
+    assert_eq!(transport_refl.display_name(), "transport_refl");
+    assert_eq!(transport_refl.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        transport_refl.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(transport_refl.direct().extensions().is_empty());
+    assert!(transport_refl.direct().postulates().is_empty());
+    assert_eq!(transport_refl.direct().declarations(), &[6]);
+    assert_eq!(
+        transport_refl.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(transport_refl.transitive().extensions().is_empty());
+    assert!(transport_refl.transitive().postulates().is_empty());
+    assert_eq!(transport_refl.transitive().declarations(), &[6]);
 }
