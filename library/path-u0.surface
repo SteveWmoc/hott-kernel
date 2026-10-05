@@ -277,3 +277,58 @@
                         (ref q)))
                     (ref w)
                     (ref r)))))))))))
+
+; Transport eliminates the path, carrying an element along the family P.
+(transparent transport
+  (pi A (universe 0)
+    (pi P (pi point (ref A) (universe 0))
+      (pi x (ref A)
+        (pi y (ref A)
+          (pi p (id (ref A) (ref x) (ref y))
+            (pi u (app (ref P) (ref x))
+              (app (ref P) (ref y))))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam y
+          (lam p
+            (lam u
+              (j
+                (ref A)
+                (ref x)
+                (ann
+                  (lam endpoint
+                    (lam path
+                      (app (ref P) (ref endpoint))))
+                  (pi endpoint (ref A)
+                    (pi path (id (ref A) (ref x) (ref endpoint))
+                      (universe 0))))
+                (ref u)
+                (ref y)
+                (ref p)))))))))
+
+; Transport along reflexivity computes judgmentally to the original element.
+(transparent transport_refl
+  (pi A (universe 0)
+    (pi P (pi point (ref A) (universe 0))
+      (pi x (ref A)
+        (pi u (app (ref P) (ref x))
+          (id
+            (app (ref P) (ref x))
+            (app
+              (app
+                (app
+                  (app
+                    (app
+                      (app (ref transport) (ref A))
+                      (ref P))
+                    (ref x))
+                  (ref x))
+                (refl (ref x)))
+              (ref u))
+            (ref u))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam u
+          (refl (ref u)))))))
