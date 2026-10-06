@@ -332,3 +332,67 @@
       (lam x
         (lam u
           (refl (ref u)))))))
+
+; Functions act on paths by identity elimination.
+(transparent ap
+  (pi A (universe 0)
+    (pi B (universe 0)
+      (pi f (pi point (ref A) (ref B))
+        (pi x (ref A)
+          (pi y (ref A)
+            (pi p (id (ref A) (ref x) (ref y))
+              (id
+                (ref B)
+                (app (ref f) (ref x))
+                (app (ref f) (ref y)))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam x
+          (lam y
+            (lam p
+              (j
+                (ref A)
+                (ref x)
+                (ann
+                  (lam endpoint
+                    (lam path
+                      (id
+                        (ref B)
+                        (app (ref f) (ref x))
+                        (app (ref f) (ref endpoint)))))
+                  (pi endpoint (ref A)
+                    (pi path (id (ref A) (ref x) (ref endpoint))
+                      (universe 0))))
+                (refl (app (ref f) (ref x)))
+                (ref y)
+                (ref p)))))))))
+
+; ap sends reflexivity to reflexivity judgmentally.
+(transparent ap_refl
+  (pi A (universe 0)
+    (pi B (universe 0)
+      (pi f (pi point (ref A) (ref B))
+        (pi x (ref A)
+          (id
+            (id
+              (ref B)
+              (app (ref f) (ref x))
+              (app (ref f) (ref x)))
+            (app
+              (app
+                (app
+                  (app
+                    (app
+                      (app (ref ap) (ref A))
+                      (ref B))
+                    (ref f))
+                  (ref x))
+                (ref x))
+              (refl (ref x)))
+            (refl (app (ref f) (ref x))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam x
+          (refl (refl (app (ref f) (ref x)))))))))

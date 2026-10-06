@@ -8,10 +8,11 @@ are recorded here.
 ### Added
 
 - Began the checked HoTT library with explicit universe-zero path inversion,
-  path concatenation, and dependent transport, all defined from `J`, including
-  the judgmental right-unit computation for concatenation, a propositional
-  left-unit law, associativity proved by path induction, and judgmental
-  reflexivity computation for transport.
+  path concatenation, dependent transport, and function action on paths
+  (`ap`), all defined from `J`, including the judgmental right-unit
+  computation for concatenation, a propositional left-unit law, associativity
+  proved by path induction, and judgmental reflexivity computations for
+  transport and `ap`.
 - Documented library-layer discipline: Surface source remains untrusted,
   universe levels remain explicit, and the constructive base library introduces
   no postulates or extensions.

@@ -46,11 +46,12 @@ implicit arguments, metavariables, tactics, or richer notation. See
 [Surface v0.1](docs/surface-v0.1.md).
 
 **Roadmap item 5 is underway.** The checked HoTT library now contains
-universe-zero path inversion, path concatenation, and dependent transport, all
-derived solely from the Core identity eliminator `J`. Concatenation records
-its judgmental right-unit computation, propositional left-unit law, and
-associativity by path induction; transport records its judgmental reflexivity
-computation. The library layer is ordinary untrusted Surface source: it introduces no
+universe-zero path inversion, path concatenation, dependent transport, and
+function action on paths (`ap`), all derived solely from the Core identity
+eliminator `J`. Concatenation records its judgmental right-unit computation,
+propositional left-unit law, and associativity by path induction; transport and
+`ap` record their judgmental reflexivity computations. The library layer is
+ordinary untrusted Surface source: it introduces no
 new kernel rule, postulate, or extension. See
 [library/README.md](library/README.md).
 
