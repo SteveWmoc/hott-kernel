@@ -50,7 +50,8 @@ universe-zero path inversion, path concatenation, dependent transport, and
 function action on paths (`ap`), all derived solely from the Core identity
 eliminator `J`. Concatenation records its judgmental right-unit computation,
 propositional left-unit law, and associativity by path induction; transport and
-`ap` record their judgmental reflexivity computations. The library layer is
+`ap` record their judgmental reflexivity computations, and `ap` preserves
+path concatenation propositionally. The library layer is
 ordinary untrusted Surface source: it introduces no
 new kernel rule, postulate, or extension. See
 [library/README.md](library/README.md).
