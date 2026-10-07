@@ -11,8 +11,8 @@ are recorded here.
   path concatenation, dependent transport, and function action on paths
   (`ap`), all defined from `J`, including the judgmental right-unit
   computation for concatenation, a propositional left-unit law, associativity
-  proved by path induction, and judgmental reflexivity computations for
-  transport and `ap`.
+  proved by path induction, judgmental reflexivity computations for transport
+  and `ap`, and the propositional law that `ap` preserves path concatenation.
 - Documented library-layer discipline: Surface source remains untrusted,
   universe levels remain explicit, and the constructive base library introduces
   no postulates or extensions.

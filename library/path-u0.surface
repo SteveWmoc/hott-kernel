@@ -396,3 +396,117 @@
       (lam f
         (lam x
           (refl (refl (app (ref f) (ref x)))))))))
+
+; ap preserves path concatenation propositionally.
+(transparent ap_concat
+  (pi A
+      (universe 0)
+      (pi B
+        (universe 0)
+        (pi f
+          (pi point (ref A) (ref B))
+          (pi x
+            (ref A)
+            (pi y
+              (ref A)
+              (pi z
+                (ref A)
+                (pi p
+                  (id (ref A) (ref x) (ref y))
+                  (pi q
+                    (id (ref A) (ref y) (ref z))
+                    (id
+                      (id (ref B) (app (ref f) (ref x)) (app (ref f) (ref z)))
+                      (app
+                        (app
+                          (app (app (app (app (ref ap) (ref A)) (ref B)) (ref f)) (ref x))
+                          (ref z))
+                        (app
+                          (app
+                            (app
+                              (app (app (app (ref path_concat) (ref A)) (ref x)) (ref y))
+                              (ref z))
+                            (ref p))
+                          (ref q)))
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (app (ref path_concat) (ref B)) (app (ref f) (ref x)))
+                              (app (ref f) (ref y)))
+                            (app (ref f) (ref z)))
+                          (app
+                            (app
+                              (app (app (app (app (ref ap) (ref A)) (ref B)) (ref f)) (ref x))
+                              (ref y))
+                            (ref p)))
+                        (app
+                          (app
+                            (app (app (app (app (ref ap) (ref A)) (ref B)) (ref f)) (ref y))
+                            (ref z))
+                          (ref q))))))))))))
+  (lam A
+      (lam B
+        (lam f
+          (lam x
+            (lam y
+              (lam z
+                (lam p
+                  (lam q
+                    (j
+                      (ref A)
+                      (ref y)
+                      (ann
+                        (lam endpoint
+                          (lam path
+                            (id
+                              (id (ref B) (app (ref f) (ref x)) (app (ref f) (ref endpoint)))
+                              (app
+                                (app
+                                  (app
+                                    (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                                    (ref x))
+                                  (ref endpoint))
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (app (ref path_concat) (ref A)) (ref x))
+                                        (ref y))
+                                      (ref endpoint))
+                                    (ref p))
+                                  (ref path)))
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref path_concat) (ref B))
+                                        (app (ref f) (ref x)))
+                                      (app (ref f) (ref y)))
+                                    (app (ref f) (ref endpoint)))
+                                  (app
+                                    (app
+                                      (app
+                                        (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                                        (ref x))
+                                      (ref y))
+                                    (ref p)))
+                                (app
+                                  (app
+                                    (app
+                                      (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                                      (ref y))
+                                    (ref endpoint))
+                                  (ref path))))))
+                        (pi endpoint
+                          (ref A)
+                          (pi path (id (ref A) (ref y) (ref endpoint)) (universe 0))))
+                      (refl
+                        (app
+                          (app
+                            (app (app (app (app (ref ap) (ref A)) (ref B)) (ref f)) (ref x))
+                            (ref y))
+                          (ref p)))
+                      (ref z)
+                      (ref q)))))))))))
