@@ -510,3 +510,76 @@
                           (ref p)))
                       (ref z)
                       (ref q)))))))))))
+
+; ap preserves path inversion propositionally.
+(transparent ap_inverse
+  (pi A
+      (universe 0)
+      (pi B
+        (universe 0)
+        (pi f
+          (pi point (ref A) (ref B))
+          (pi x
+            (ref A)
+            (pi y
+              (ref A)
+              (pi p
+                (id (ref A) (ref x) (ref y))
+                (id
+                  (id (ref B) (app (ref f) (ref y)) (app (ref f) (ref x)))
+                  (app
+                    (app
+                      (app (app (app (app (ref ap) (ref A)) (ref B)) (ref f)) (ref y))
+                      (ref x))
+                    (app (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y)) (ref p)))
+                  (app
+                    (app
+                      (app (app (ref path_inverse) (ref B)) (app (ref f) (ref x)))
+                      (app (ref f) (ref y)))
+                    (app
+                      (app
+                        (app (app (app (app (ref ap) (ref A)) (ref B)) (ref f)) (ref x))
+                        (ref y))
+                      (ref p))))))))))
+  (lam A
+      (lam B
+        (lam f
+          (lam x
+            (lam y
+              (lam p
+                (j
+                  (ref A)
+                  (ref x)
+                  (ann
+                    (lam endpoint
+                      (lam path
+                        (id
+                          (id (ref B) (app (ref f) (ref endpoint)) (app (ref f) (ref x)))
+                          (app
+                            (app
+                              (app
+                                (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                                (ref endpoint))
+                              (ref x))
+                            (app
+                              (app
+                                (app (app (ref path_inverse) (ref A)) (ref x))
+                                (ref endpoint))
+                              (ref path)))
+                          (app
+                            (app
+                              (app (app (ref path_inverse) (ref B)) (app (ref f) (ref x)))
+                              (app (ref f) (ref endpoint)))
+                            (app
+                              (app
+                                (app
+                                  (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                                  (ref x))
+                                (ref endpoint))
+                              (ref path))))))
+                    (pi endpoint
+                      (ref A)
+                      (pi path (id (ref A) (ref x) (ref endpoint)) (universe 0))))
+                  (refl (refl (app (ref f) (ref x))))
+                  (ref y)
+                  (ref p)))))))))
