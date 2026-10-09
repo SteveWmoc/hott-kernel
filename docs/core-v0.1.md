@@ -126,9 +126,7 @@ $$
 \mathsf{shift}_{d,c}(\mathsf{var}(n))=
 \begin{cases}
 \mathsf{var}(n),&n<c,\\
-\mathsf{var}(n+d),&n\ge c.
-
-\end{cases}
+\mathsf{var}(n+d),&n\ge c.\end{cases}
 $$
 
 The operation recurses structurally through every constructor. Under the
