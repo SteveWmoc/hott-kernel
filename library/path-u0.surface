@@ -583,3 +583,44 @@
                   (refl (refl (app (ref f) (ref x))))
                   (ref y)
                   (ref p)))))))))
+
+; Path inversion is propositionally involutive.
+(transparent path_inverse_involutive
+  (pi A
+      (universe 0)
+      (pi x
+        (ref A)
+        (pi y
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (id
+              (id (ref A) (ref x) (ref y))
+              (app
+                (app (app (app (ref path_inverse) (ref A)) (ref y)) (ref x))
+                (app (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y)) (ref p)))
+              (ref p))))))
+  (lam A
+      (lam x
+        (lam y
+          (lam p
+            (j
+              (ref A)
+              (ref x)
+              (ann
+                (lam endpoint
+                  (lam path
+                    (id
+                      (id (ref A) (ref x) (ref endpoint))
+                      (app
+                        (app (app (app (ref path_inverse) (ref A)) (ref endpoint)) (ref x))
+                        (app
+                          (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref endpoint))
+                          (ref path)))
+                      (ref path))))
+                (pi endpoint
+                  (ref A)
+                  (pi path (id (ref A) (ref x) (ref endpoint)) (universe 0))))
+              (refl (refl (ref x)))
+              (ref y)
+              (ref p)))))))
