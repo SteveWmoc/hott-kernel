@@ -326,14 +326,8 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     assert_eq!(ap_inverse.transitive().declarations(), &[0, 8]);
 
     let inverse_involutive = &declarations[12];
-    assert_eq!(
-        inverse_involutive.display_name(),
-        "path_inverse_involutive"
-    );
-    assert_eq!(
-        inverse_involutive.kind(),
-        AuditDeclarationKind::Transparent
-    );
+    assert_eq!(inverse_involutive.display_name(), "path_inverse_involutive");
+    assert_eq!(inverse_involutive.kind(), AuditDeclarationKind::Transparent);
     assert_eq!(
         inverse_involutive.direct().kernel_features(),
         &[
