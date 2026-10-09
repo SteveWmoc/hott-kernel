@@ -127,6 +127,7 @@ $$
 \begin{cases}
 \mathsf{var}(n),&n<c,\\
 \mathsf{var}(n+d),&n\ge c.
+
 \end{cases}
 $$
 
