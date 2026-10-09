@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 12);
+    assert_eq!(declarations.len(), 13);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -324,4 +324,30 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     assert!(ap_inverse.transitive().extensions().is_empty());
     assert!(ap_inverse.transitive().postulates().is_empty());
     assert_eq!(ap_inverse.transitive().declarations(), &[0, 8]);
+
+    let inverse_involutive = &declarations[12];
+    assert_eq!(inverse_involutive.display_name(), "path_inverse_involutive");
+    assert_eq!(inverse_involutive.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        inverse_involutive.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(inverse_involutive.direct().extensions().is_empty());
+    assert!(inverse_involutive.direct().postulates().is_empty());
+    assert_eq!(inverse_involutive.direct().declarations(), &[0]);
+    assert_eq!(
+        inverse_involutive.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe,
+        ]
+    );
+    assert!(inverse_involutive.transitive().extensions().is_empty());
+    assert!(inverse_involutive.transitive().postulates().is_empty());
+    assert_eq!(inverse_involutive.transitive().declarations(), &[0]);
 }
