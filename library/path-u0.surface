@@ -624,3 +624,111 @@
               (refl (refl (ref x)))
               (ref y)
               (ref p)))))))
+
+; p followed by p inverse contracts at x.
+(transparent path_concat_inverse_right
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (pi y
+        (ref A)
+        (pi p
+          (id (ref A) (ref x) (ref y))
+          (id
+            (id (ref A) (ref x) (ref x))
+            (app
+              (app
+                (app
+                  (app (app (app (ref path_concat) (ref A)) (ref x)) (ref y))
+                  (ref x))
+                (ref p))
+              (app (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y)) (ref p)))
+            (refl (ref x)))))))
+  (lam A
+    (lam x
+      (lam y
+        (lam p
+          (j
+            (ref A)
+            (ref x)
+            (ann
+              (lam endpoint
+                (lam path
+                  (id
+                    (id (ref A) (ref x) (ref x))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (app (ref path_concat) (ref A)) (ref x))
+                            (ref endpoint))
+                          (ref x))
+                        (ref path))
+                      (app
+                        (app
+                          (app (app (ref path_inverse) (ref A)) (ref x))
+                          (ref endpoint))
+                        (ref path)))
+                    (refl (ref x)))))
+              (pi endpoint
+                (ref A)
+                (pi path (id (ref A) (ref x) (ref endpoint)) (universe 0))))
+            (refl (refl (ref x)))
+            (ref y)
+            (ref p)))))))
+
+; p inverse followed by p contracts at y.
+(transparent path_concat_inverse_left
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (pi y
+        (ref A)
+        (pi p
+          (id (ref A) (ref x) (ref y))
+          (id
+            (id (ref A) (ref y) (ref y))
+            (app
+              (app
+                (app
+                  (app (app (app (ref path_concat) (ref A)) (ref y)) (ref x))
+                  (ref y))
+                (app
+                  (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                  (ref p)))
+              (ref p))
+            (refl (ref y)))))))
+  (lam A
+    (lam x
+      (lam y
+        (lam p
+          (j
+            (ref A)
+            (ref x)
+            (ann
+              (lam endpoint
+                (lam path
+                  (id
+                    (id (ref A) (ref endpoint) (ref endpoint))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (app (ref path_concat) (ref A)) (ref endpoint))
+                            (ref x))
+                          (ref endpoint))
+                        (app
+                          (app
+                            (app (app (ref path_inverse) (ref A)) (ref x))
+                            (ref endpoint))
+                          (ref path)))
+                      (ref path))
+                    (refl (ref endpoint)))))
+              (pi endpoint
+                (ref A)
+                (pi path (id (ref A) (ref x) (ref endpoint)) (universe 0))))
+            (refl (refl (ref x)))
+            (ref y)
+            (ref p)))))))

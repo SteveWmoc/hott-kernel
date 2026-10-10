@@ -12,7 +12,8 @@ are recorded here.
   (`ap`), all defined from `J`, including the judgmental right-unit
   computation for concatenation, a propositional left-unit law, associativity
   proved by path induction, judgmental reflexivity computations for transport
-  and `ap`, propositional involutivity of path inversion, and propositional
+  and `ap`, propositional involutivity of path inversion, both concatenation
+  inverse laws, and propositional
   laws that `ap` preserves path concatenation and path inversion.
 - Documented library-layer discipline: Surface source remains untrusted,
   universe levels remain explicit, and the constructive base library introduces
