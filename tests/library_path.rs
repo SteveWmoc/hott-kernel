@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 13);
+    assert_eq!(declarations.len(), 15);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -350,4 +350,37 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     assert!(inverse_involutive.transitive().extensions().is_empty());
     assert!(inverse_involutive.transitive().postulates().is_empty());
     assert_eq!(inverse_involutive.transitive().declarations(), &[0]);
+    let inverse_law = &declarations[13];
+    assert_eq!(inverse_law.display_name(), "path_concat_inverse_right");
+    assert_eq!(inverse_law.kind(), AuditDeclarationKind::Transparent);
+    for foundation in [inverse_law.direct(), inverse_law.transitive()] {
+        assert_eq!(
+            foundation.kernel_features(),
+            &[
+                KernelFeature::Identity,
+                KernelFeature::Pi,
+                KernelFeature::Universe
+            ]
+        );
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+        assert_eq!(foundation.declarations(), &[0, 2]);
+    }
+
+    let inverse_law = &declarations[14];
+    assert_eq!(inverse_law.display_name(), "path_concat_inverse_left");
+    assert_eq!(inverse_law.kind(), AuditDeclarationKind::Transparent);
+    for foundation in [inverse_law.direct(), inverse_law.transitive()] {
+        assert_eq!(
+            foundation.kernel_features(),
+            &[
+                KernelFeature::Identity,
+                KernelFeature::Pi,
+                KernelFeature::Universe
+            ]
+        );
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+        assert_eq!(foundation.declarations(), &[0, 2]);
+    }
 }
