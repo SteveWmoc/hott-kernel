@@ -732,3 +732,110 @@
             (refl (refl (ref x)))
             (ref y)
             (ref p)))))))
+
+; Reversing concatenation reverses the order of the two paths.
+(transparent path_inverse_concat
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (pi y
+        (ref A)
+        (pi z
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (pi q
+              (id (ref A) (ref y) (ref z))
+              (id
+                (id (ref A) (ref z) (ref x))
+                (app
+                  (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref z))
+                  (app
+                    (app
+                      (app
+                        (app (app (app (ref path_concat) (ref A)) (ref x)) (ref y))
+                        (ref z))
+                      (ref p))
+                    (ref q)))
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref path_concat) (ref A)) (ref z)) (ref y))
+                      (ref x))
+                    (app
+                      (app (app (app (ref path_inverse) (ref A)) (ref y)) (ref z))
+                      (ref q)))
+                  (app
+                    (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                    (ref p))))))))))
+  (lam A
+    (lam x
+      (lam y
+        (lam z
+          (lam p
+            (lam q
+              (j
+                (ref A)
+                (ref y)
+                (ann
+                  (lam endpoint
+                    (lam path
+                      (id
+                        (id (ref A) (ref endpoint) (ref x))
+                        (app
+                          (app
+                            (app (app (ref path_inverse) (ref A)) (ref x))
+                            (ref endpoint))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref path_concat) (ref A)) (ref x))
+                                  (ref y))
+                                (ref endpoint))
+                              (ref p))
+                            (ref path)))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (app (ref path_concat) (ref A)) (ref endpoint))
+                                (ref y))
+                              (ref x))
+                            (app
+                              (app
+                                (app (app (ref path_inverse) (ref A)) (ref y))
+                                (ref endpoint))
+                              (ref path)))
+                          (app
+                            (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                            (ref p))))))
+                  (pi endpoint
+                    (ref A)
+                    (pi path (id (ref A) (ref y) (ref endpoint)) (universe 0))))
+                (app
+                  (app
+                    (app
+                      (app (ref path_inverse) (id (ref A) (ref y) (ref x)))
+                      (app
+                        (app
+                          (app
+                            (app (app (app (ref path_concat) (ref A)) (ref y)) (ref y))
+                            (ref x))
+                          (refl (ref y)))
+                        (app
+                          (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                          (ref p))))
+                    (app
+                      (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                      (ref p)))
+                  (app
+                    (app
+                      (app (app (ref path_concat_left_refl) (ref A)) (ref y))
+                      (ref x))
+                    (app
+                      (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                      (ref p))))
+                (ref z)
+                (ref q)))))))))
