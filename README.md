@@ -51,9 +51,9 @@ function action on paths (`ap`), all derived solely from the Core identity
 eliminator `J`. Concatenation records its judgmental right-unit computation,
 propositional left-unit law, and associativity by path induction; transport and
 `ap` record their judgmental reflexivity computations, path inversion is
-propositionally involutive and satisfies both concatenation inverse laws,
-and `ap` preserves path concatenation and path
-inversion propositionally. The library layer is
+propositionally involutive, satisfies both concatenation inverse laws, and
+reverses the order of concatenation propositionally. The action `ap` preserves
+path concatenation and path inversion propositionally. The library layer is
 ordinary untrusted Surface source: it introduces no
 new kernel rule, postulate, or extension. See
 [library/README.md](library/README.md).

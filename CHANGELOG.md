@@ -13,7 +13,7 @@ are recorded here.
   computation for concatenation, a propositional left-unit law, associativity
   proved by path induction, judgmental reflexivity computations for transport
   and `ap`, propositional involutivity of path inversion, both concatenation
-  inverse laws, and propositional
+  inverse laws, reversal of concatenation by inversion, and propositional
   laws that `ap` preserves path concatenation and path inversion.
 - Documented library-layer discipline: Surface source remains untrusted,
   universe levels remain explicit, and the constructive base library introduces
