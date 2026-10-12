@@ -839,3 +839,115 @@
                       (ref p))))
                 (ref z)
                 (ref q)))))))))
+
+; Transport along concatenation agrees with successive transports.
+(transparent transport_concat
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi y
+          (ref A)
+          (pi z
+            (ref A)
+            (pi p
+              (id (ref A) (ref x) (ref y))
+              (pi q
+                (id (ref A) (ref y) (ref z))
+                (pi u
+                  (app (ref P) (ref x))
+                  (id
+                    (app (ref P) (ref z))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                          (ref z))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (app (ref path_concat) (ref A)) (ref x))
+                                (ref y))
+                              (ref z))
+                            (ref p))
+                          (ref q)))
+                      (ref u))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref transport) (ref A)) (ref P)) (ref y))
+                          (ref z))
+                        (ref q))
+                      (app
+                        (app
+                          (app
+                            (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                            (ref y))
+                          (ref p))
+                        (ref u))))))))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam y
+          (lam z
+            (lam p
+              (lam q
+                (lam u
+                  (j
+                    (ref A)
+                    (ref y)
+                    (ann
+                      (lam endpoint
+                        (lam path
+                          (id
+                            (app (ref P) (ref endpoint))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref transport) (ref A)) (ref P))
+                                    (ref x))
+                                  (ref endpoint))
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (app (ref path_concat) (ref A)) (ref x))
+                                        (ref y))
+                                      (ref endpoint))
+                                    (ref p))
+                                  (ref path)))
+                              (ref u))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref transport) (ref A)) (ref P))
+                                    (ref y))
+                                  (ref endpoint))
+                                (ref path))
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app (app (ref transport) (ref A)) (ref P))
+                                      (ref x))
+                                    (ref y))
+                                  (ref p))
+                                (ref u))))))
+                      (pi endpoint
+                        (ref A)
+                        (pi path (id (ref A) (ref y) (ref endpoint)) (universe 0))))
+                    (refl
+                      (app
+                        (app
+                          (app
+                            (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                            (ref y))
+                          (ref p))
+                        (ref u)))
+                    (ref z)
+                    (ref q)))))))))))
