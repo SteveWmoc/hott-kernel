@@ -14,7 +14,8 @@ are recorded here.
   proved by path induction, judgmental reflexivity computations for transport
   and `ap`, propositional involutivity of path inversion, both concatenation
   inverse laws, reversal of concatenation by inversion, and propositional
-  laws that `ap` preserves path concatenation and path inversion.
+  laws that `ap` preserves path concatenation and path inversion, and that
+  transport along concatenation agrees with successive transports.
 - Documented library-layer discipline: Surface source remains untrusted,
   universe levels remain explicit, and the constructive base library introduces
   no postulates or extensions.
