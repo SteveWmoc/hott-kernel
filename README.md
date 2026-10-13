@@ -54,7 +54,9 @@ propositional left-unit law, and associativity by path induction; transport and
 propositionally involutive, satisfies both concatenation inverse laws, and
 reverses the order of concatenation propositionally. The action `ap` preserves
 path concatenation and path inversion propositionally. Transport along a
-concatenation agrees propositionally with successive transports. The library layer is
+concatenation agrees propositionally with successive transports, and transport
+along an inverse path undoes transport along the original path in both
+directions. The library layer is
 ordinary untrusted Surface source: it introduces no
 new kernel rule, postulate, or extension. See
 [library/README.md](library/README.md).

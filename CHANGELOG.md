@@ -16,6 +16,8 @@ are recorded here.
   inverse laws, reversal of concatenation by inversion, and propositional
   laws that `ap` preserves path concatenation and path inversion, and that
   transport along concatenation agrees with successive transports.
+- Proved both pointwise transport inverse laws at universe zero by path
+  induction, with complete direct and transitive foundation audits.
 - Documented library-layer discipline: Surface source remains untrusted,
   universe levels remain explicit, and the constructive base library introduces
   no postulates or extensions.
