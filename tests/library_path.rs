@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 17);
+    assert_eq!(declarations.len(), 19);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -416,5 +416,27 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
         assert!(foundation.extensions().is_empty());
         assert!(foundation.postulates().is_empty());
         assert_eq!(foundation.declarations(), &[2, 6]);
+    }
+
+    for (index, name) in [
+        (17, "transport_inverse_after"),
+        (18, "transport_inverse_before"),
+    ] {
+        let inverse_transport = &declarations[index];
+        assert_eq!(inverse_transport.display_name(), name);
+        assert_eq!(inverse_transport.kind(), AuditDeclarationKind::Transparent);
+        for foundation in [inverse_transport.direct(), inverse_transport.transitive()] {
+            assert_eq!(
+                foundation.kernel_features(),
+                &[
+                    KernelFeature::Identity,
+                    KernelFeature::Pi,
+                    KernelFeature::Universe
+                ]
+            );
+            assert!(foundation.extensions().is_empty());
+            assert!(foundation.postulates().is_empty());
+            assert_eq!(foundation.declarations(), &[0, 6]);
+        }
     }
 }

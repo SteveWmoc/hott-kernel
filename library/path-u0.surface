@@ -951,3 +951,161 @@
                         (ref u)))
                     (ref z)
                     (ref q)))))))))))
+
+; Transport along p inverse after p returns the source-fiber element.
+(transparent transport_inverse_after
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi y
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (pi u
+              (app (ref P) (ref x))
+              (id
+                (app (ref P) (ref x))
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref transport) (ref A)) (ref P)) (ref y))
+                      (ref x))
+                    (app
+                      (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                      (ref p)))
+                  (app
+                    (app
+                      (app
+                        (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                        (ref y))
+                      (ref p))
+                    (ref u)))
+                (ref u))))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam y
+          (lam p
+            (lam u
+              (app
+                (j
+                  (ref A)
+                  (ref x)
+                  (ann
+                    (lam endpoint
+                      (lam path
+                        (pi value
+                          (app (ref P) (ref x))
+                          (id
+                            (app (ref P) (ref x))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref transport) (ref A)) (ref P))
+                                    (ref endpoint))
+                                  (ref x))
+                                (app
+                                  (app
+                                    (app (app (ref path_inverse) (ref A)) (ref x))
+                                    (ref endpoint))
+                                  (ref path)))
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app (app (ref transport) (ref A)) (ref P))
+                                      (ref x))
+                                    (ref endpoint))
+                                  (ref path))
+                                (ref value)))
+                            (ref value)))))
+                    (pi endpoint
+                      (ref A)
+                      (pi path (id (ref A) (ref x) (ref endpoint)) (universe 0))))
+                  (lam value (refl (ref value)))
+                  (ref y)
+                  (ref p))
+                (ref u)))))))))
+
+; Transport along p after p inverse returns the target-fiber element.
+(transparent transport_inverse_before
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi y
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (pi v
+              (app (ref P) (ref y))
+              (id
+                (app (ref P) (ref y))
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                      (ref y))
+                    (ref p))
+                  (app
+                    (app
+                      (app
+                        (app (app (app (ref transport) (ref A)) (ref P)) (ref y))
+                        (ref x))
+                      (app
+                        (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                        (ref p)))
+                    (ref v)))
+                (ref v))))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam y
+          (lam p
+            (lam v
+              (app
+                (j
+                  (ref A)
+                  (ref x)
+                  (ann
+                    (lam endpoint
+                      (lam path
+                        (pi value
+                          (app (ref P) (ref endpoint))
+                          (id
+                            (app (ref P) (ref endpoint))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref transport) (ref A)) (ref P))
+                                    (ref x))
+                                  (ref endpoint))
+                                (ref path))
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app (app (ref transport) (ref A)) (ref P))
+                                      (ref endpoint))
+                                    (ref x))
+                                  (app
+                                    (app
+                                      (app (app (ref path_inverse) (ref A)) (ref x))
+                                      (ref endpoint))
+                                    (ref path)))
+                                (ref value)))
+                            (ref value)))))
+                    (pi endpoint
+                      (ref A)
+                      (pi path (id (ref A) (ref x) (ref endpoint)) (universe 0))))
+                  (lam value (refl (ref value)))
+                  (ref y)
+                  (ref p))
+                (ref v)))))))))
