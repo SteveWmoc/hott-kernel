@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 19);
+    assert_eq!(declarations.len(), 23);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -437,6 +437,40 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
             assert!(foundation.extensions().is_empty());
             assert!(foundation.postulates().is_empty());
             assert_eq!(foundation.declarations(), &[0, 6]);
+        }
+    }
+
+    for (index, name, dependencies) in [
+        (19, "homotopy", &[][..]),
+        (20, "homotopy_refl", &[19][..]),
+        (21, "homotopy_symm", &[0, 19][..]),
+        (22, "homotopy_trans", &[2, 19][..]),
+    ] {
+        let homotopy_law = &declarations[index];
+        assert_eq!(homotopy_law.display_name(), name);
+        assert_eq!(homotopy_law.kind(), AuditDeclarationKind::Transparent);
+        let direct_features: &[KernelFeature] = if index >= 21 {
+            &[KernelFeature::Pi, KernelFeature::Universe]
+        } else {
+            &[
+                KernelFeature::Identity,
+                KernelFeature::Pi,
+                KernelFeature::Universe,
+            ]
+        };
+        assert_eq!(homotopy_law.direct().kernel_features(), direct_features);
+        assert_eq!(
+            homotopy_law.transitive().kernel_features(),
+            &[
+                KernelFeature::Identity,
+                KernelFeature::Pi,
+                KernelFeature::Universe
+            ]
+        );
+        for foundation in [homotopy_law.direct(), homotopy_law.transitive()] {
+            assert!(foundation.extensions().is_empty());
+            assert!(foundation.postulates().is_empty());
+            assert_eq!(foundation.declarations(), dependencies);
         }
     }
 }

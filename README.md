@@ -56,7 +56,9 @@ reverses the order of concatenation propositionally. The action `ap` preserves
 path concatenation and path inversion propositionally. Transport along a
 concatenation agrees propositionally with successive transports, and transport
 along an inverse path undoes transport along the original path in both
-directions. The library layer is
+directions. Dependent pointwise homotopy has reflexive, symmetric, and
+transitive laws built from reflexivity, inversion, and concatenation.
+The library layer is
 ordinary untrusted Surface source: it introduces no
 new kernel rule, postulate, or extension. See
 [library/README.md](library/README.md).
