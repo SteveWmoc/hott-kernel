@@ -1109,3 +1109,93 @@
                   (ref y)
                   (ref p))
                 (ref v)))))))))
+
+; Dependent pointwise homotopy and its reflexive, symmetric, transitive laws.
+
+(transparent homotopy
+  (pi A
+    (universe 0)
+    (pi P
+      (pi x (ref A) (universe 0))
+      (pi f
+        (pi x (ref A) (app (ref P) (ref x)))
+        (pi g (pi x (ref A) (app (ref P) (ref x))) (universe 0)))))
+  (lam A
+    (lam P
+      (lam f
+        (lam g
+          (pi x
+            (ref A)
+            (id (app (ref P) (ref x)) (app (ref f) (ref x)) (app (ref g) (ref x)))))))))
+
+(transparent homotopy_refl
+  (pi A
+    (universe 0)
+    (pi P
+      (pi x (ref A) (universe 0))
+      (pi f
+        (pi x (ref A) (app (ref P) (ref x)))
+        (app (app (app (app (ref homotopy) (ref A)) (ref P)) (ref f)) (ref f)))))
+  (lam A (lam P (lam f (lam x (refl (app (ref f) (ref x))))))))
+
+(transparent homotopy_symm
+  (pi A
+    (universe 0)
+    (pi P
+      (pi x (ref A) (universe 0))
+      (pi f
+        (pi x (ref A) (app (ref P) (ref x)))
+        (pi g
+          (pi x (ref A) (app (ref P) (ref x)))
+          (pi h
+            (app (app (app (app (ref homotopy) (ref A)) (ref P)) (ref f)) (ref g))
+            (app (app (app (app (ref homotopy) (ref A)) (ref P)) (ref g)) (ref f)))))))
+  (lam A
+    (lam P
+      (lam f
+        (lam g
+          (lam h
+            (lam x
+              (app
+                (app
+                  (app
+                    (app (ref path_inverse) (app (ref P) (ref x)))
+                    (app (ref f) (ref x)))
+                  (app (ref g) (ref x)))
+                (app (ref h) (ref x))))))))))
+
+(transparent homotopy_trans
+  (pi A
+    (universe 0)
+    (pi P
+      (pi x (ref A) (universe 0))
+      (pi f
+        (pi x (ref A) (app (ref P) (ref x)))
+        (pi g
+          (pi x (ref A) (app (ref P) (ref x)))
+          (pi k
+            (pi x (ref A) (app (ref P) (ref x)))
+            (pi h
+              (app (app (app (app (ref homotopy) (ref A)) (ref P)) (ref f)) (ref g))
+              (pi h2
+                (app (app (app (app (ref homotopy) (ref A)) (ref P)) (ref g)) (ref k))
+                (app (app (app (app (ref homotopy) (ref A)) (ref P)) (ref f)) (ref k)))))))))
+  (lam A
+    (lam P
+      (lam f
+        (lam g
+          (lam k
+            (lam h
+              (lam h2
+                (lam x
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (ref path_concat) (app (ref P) (ref x)))
+                            (app (ref f) (ref x)))
+                          (app (ref g) (ref x)))
+                        (app (ref k) (ref x)))
+                      (app (ref h) (ref x)))
+                    (app (ref h2) (ref x))))))))))))

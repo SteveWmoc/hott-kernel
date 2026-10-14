@@ -7,6 +7,9 @@ are recorded here.
 
 ### Added
 
+- Defined dependent pointwise homotopy at universe zero and proved its
+  reflexive, symmetric, and transitive laws, with complete foundation audits.
+
 - Began the checked HoTT library with explicit universe-zero path inversion,
   path concatenation, dependent transport, and function action on paths
   (`ap`), all defined from `J`, including the judgmental right-unit
