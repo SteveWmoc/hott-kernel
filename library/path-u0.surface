@@ -1199,3 +1199,106 @@
                         (app (ref k) (ref x)))
                       (app (ref h) (ref x)))
                     (app (ref h2) (ref x))))))))))))
+
+; Chosen quasi-inverse data for a fixed map; this is not a proposition-valued isEquiv.
+
+(transparent quasi_inverse
+  (pi A (universe 0) (pi B (universe 0) (pi f (pi point (ref A) (ref B)) (universe 0))))
+  (lam A
+    (lam B
+      (lam f
+        (sigma g
+          (pi point (ref B) (ref A))
+          (sigma section
+            (app
+              (app
+                (app (app (ref homotopy) (ref A)) (lam point (ref A)))
+                (lam point (app (ref g) (app (ref f) (ref point)))))
+              (lam point (ref point)))
+            (app
+              (app
+                (app (app (ref homotopy) (ref B)) (lam point (ref B)))
+                (lam point (app (ref f) (app (ref g) (ref point)))))
+              (lam point (ref point)))))))))
+
+(transparent quasi_inverse_intro
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi g
+          (pi point (ref B) (ref A))
+          (pi section
+            (app
+              (app
+                (app (app (ref homotopy) (ref A)) (lam point (ref A)))
+                (lam point (app (ref g) (app (ref f) (ref point)))))
+              (lam point (ref point)))
+            (pi retraction
+              (app
+                (app
+                  (app (app (ref homotopy) (ref B)) (lam point (ref B)))
+                  (lam point (app (ref f) (app (ref g) (ref point)))))
+                (lam point (ref point)))
+              (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam g
+          (lam section
+            (lam retraction (pair (ref g) (pair (ref section) (ref retraction))))))))))
+
+(transparent quasi_inverse_map
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (pi point (ref B) (ref A))))))
+  (lam A (lam B (lam f (lam witness (fst (ref witness)))))))
+
+(transparent quasi_inverse_section
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (app
+            (app
+              (app (app (ref homotopy) (ref A)) (lam point (ref A)))
+              (lam point (app (fst (ref witness)) (app (ref f) (ref point)))))
+            (lam point (ref point)))))))
+  (lam A (lam B (lam f (lam witness (fst (snd (ref witness))))))))
+
+(transparent quasi_inverse_retraction
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (app
+            (app
+              (app (app (ref homotopy) (ref B)) (lam point (ref B)))
+              (lam point (app (ref f) (app (fst (ref witness)) (ref point)))))
+            (lam point (ref point)))))))
+  (lam A (lam B (lam f (lam witness (snd (snd (ref witness))))))))
+
+(transparent identity_quasi_inverse
+  (pi A
+    (universe 0)
+    (app (app (app (ref quasi_inverse) (ref A)) (ref A)) (lam point (ref point))))
+  (lam A
+    (pair
+      (lam point (ref point))
+      (pair (lam point (refl (ref point))) (lam point (refl (ref point)))))))

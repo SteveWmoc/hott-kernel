@@ -29,3 +29,13 @@ audit.
 
 These conventions are library policy only. They add no kernel rule, Surface
 feature, or trusted component.
+
+## Quasi-inverse data
+
+For a fixed map `f : A → B`, `quasi_inverse A B f` stores an inverse
+`g : B → A` and homotopies `g ∘ f ~ id_A` and `f ∘ g ~ id_B`.
+`quasi_inverse_intro` builds the data; `quasi_inverse_map`,
+`quasi_inverse_section`, and `quasi_inverse_retraction` recover its fields.
+`identity_quasi_inverse` supplies the identity example. All types are explicitly
+at universe zero. This is chosen data, not a claim that quasi-inverse witnesses
+form a proposition or a definition of `isEquiv`.
