@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 23);
+    assert_eq!(declarations.len(), 29);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -473,4 +473,220 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
             assert_eq!(foundation.declarations(), dependencies);
         }
     }
+
+    let declaration = &declarations[23];
+    assert_eq!(declaration.display_name(), "quasi_inverse");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[19]);
+    assert_eq!(declaration.transitive().declarations(), &[19]);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[24];
+    assert_eq!(declaration.display_name(), "quasi_inverse_intro");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[19, 23]);
+    assert_eq!(declaration.transitive().declarations(), &[19, 23]);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[25];
+    assert_eq!(declaration.display_name(), "quasi_inverse_map");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[23]);
+    assert_eq!(declaration.transitive().declarations(), &[19, 23]);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[26];
+    assert_eq!(declaration.display_name(), "quasi_inverse_section");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[19, 23]);
+    assert_eq!(declaration.transitive().declarations(), &[19, 23]);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[27];
+    assert_eq!(declaration.display_name(), "quasi_inverse_retraction");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[19, 23]);
+    assert_eq!(declaration.transitive().declarations(), &[19, 23]);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[28];
+    assert_eq!(declaration.display_name(), "identity_quasi_inverse");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[23]);
+    assert_eq!(declaration.transitive().declarations(), &[19, 23]);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+}
+
+#[test]
+fn identity_quasi_inverse_projections_compute() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent identity_inverse_map_zero
+  (id nat
+    (app
+      (app (app (app (app (ref quasi_inverse_map) nat) nat)
+        (lam point (ref point)))
+        (app (ref identity_quasi_inverse) nat))
+      zero)
+    zero)
+  (refl zero))
+(transparent identity_inverse_section_zero
+  (id (id nat zero zero)
+    (app
+      (app (app (app (app (ref quasi_inverse_section) nat) nat)
+        (lam point (ref point)))
+        (app (ref identity_quasi_inverse) nat))
+      zero)
+    (refl zero))
+  (refl (refl zero)))
+(transparent identity_inverse_retraction_zero
+  (id (id nat zero zero)
+    (app
+      (app (app (app (app (ref quasi_inverse_retraction) nat) nat)
+        (lam point (ref point)))
+        (app (ref identity_quasi_inverse) nat))
+      zero)
+    (refl zero))
+  (refl (refl zero)))
+(transparent identity_inverse_from_constructor
+  (id nat
+    (app
+      (app (app (app (app (ref quasi_inverse_map) nat) nat)
+        (lam point (ref point)))
+        (app
+          (app
+            (app (app (app (app (ref quasi_inverse_intro) nat) nat)
+              (lam point (ref point)))
+              (lam point (ref point)))
+            (lam point (refl (ref point))))
+          (lam point (refl (ref point)))))
+      zero)
+    zero)
+  (refl zero))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("quasi-inverse constructor and projections must compute on identity data");
 }

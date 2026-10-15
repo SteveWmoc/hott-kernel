@@ -7,6 +7,9 @@ are recorded here.
 
 ### Added
 
+- Added chosen quasi-inverse data, its constructor and projections, and the
+  identity example, with complete foundation audits.
+
 - Defined dependent pointwise homotopy at universe zero and proved its
   reflexive, symmetric, and transitive laws, with complete foundation audits.
 

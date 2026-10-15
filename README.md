@@ -58,6 +58,9 @@ concatenation agrees propositionally with successive transports, and transport
 along an inverse path undoes transport along the original path in both
 directions. Dependent pointwise homotopy has reflexive, symmetric, and
 transitive laws built from reflexivity, inversion, and concatenation.
+Chosen quasi-inverse data packages an inverse map and both pointwise homotopy
+laws, with a constructor, projections, and the identity example. This data is
+not asserted to be a proposition or used as a definition of `isEquiv`.
 The library layer is
 ordinary untrusted Surface source: it introduces no
 new kernel rule, postulate, or extension. See
