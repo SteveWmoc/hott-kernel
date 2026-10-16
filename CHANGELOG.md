@@ -7,6 +7,9 @@ are recorded here.
 
 ### Added
 
+- Packaged transport with inverse-path transport and both inverse laws as
+  chosen quasi-inverse data, with exact audits and computation regressions.
+
 - Added chosen quasi-inverse data, its constructor and projections, and the
   identity example, with complete foundation audits.
 
