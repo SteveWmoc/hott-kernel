@@ -1302,3 +1302,72 @@
     (pair
       (lam point (ref point))
       (pair (lam point (refl (ref point))) (lam point (refl (ref point)))))))
+
+; Transport has a chosen quasi-inverse given by transport along the inverse path.
+(transparent transport_quasi_inverse
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi y
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (app
+              (app
+                (app (ref quasi_inverse) (app (ref P) (ref x)))
+                (app (ref P) (ref y)))
+              (lam value
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                      (ref y))
+                    (ref p))
+                  (ref value)))))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam y
+          (lam p
+            (app
+              (app
+                (app
+                  (app
+                    (app
+                      (app (ref quasi_inverse_intro) (app (ref P) (ref x)))
+                      (app (ref P) (ref y)))
+                    (lam value
+                      (app
+                        (app
+                          (app
+                            (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                            (ref y))
+                          (ref p))
+                        (ref value))))
+                  (lam value
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref transport) (ref A)) (ref P)) (ref y))
+                          (ref x))
+                        (app
+                          (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                          (ref p)))
+                      (ref value))))
+                (app
+                  (app
+                    (app
+                      (app (app (ref transport_inverse_after) (ref A)) (ref P))
+                      (ref x))
+                    (ref y))
+                  (ref p)))
+              (app
+                (app
+                  (app
+                    (app (app (ref transport_inverse_before) (ref A)) (ref P))
+                    (ref x))
+                  (ref y))
+                (ref p)))))))))

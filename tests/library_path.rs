@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 29);
+    assert_eq!(declarations.len(), 30);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -636,6 +636,39 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
         assert!(foundation.extensions().is_empty());
         assert!(foundation.postulates().is_empty());
     }
+
+    let transport_inverse = &declarations[29];
+    assert_eq!(transport_inverse.display_name(), "transport_quasi_inverse");
+    assert_eq!(transport_inverse.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        transport_inverse.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        transport_inverse.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        transport_inverse.direct().declarations(),
+        &[0, 6, 17, 18, 23, 24]
+    );
+    assert_eq!(
+        transport_inverse.transitive().declarations(),
+        &[0, 6, 17, 18, 19, 23, 24]
+    );
+    for foundation in [transport_inverse.direct(), transport_inverse.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
 }
 
 #[test]
@@ -689,4 +722,303 @@ fn identity_quasi_inverse_projections_compute() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("quasi-inverse constructor and projections must compute on identity data");
+}
+
+#[test]
+fn transport_quasi_inverse_projections_and_reflexivity_compute() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent transport_package_projection_0
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi y
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (pi value
+              (app (ref P) (ref y))
+              (id
+                (app (ref P) (ref x))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (ref quasi_inverse_map) (app (ref P) (ref x)))
+                        (app (ref P) (ref y)))
+                      (lam value
+                        (app
+                          (app
+                            (app
+                              (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                              (ref y))
+                            (ref p))
+                          (ref value))))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref transport_quasi_inverse) (ref A)) (ref P))
+                          (ref x))
+                        (ref y))
+                      (ref p)))
+                  (ref value))
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref transport) (ref A)) (ref P)) (ref y))
+                      (ref x))
+                    (app
+                      (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                      (ref p)))
+                  (ref value)))))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam y
+          (lam p
+            (lam value
+              (refl
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref transport) (ref A)) (ref P)) (ref y))
+                      (ref x))
+                    (app
+                      (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                      (ref p)))
+                  (ref value))))))))))
+
+(transparent transport_package_projection_1
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi y
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (pi value
+              (app (ref P) (ref x))
+              (id
+                (id
+                  (app (ref P) (ref x))
+                  (app
+                    (app
+                      (app
+                        (app (app (app (ref transport) (ref A)) (ref P)) (ref y))
+                        (ref x))
+                      (app
+                        (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                        (ref p)))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                          (ref y))
+                        (ref p))
+                      (ref value)))
+                  (ref value))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (ref quasi_inverse_section) (app (ref P) (ref x)))
+                        (app (ref P) (ref y)))
+                      (lam value
+                        (app
+                          (app
+                            (app
+                              (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                              (ref y))
+                            (ref p))
+                          (ref value))))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref transport_quasi_inverse) (ref A)) (ref P))
+                          (ref x))
+                        (ref y))
+                      (ref p)))
+                  (ref value))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (app (ref transport_inverse_after) (ref A)) (ref P))
+                        (ref x))
+                      (ref y))
+                    (ref p))
+                  (ref value)))))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam y
+          (lam p
+            (lam value
+              (refl
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (app (ref transport_inverse_after) (ref A)) (ref P))
+                        (ref x))
+                      (ref y))
+                    (ref p))
+                  (ref value))))))))))
+
+(transparent transport_package_projection_2
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi y
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (pi value
+              (app (ref P) (ref y))
+              (id
+                (id
+                  (app (ref P) (ref y))
+                  (app
+                    (app
+                      (app
+                        (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                        (ref y))
+                      (ref p))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref transport) (ref A)) (ref P)) (ref y))
+                          (ref x))
+                        (app
+                          (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                          (ref p)))
+                      (ref value)))
+                  (ref value))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (ref quasi_inverse_retraction) (app (ref P) (ref x)))
+                        (app (ref P) (ref y)))
+                      (lam value
+                        (app
+                          (app
+                            (app
+                              (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                              (ref y))
+                            (ref p))
+                          (ref value))))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref transport_quasi_inverse) (ref A)) (ref P))
+                          (ref x))
+                        (ref y))
+                      (ref p)))
+                  (ref value))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (app (ref transport_inverse_before) (ref A)) (ref P))
+                        (ref x))
+                      (ref y))
+                    (ref p))
+                  (ref value)))))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam y
+          (lam p
+            (lam value
+              (refl
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (app (ref transport_inverse_before) (ref A)) (ref P))
+                        (ref x))
+                      (ref y))
+                    (ref p))
+                  (ref value))))))))))
+
+(transparent transport_package_refl_0
+  (id
+    nat
+    (app
+      (app
+        (app
+          (app (app (ref quasi_inverse_map) nat) nat)
+          (lam value
+            (app
+              (app
+                (app (app (app (app (ref transport) nat) (lam point nat)) zero) zero)
+                (refl zero))
+              (ref value))))
+        (app
+          (app
+            (app (app (app (ref transport_quasi_inverse) nat) (lam point nat)) zero)
+            zero)
+          (refl zero)))
+      zero)
+    zero)
+  (refl zero))
+
+(transparent transport_package_refl_1
+  (id
+    (id nat zero zero)
+    (app
+      (app
+        (app
+          (app (app (ref quasi_inverse_section) nat) nat)
+          (lam value
+            (app
+              (app
+                (app (app (app (app (ref transport) nat) (lam point nat)) zero) zero)
+                (refl zero))
+              (ref value))))
+        (app
+          (app
+            (app (app (app (ref transport_quasi_inverse) nat) (lam point nat)) zero)
+            zero)
+          (refl zero)))
+      zero)
+    (refl zero))
+  (refl (refl zero)))
+
+(transparent transport_package_refl_2
+  (id
+    (id nat zero zero)
+    (app
+      (app
+        (app
+          (app (app (ref quasi_inverse_retraction) nat) nat)
+          (lam value
+            (app
+              (app
+                (app (app (app (app (ref transport) nat) (lam point nat)) zero) zero)
+                (refl zero))
+              (ref value))))
+        (app
+          (app
+            (app (app (app (ref transport_quasi_inverse) nat) (lam point nat)) zero)
+            zero)
+          (refl zero)))
+      zero)
+    (refl zero))
+  (refl (refl zero)))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("transport package projections and reflexivity must compute");
 }

@@ -39,3 +39,8 @@ For a fixed map `f : A → B`, `quasi_inverse A B f` stores an inverse
 `identity_quasi_inverse` supplies the identity example. All types are explicitly
 at universe zero. This is chosen data, not a claim that quasi-inverse witnesses
 form a proposition or a definition of `isEquiv`.
+
+`transport_quasi_inverse A P x y p` packages the map from `P(x)` to `P(y)`
+with inverse transport along `path_inverse A x y p`. Its section and retraction
+are the existing `transport_inverse_after` and `transport_inverse_before`
+proofs. The generic projections recover these fields by computation.
