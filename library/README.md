@@ -44,3 +44,8 @@ form a proposition or a definition of `isEquiv`.
 with inverse transport along `path_inverse A x y p`. Its section and retraction
 are the existing `transport_inverse_after` and `transport_inverse_before`
 proofs. The generic projections recover these fields by computation.
+
+`quasi_inverse_symm A B f witness` supplies quasi-inverse data for the
+chosen inverse map. Its inverse is `f` itself; its section is the original
+retraction and its retraction is the original section. All three projection
+identities hold by computation, for arbitrary witnesses.

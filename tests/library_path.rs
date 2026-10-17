@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 30);
+    assert_eq!(declarations.len(), 31);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -669,6 +669,35 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
         assert!(foundation.extensions().is_empty());
         assert!(foundation.postulates().is_empty());
     }
+
+    let symmetric_inverse = &declarations[30];
+    assert_eq!(symmetric_inverse.display_name(), "quasi_inverse_symm");
+    assert_eq!(symmetric_inverse.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        symmetric_inverse.direct().kernel_features(),
+        &[KernelFeature::Pi, KernelFeature::Universe]
+    );
+    assert_eq!(
+        symmetric_inverse.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        symmetric_inverse.direct().declarations(),
+        &[23, 24, 25, 26, 27]
+    );
+    assert_eq!(
+        symmetric_inverse.transitive().declarations(),
+        &[19, 23, 24, 25, 26, 27]
+    );
+    for foundation in [symmetric_inverse.direct(), symmetric_inverse.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
 }
 
 #[test]
@@ -1021,4 +1050,123 @@ fn transport_quasi_inverse_projections_and_reflexivity_compute() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("transport package projections and reflexivity must compute");
+}
+
+#[test]
+fn quasi_inverse_symmetry_projections_compute_for_arbitrary_data() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent quasi_inverse_symm_projection_0
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (id
+            (pi point (ref A) (ref B))
+            (app
+              (app
+                (app (app (ref quasi_inverse_map) (ref B)) (ref A))
+                (app
+                  (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                  (ref witness)))
+              (app
+                (app (app (app (ref quasi_inverse_symm) (ref A)) (ref B)) (ref f))
+                (ref witness)))
+            (ref f))))))
+  (lam A (lam B (lam f (lam witness (refl (ref f)))))))
+
+(transparent quasi_inverse_symm_projection_1
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (id
+            (app
+              (app
+                (app (app (ref homotopy) (ref B)) (lam point (ref B)))
+                (lam point
+                  (app
+                    (ref f)
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (ref point)))))
+              (lam point (ref point)))
+            (app
+              (app
+                (app (app (ref quasi_inverse_section) (ref B)) (ref A))
+                (app
+                  (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                  (ref witness)))
+              (app
+                (app (app (app (ref quasi_inverse_symm) (ref A)) (ref B)) (ref f))
+                (ref witness)))
+            (app
+              (app (app (app (ref quasi_inverse_retraction) (ref A)) (ref B)) (ref f))
+              (ref witness)))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (refl
+            (app
+              (app (app (app (ref quasi_inverse_retraction) (ref A)) (ref B)) (ref f))
+              (ref witness))))))))
+
+(transparent quasi_inverse_symm_projection_2
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (id
+            (app
+              (app
+                (app (app (ref homotopy) (ref A)) (lam point (ref A)))
+                (lam point
+                  (app
+                    (app
+                      (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                      (ref witness))
+                    (app (ref f) (ref point)))))
+              (lam point (ref point)))
+            (app
+              (app
+                (app (app (ref quasi_inverse_retraction) (ref B)) (ref A))
+                (app
+                  (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                  (ref witness)))
+              (app
+                (app (app (app (ref quasi_inverse_symm) (ref A)) (ref B)) (ref f))
+                (ref witness)))
+            (app
+              (app (app (app (ref quasi_inverse_section) (ref A)) (ref B)) (ref f))
+              (ref witness)))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (refl
+            (app
+              (app (app (app (ref quasi_inverse_section) (ref A)) (ref B)) (ref f))
+              (ref witness))))))))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("symmetry must recover the original map and exchange the original proofs");
 }

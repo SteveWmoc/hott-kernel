@@ -7,6 +7,9 @@ are recorded here.
 
 ### Added
 
+- Added symmetry of chosen quasi-inverse data, with complete foundation
+  audits and generic computation tests for all three projections.
+
 - Packaged transport with inverse-path transport and both inverse laws as
   chosen quasi-inverse data, with exact audits and computation regressions.
 
