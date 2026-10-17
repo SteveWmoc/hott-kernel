@@ -1371,3 +1371,38 @@
                     (ref x))
                   (ref y))
                 (ref p)))))))))
+
+; Reverse chosen quasi-inverse data by exchanging its two homotopies.
+(transparent quasi_inverse_symm
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (app
+            (app (app (ref quasi_inverse) (ref B)) (ref A))
+            (app
+              (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+              (ref witness)))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (app
+            (app
+              (app
+                (app
+                  (app (app (ref quasi_inverse_intro) (ref B)) (ref A))
+                  (app
+                    (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                    (ref witness)))
+                (ref f))
+              (app
+                (app (app (app (ref quasi_inverse_retraction) (ref A)) (ref B)) (ref f))
+                (ref witness)))
+            (app
+              (app (app (app (ref quasi_inverse_section) (ref A)) (ref B)) (ref f))
+              (ref witness))))))))
