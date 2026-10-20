@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 31);
+    assert_eq!(declarations.len(), 32);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -698,6 +698,36 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
         assert!(foundation.extensions().is_empty());
         assert!(foundation.postulates().is_empty());
     }
+
+    let composed_inverse = &declarations[31];
+    assert_eq!(composed_inverse.display_name(), "quasi_inverse_comp");
+    assert_eq!(composed_inverse.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        composed_inverse.direct().kernel_features(),
+        &[KernelFeature::Pi, KernelFeature::Universe]
+    );
+    assert_eq!(
+        composed_inverse.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        composed_inverse.direct().declarations(),
+        &[2, 8, 23, 24, 25, 26, 27]
+    );
+    assert_eq!(
+        composed_inverse.transitive().declarations(),
+        &[2, 8, 19, 23, 24, 25, 26, 27]
+    );
+    for foundation in [composed_inverse.direct(), composed_inverse.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
 }
 
 #[test]
@@ -1169,4 +1199,569 @@ fn quasi_inverse_symmetry_projections_compute_for_arbitrary_data() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("symmetry must recover the original map and exchange the original proofs");
+}
+
+#[test]
+fn quasi_inverse_composition_projections_and_identity_compute() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent quasi_inverse_comp_projection_0
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi C
+        (universe 0)
+        (pi f
+          (pi point (ref A) (ref B))
+          (pi g
+            (pi point (ref B) (ref C))
+            (pi witness_f
+              (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+              (pi witness_g
+                (app (app (app (ref quasi_inverse) (ref B)) (ref C)) (ref g))
+                (pi value
+                  (ref C)
+                  (id
+                    (ref A)
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_map) (ref A)) (ref C))
+                          (lam point (app (ref g) (app (ref f) (ref point)))))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_comp) (ref A)) (ref B))
+                                  (ref C))
+                                (ref f))
+                              (ref g))
+                            (ref witness_f))
+                          (ref witness_g)))
+                      (ref value))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness_f))
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                            (ref g))
+                          (ref witness_g))
+                        (ref value))))))))))))
+  (lam A
+    (lam B
+      (lam C
+        (lam f
+          (lam g
+            (lam witness_f
+              (lam witness_g
+                (lam value
+                  (refl
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness_f))
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                            (ref g))
+                          (ref witness_g))
+                        (ref value)))))))))))))
+
+(transparent quasi_inverse_comp_projection_1
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi C
+        (universe 0)
+        (pi f
+          (pi point (ref A) (ref B))
+          (pi g
+            (pi point (ref B) (ref C))
+            (pi witness_f
+              (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+              (pi witness_g
+                (app (app (app (ref quasi_inverse) (ref B)) (ref C)) (ref g))
+                (pi value
+                  (ref A)
+                  (id
+                    (id
+                      (ref A)
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                            (ref f))
+                          (ref witness_f))
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                              (ref g))
+                            (ref witness_g))
+                          (app (ref g) (app (ref f) (ref value)))))
+                      (ref value))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_section) (ref A)) (ref C))
+                          (lam point (app (ref g) (app (ref f) (ref point)))))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_comp) (ref A)) (ref B))
+                                  (ref C))
+                                (ref f))
+                              (ref g))
+                            (ref witness_f))
+                          (ref witness_g)))
+                      (ref value))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (ref path_concat) (ref A))
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness_f))
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref quasi_inverse_map) (ref B))
+                                        (ref C))
+                                      (ref g))
+                                    (ref witness_g))
+                                  (app (ref g) (app (ref f) (ref value))))))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness_f))
+                              (app (ref f) (ref value))))
+                          (ref value))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (app (ref ap) (ref B)) (ref A))
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness_f)))
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                    (ref g))
+                                  (ref witness_g))
+                                (app (ref g) (app (ref f) (ref value)))))
+                            (app (ref f) (ref value)))
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_section) (ref B)) (ref C))
+                                (ref g))
+                              (ref witness_g))
+                            (app (ref f) (ref value)))))
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_section) (ref A)) (ref B))
+                            (ref f))
+                          (ref witness_f))
+                        (ref value))))))))))))
+  (lam A
+    (lam B
+      (lam C
+        (lam f
+          (lam g
+            (lam witness_f
+              (lam witness_g
+                (lam value
+                  (refl
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (ref path_concat) (ref A))
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness_f))
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref quasi_inverse_map) (ref B))
+                                        (ref C))
+                                      (ref g))
+                                    (ref witness_g))
+                                  (app (ref g) (app (ref f) (ref value))))))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness_f))
+                              (app (ref f) (ref value))))
+                          (ref value))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (app (ref ap) (ref B)) (ref A))
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness_f)))
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                    (ref g))
+                                  (ref witness_g))
+                                (app (ref g) (app (ref f) (ref value)))))
+                            (app (ref f) (ref value)))
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_section) (ref B)) (ref C))
+                                (ref g))
+                              (ref witness_g))
+                            (app (ref f) (ref value)))))
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_section) (ref A)) (ref B))
+                            (ref f))
+                          (ref witness_f))
+                        (ref value)))))))))))))
+
+(transparent quasi_inverse_comp_projection_2
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi C
+        (universe 0)
+        (pi f
+          (pi point (ref A) (ref B))
+          (pi g
+            (pi point (ref B) (ref C))
+            (pi witness_f
+              (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+              (pi witness_g
+                (app (app (app (ref quasi_inverse) (ref B)) (ref C)) (ref g))
+                (pi value
+                  (ref C)
+                  (id
+                    (id
+                      (ref C)
+                      (app
+                        (ref g)
+                        (app
+                          (ref f)
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness_f))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                  (ref g))
+                                (ref witness_g))
+                              (ref value)))))
+                      (ref value))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_retraction) (ref A)) (ref C))
+                          (lam point (app (ref g) (app (ref f) (ref point)))))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_comp) (ref A)) (ref B))
+                                  (ref C))
+                                (ref f))
+                              (ref g))
+                            (ref witness_f))
+                          (ref witness_g)))
+                      (ref value))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (ref path_concat) (ref C))
+                              (app
+                                (ref g)
+                                (app
+                                  (ref f)
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (ref quasi_inverse_map) (ref A))
+                                          (ref B))
+                                        (ref f))
+                                      (ref witness_f))
+                                    (app
+                                      (app
+                                        (app
+                                          (app
+                                            (app (ref quasi_inverse_map) (ref B))
+                                            (ref C))
+                                          (ref g))
+                                        (ref witness_g))
+                                      (ref value))))))
+                            (app
+                              (ref g)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                    (ref g))
+                                  (ref witness_g))
+                                (ref value))))
+                          (ref value))
+                        (app
+                          (app
+                            (app
+                              (app (app (app (ref ap) (ref B)) (ref C)) (ref g))
+                              (app
+                                (ref f)
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref quasi_inverse_map) (ref A))
+                                        (ref B))
+                                      (ref f))
+                                    (ref witness_f))
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (ref quasi_inverse_map) (ref B))
+                                          (ref C))
+                                        (ref g))
+                                      (ref witness_g))
+                                    (ref value)))))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                  (ref g))
+                                (ref witness_g))
+                              (ref value)))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (ref quasi_inverse_retraction) (ref A))
+                                  (ref B))
+                                (ref f))
+                              (ref witness_f))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                  (ref g))
+                                (ref witness_g))
+                              (ref value)))))
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_retraction) (ref B)) (ref C))
+                            (ref g))
+                          (ref witness_g))
+                        (ref value))))))))))))
+  (lam A
+    (lam B
+      (lam C
+        (lam f
+          (lam g
+            (lam witness_f
+              (lam witness_g
+                (lam value
+                  (refl
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (ref path_concat) (ref C))
+                              (app
+                                (ref g)
+                                (app
+                                  (ref f)
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (ref quasi_inverse_map) (ref A))
+                                          (ref B))
+                                        (ref f))
+                                      (ref witness_f))
+                                    (app
+                                      (app
+                                        (app
+                                          (app
+                                            (app (ref quasi_inverse_map) (ref B))
+                                            (ref C))
+                                          (ref g))
+                                        (ref witness_g))
+                                      (ref value))))))
+                            (app
+                              (ref g)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                    (ref g))
+                                  (ref witness_g))
+                                (ref value))))
+                          (ref value))
+                        (app
+                          (app
+                            (app
+                              (app (app (app (ref ap) (ref B)) (ref C)) (ref g))
+                              (app
+                                (ref f)
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref quasi_inverse_map) (ref A))
+                                        (ref B))
+                                      (ref f))
+                                    (ref witness_f))
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (ref quasi_inverse_map) (ref B))
+                                          (ref C))
+                                        (ref g))
+                                      (ref witness_g))
+                                    (ref value)))))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                  (ref g))
+                                (ref witness_g))
+                              (ref value)))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (ref quasi_inverse_retraction) (ref A))
+                                  (ref B))
+                                (ref f))
+                              (ref witness_f))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                  (ref g))
+                                (ref witness_g))
+                              (ref value)))))
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_retraction) (ref B)) (ref C))
+                            (ref g))
+                          (ref witness_g))
+                        (ref value)))))))))))))
+
+(transparent quasi_inverse_comp_identity_0
+  (id
+    nat
+    (app
+      (app
+        (app (app (app (ref quasi_inverse_map) nat) nat) (lam point (ref point)))
+        (app
+          (app
+            (app
+              (app
+                (app (app (app (ref quasi_inverse_comp) nat) nat) nat)
+                (lam point (ref point)))
+              (lam point (ref point)))
+            (app (ref identity_quasi_inverse) nat))
+          (app (ref identity_quasi_inverse) nat)))
+      zero)
+    zero)
+  (refl zero))
+
+(transparent quasi_inverse_comp_identity_1
+  (id
+    (id nat zero zero)
+    (app
+      (app
+        (app (app (app (ref quasi_inverse_section) nat) nat) (lam point (ref point)))
+        (app
+          (app
+            (app
+              (app
+                (app (app (app (ref quasi_inverse_comp) nat) nat) nat)
+                (lam point (ref point)))
+              (lam point (ref point)))
+            (app (ref identity_quasi_inverse) nat))
+          (app (ref identity_quasi_inverse) nat)))
+      zero)
+    (refl zero))
+  (refl (refl zero)))
+
+(transparent quasi_inverse_comp_identity_2
+  (id
+    (id nat zero zero)
+    (app
+      (app
+        (app (app (app (ref quasi_inverse_retraction) nat) nat) (lam point (ref point)))
+        (app
+          (app
+            (app
+              (app
+                (app (app (app (ref quasi_inverse_comp) nat) nat) nat)
+                (lam point (ref point)))
+              (lam point (ref point)))
+            (app (ref identity_quasi_inverse) nat))
+          (app (ref identity_quasi_inverse) nat)))
+      zero)
+    (refl zero))
+  (refl (refl zero)))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("composition projections and identity data must compute");
 }

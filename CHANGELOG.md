@@ -7,6 +7,9 @@ are recorded here.
 
 ### Added
 
+- Added composition of chosen quasi-inverse data using `ap` and path
+  concatenation, with complete audits and projection-computation tests.
+
 - Added symmetry of chosen quasi-inverse data, with complete foundation
   audits and generic computation tests for all three projections.
 
