@@ -1406,3 +1406,210 @@
             (app
               (app (app (app (ref quasi_inverse_section) (ref A)) (ref B)) (ref f))
               (ref witness))))))))
+
+; Compose chosen quasi-inverses in reverse order, using ap and concatenation.
+(transparent quasi_inverse_comp
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi C
+        (universe 0)
+        (pi f
+          (pi point (ref A) (ref B))
+          (pi g
+            (pi point (ref B) (ref C))
+            (pi witness_f
+              (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+              (pi witness_g
+                (app (app (app (ref quasi_inverse) (ref B)) (ref C)) (ref g))
+                (app
+                  (app (app (ref quasi_inverse) (ref A)) (ref C))
+                  (lam point (app (ref g) (app (ref f) (ref point))))))))))))
+  (lam A
+    (lam B
+      (lam C
+        (lam f
+          (lam g
+            (lam witness_f
+              (lam witness_g
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (app (ref quasi_inverse_intro) (ref A)) (ref C))
+                        (lam point (app (ref g) (app (ref f) (ref point)))))
+                      (lam point
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness_f))
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                (ref g))
+                              (ref witness_g))
+                            (ref point)))))
+                    (lam point
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (ref path_concat) (ref A))
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref quasi_inverse_map) (ref A))
+                                        (ref B))
+                                      (ref f))
+                                    (ref witness_f))
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (ref quasi_inverse_map) (ref B))
+                                          (ref C))
+                                        (ref g))
+                                      (ref witness_g))
+                                    (app (ref g) (app (ref f) (ref point))))))
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness_f))
+                                (app (ref f) (ref point))))
+                            (ref point))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref ap) (ref B)) (ref A))
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref quasi_inverse_map) (ref A))
+                                        (ref B))
+                                      (ref f))
+                                    (ref witness_f)))
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref quasi_inverse_map) (ref B))
+                                        (ref C))
+                                      (ref g))
+                                    (ref witness_g))
+                                  (app (ref g) (app (ref f) (ref point)))))
+                              (app (ref f) (ref point)))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (ref quasi_inverse_section) (ref B))
+                                    (ref C))
+                                  (ref g))
+                                (ref witness_g))
+                              (app (ref f) (ref point)))))
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_section) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness_f))
+                          (ref point)))))
+                  (lam point
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (ref path_concat) (ref C))
+                              (app
+                                (ref g)
+                                (app
+                                  (ref f)
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (ref quasi_inverse_map) (ref A))
+                                          (ref B))
+                                        (ref f))
+                                      (ref witness_f))
+                                    (app
+                                      (app
+                                        (app
+                                          (app
+                                            (app (ref quasi_inverse_map) (ref B))
+                                            (ref C))
+                                          (ref g))
+                                        (ref witness_g))
+                                      (ref point))))))
+                            (app
+                              (ref g)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                    (ref g))
+                                  (ref witness_g))
+                                (ref point))))
+                          (ref point))
+                        (app
+                          (app
+                            (app
+                              (app (app (app (ref ap) (ref B)) (ref C)) (ref g))
+                              (app
+                                (ref f)
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref quasi_inverse_map) (ref A))
+                                        (ref B))
+                                      (ref f))
+                                    (ref witness_f))
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (ref quasi_inverse_map) (ref B))
+                                          (ref C))
+                                        (ref g))
+                                      (ref witness_g))
+                                    (ref point)))))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                  (ref g))
+                                (ref witness_g))
+                              (ref point)))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (ref quasi_inverse_retraction) (ref A))
+                                  (ref B))
+                                (ref f))
+                              (ref witness_f))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref B)) (ref C))
+                                  (ref g))
+                                (ref witness_g))
+                              (ref point)))))
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_retraction) (ref B)) (ref C))
+                            (ref g))
+                          (ref witness_g))
+                        (ref point)))))))))))))

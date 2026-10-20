@@ -63,7 +63,8 @@ laws, with a constructor, projections, and the identity example. This data is
 not asserted to be a proposition or used as a definition of `isEquiv`.
 Transport has chosen quasi-inverse data obtained from inverse-path transport
 and the two existing transport inverse laws. Chosen quasi-inverse data can
-be reversed by exchanging its section and retraction homotopies.
+be reversed by exchanging its section and retraction homotopies, and composed
+with the inverse maps in reverse order using `ap` and path concatenation.
 The library layer is
 ordinary untrusted Surface source: it introduces no
 new kernel rule, postulate, or extension. See

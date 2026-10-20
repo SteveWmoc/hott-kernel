@@ -49,3 +49,13 @@ proofs. The generic projections recover these fields by computation.
 chosen inverse map. Its inverse is `f` itself; its section is the original
 retraction and its retraction is the original section. All three projection
 identities hold by computation, for arbitrary witnesses.
+
+
+`quasi_inverse_comp A B C f g witness_f witness_g` supplies chosen
+quasi-inverse data for `g ∘ f`. Its inverse is `f_inverse ∘ g_inverse`.
+The section applies `ap f_inverse` to the section of `g` at `f(x)`,
+then concatenates with the section of `f` at `x`. The retraction applies
+`ap g` to the retraction of `f` at `g_inverse(z)`, then concatenates
+with the retraction of `g` at `z`. These are pointwise laws and require
+no function extensionality. All three fields are tested through the public
+projections for arbitrary witnesses, with a separate identity computation.
