@@ -727,7 +727,6 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
         assert!(foundation.extensions().is_empty());
         assert!(foundation.postulates().is_empty());
     }
-
 }
 
 #[test]
