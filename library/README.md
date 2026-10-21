@@ -59,3 +59,11 @@ then concatenates with the section of `f` at `x`. The retraction applies
 with the retraction of `g` at `z`. These are pointwise laws and require
 no function extensionality. All three fields are tested through the public
 projections for arbitrary witnesses, with a separate identity computation.
+
+`quasi_inverse_homotopy A B f g homotopy_fg witness` transfers chosen
+quasi-inverse data for `f` along the pointwise homotopy `f ~ g`. The inverse
+map is unchanged. The new section at `x` concatenates `ap f_inverse` of the
+reverse of `homotopy_fg(x)` with the old section at `x`. The new retraction
+at `y` concatenates the reverse of `homotopy_fg(f_inverse(y))` with the
+old retraction at `y`. This uses no function extensionality; generic projection
+identities and identity-map computations are checked regressions.

@@ -65,6 +65,8 @@ Transport has chosen quasi-inverse data obtained from inverse-path transport
 and the two existing transport inverse laws. Chosen quasi-inverse data can
 be reversed by exchanging its section and retraction homotopies, and composed
 with the inverse maps in reverse order using `ap` and path concatenation.
+A homotopy from `f` to `g` transfers chosen quasi-inverse data to `g`,
+retaining the chosen inverse map and adjusting its two homotopy laws.
 The library layer is
 ordinary untrusted Surface source: it introduces no
 new kernel rule, postulate, or extension. See
