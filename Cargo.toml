@@ -13,3 +13,7 @@ name = "hott_kernel"
 path = "src/lib.rs"
 
 [dependencies]
+
+[workspace]
+members = ["theorem-finder"]
+resolver = "3"
