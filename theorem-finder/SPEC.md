@@ -1,0 +1,54 @@
+# Theorem Finder Experiment v0
+
+## Purpose
+
+Test whether an automated system can discover bounded, formally verified lemmas
+whose presence measurably improves later proof search.
+
+The experiment separates three questions:
+
+1. Which propositions should be considered?
+2. Which library material is likely to help verify them?
+3. Does a proposed proof pass the ordinary `hott-kernel` checker?
+
+Only the third question participates in logical trust.
+
+## Initial algebraic language
+
+The first search space is intentionally small.
+
+- One base type `A`.
+- Constants `0, 1 : A`.
+- Binary operations `+ , * : A -> A -> A`.
+- Equality as the only predicate.
+- Candidate conjectures restricted initially to universally quantified equations
+  `s = t`.
+- At most three free variables before universal closure.
+- A fixed bounded AST depth, chosen experimentally.
+
+The intended starting theory is a noncommutative semiring: additive commutative
+monoid laws, multiplicative monoid laws, left and right distributivity, and zero
+annihilation.
+
+## Trust boundary
+
+The finder is untrusted. It may rank, discard, mutate, or invent candidates by
+any heuristic method. Successful discoveries must be represented as proof
+objects accepted through the same public checker path as hand-authored input.
+
+`hott-kernel` must not depend on this crate.
+
+## Version-0 milestones
+
+1. Generate finder-side terms up to a small AST depth.
+2. Form candidate equations and remove cheap syntactic junk.
+3. Translate selected candidates into the kernel/surface representation.
+4. Attempt bounded verification and record proof cost and dependencies.
+5. Measure whether retained discovered lemmas reduce proof-search cost on a
+   held-out bounded frontier.
+6. Only after the baseline works, introduce best-first search, module selection,
+   MCTS, and learned policy/value functions.
+
+The first decisive experimental question is:
+
+> Can automatically discovered lemmas measurably reduce future proof-search cost?

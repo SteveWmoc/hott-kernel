@@ -102,10 +102,10 @@ and Clippy. The release checks are:
 
 ```text
 cargo fmt --all --check
-cargo clippy --all-targets --locked -- -D warnings
-cargo test --all-targets --locked
-RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --locked
-cargo package --locked
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --all-targets --locked
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked
+cargo package -p hott-kernel --locked
 ```
 
 ## Purpose
