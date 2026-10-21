@@ -21,9 +21,7 @@ impl Term {
     pub fn depth(&self) -> usize {
         match self {
             Self::Var(_) | Self::Zero | Self::One => 0,
-            Self::Add(left, right) | Self::Mul(left, right) => {
-                1 + left.depth().max(right.depth())
-            }
+            Self::Add(left, right) | Self::Mul(left, right) => 1 + left.depth().max(right.depth()),
         }
     }
 
