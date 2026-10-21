@@ -7,6 +7,9 @@ are recorded here.
 
 ### Added
 
+- Added transfer of chosen quasi-inverse data along a homotopy, preserving
+  the inverse map, with exact audits and computation regressions.
+
 - Added composition of chosen quasi-inverse data using `ap` and path
   concatenation, with complete audits and projection-computation tests.
 

@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 32);
+    assert_eq!(declarations.len(), 33);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -724,6 +724,31 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
         &[2, 8, 19, 23, 24, 25, 26, 27]
     );
     for foundation in [composed_inverse.direct(), composed_inverse.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let homotopic_inverse = &declarations[32];
+    assert_eq!(homotopic_inverse.display_name(), "quasi_inverse_homotopy");
+    assert_eq!(homotopic_inverse.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        homotopic_inverse.direct().kernel_features(),
+        &[KernelFeature::Pi, KernelFeature::Universe]
+    );
+    assert_eq!(
+        homotopic_inverse.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    for foundation in [homotopic_inverse.direct(), homotopic_inverse.transitive()] {
+        assert_eq!(
+            foundation.declarations(),
+            &[0, 2, 8, 19, 23, 24, 25, 26, 27]
+        );
         assert!(foundation.extensions().is_empty());
         assert!(foundation.postulates().is_empty());
     }
@@ -1763,4 +1788,439 @@ fn quasi_inverse_composition_projections_and_identity_compute() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("composition projections and identity data must compute");
+}
+
+#[test]
+fn quasi_inverse_homotopy_projections_and_identity_compute() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent quasi_inverse_homotopy_projection_0
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi g
+          (pi point (ref A) (ref B))
+          (pi homotopy_fg
+            (app
+              (app (app (app (ref homotopy) (ref A)) (lam point (ref B))) (ref f))
+              (ref g))
+            (pi witness
+              (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+              (id
+                (pi point (ref B) (ref A))
+                (app
+                  (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref g))
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_homotopy) (ref A)) (ref B))
+                          (ref f))
+                        (ref g))
+                      (ref homotopy_fg))
+                    (ref witness)))
+                (app
+                  (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                  (ref witness)))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam g
+          (lam homotopy_fg
+            (lam witness
+              (refl
+                (app
+                  (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                  (ref witness))))))))))
+
+(transparent quasi_inverse_homotopy_projection_1
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi g
+          (pi point (ref A) (ref B))
+          (pi homotopy_fg
+            (app
+              (app (app (app (ref homotopy) (ref A)) (lam point (ref B))) (ref f))
+              (ref g))
+            (pi witness
+              (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+              (pi value
+                (ref A)
+                (id
+                  (id
+                    (ref A)
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (app (ref g) (ref value)))
+                    (ref value))
+                  (app
+                    (app
+                      (app
+                        (app (app (ref quasi_inverse_section) (ref A)) (ref B))
+                        (ref g))
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_homotopy) (ref A)) (ref B))
+                              (ref f))
+                            (ref g))
+                          (ref homotopy_fg))
+                        (ref witness)))
+                    (ref value))
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (ref path_concat) (ref A))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (app (ref g) (ref value))))
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (app (ref f) (ref value))))
+                        (ref value))
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (app (ref ap) (ref B)) (ref A))
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness)))
+                            (app (ref g) (ref value)))
+                          (app (ref f) (ref value)))
+                        (app
+                          (app
+                            (app
+                              (app (ref path_inverse) (ref B))
+                              (app (ref f) (ref value)))
+                            (app (ref g) (ref value)))
+                          (app (ref homotopy_fg) (ref value)))))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_section) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (ref value)))))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam g
+          (lam homotopy_fg
+            (lam witness
+              (lam value
+                (refl
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (ref path_concat) (ref A))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (app (ref g) (ref value))))
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (app (ref f) (ref value))))
+                        (ref value))
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (app (ref ap) (ref B)) (ref A))
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness)))
+                            (app (ref g) (ref value)))
+                          (app (ref f) (ref value)))
+                        (app
+                          (app
+                            (app
+                              (app (ref path_inverse) (ref B))
+                              (app (ref f) (ref value)))
+                            (app (ref g) (ref value)))
+                          (app (ref homotopy_fg) (ref value)))))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_section) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (ref value))))))))))))
+
+(transparent quasi_inverse_homotopy_projection_2
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi g
+          (pi point (ref A) (ref B))
+          (pi homotopy_fg
+            (app
+              (app (app (app (ref homotopy) (ref A)) (lam point (ref B))) (ref f))
+              (ref g))
+            (pi witness
+              (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+              (pi value
+                (ref B)
+                (id
+                  (id
+                    (ref B)
+                    (app
+                      (ref g)
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                            (ref f))
+                          (ref witness))
+                        (ref value)))
+                    (ref value))
+                  (app
+                    (app
+                      (app
+                        (app (app (ref quasi_inverse_retraction) (ref A)) (ref B))
+                        (ref g))
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_homotopy) (ref A)) (ref B))
+                              (ref f))
+                            (ref g))
+                          (ref homotopy_fg))
+                        (ref witness)))
+                    (ref value))
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (ref path_concat) (ref B))
+                            (app
+                              (ref g)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness))
+                                (ref value))))
+                          (app
+                            (ref f)
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (ref value))))
+                        (ref value))
+                      (app
+                        (app
+                          (app
+                            (app (ref path_inverse) (ref B))
+                            (app
+                              (ref f)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness))
+                                (ref value))))
+                          (app
+                            (ref g)
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (ref value))))
+                        (app
+                          (ref homotopy_fg)
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (ref value)))))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_retraction) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (ref value)))))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam g
+          (lam homotopy_fg
+            (lam witness
+              (lam value
+                (refl
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (ref path_concat) (ref B))
+                            (app
+                              (ref g)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness))
+                                (ref value))))
+                          (app
+                            (ref f)
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (ref value))))
+                        (ref value))
+                      (app
+                        (app
+                          (app
+                            (app (ref path_inverse) (ref B))
+                            (app
+                              (ref f)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness))
+                                (ref value))))
+                          (app
+                            (ref g)
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (ref value))))
+                        (app
+                          (ref homotopy_fg)
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (ref value)))))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_retraction) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (ref value))))))))))))
+
+(transparent quasi_inverse_homotopy_identity_0
+  (id
+    nat
+    (app
+      (app
+        (app (app (app (ref quasi_inverse_map) nat) nat) (lam point (ref point)))
+        (app
+          (app
+            (app
+              (app
+                (app (app (ref quasi_inverse_homotopy) nat) nat)
+                (lam point (ref point)))
+              (lam point (ref point)))
+            (lam point (refl (ref point))))
+          (app (ref identity_quasi_inverse) nat)))
+      zero)
+    zero)
+  (refl zero))
+
+(transparent quasi_inverse_homotopy_identity_1
+  (id
+    (id nat zero zero)
+    (app
+      (app
+        (app (app (app (ref quasi_inverse_section) nat) nat) (lam point (ref point)))
+        (app
+          (app
+            (app
+              (app
+                (app (app (ref quasi_inverse_homotopy) nat) nat)
+                (lam point (ref point)))
+              (lam point (ref point)))
+            (lam point (refl (ref point))))
+          (app (ref identity_quasi_inverse) nat)))
+      zero)
+    (refl zero))
+  (refl (refl zero)))
+
+(transparent quasi_inverse_homotopy_identity_2
+  (id
+    (id nat zero zero)
+    (app
+      (app
+        (app (app (app (ref quasi_inverse_retraction) nat) nat) (lam point (ref point)))
+        (app
+          (app
+            (app
+              (app
+                (app (app (ref quasi_inverse_homotopy) nat) nat)
+                (lam point (ref point)))
+              (lam point (ref point)))
+            (lam point (refl (ref point))))
+          (app (ref identity_quasi_inverse) nat)))
+      zero)
+    (refl zero))
+  (refl (refl zero)))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("homotopy transfer projections and identity data must compute");
 }

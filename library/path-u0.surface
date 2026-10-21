@@ -1613,3 +1613,146 @@
                             (ref g))
                           (ref witness_g))
                         (ref point)))))))))))))
+
+; Transfer chosen quasi-inverse data along a homotopy f ~ g.
+(transparent quasi_inverse_homotopy
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi g
+          (pi point (ref A) (ref B))
+          (pi homotopy_fg
+            (app
+              (app (app (app (ref homotopy) (ref A)) (lam point (ref B))) (ref f))
+              (ref g))
+            (pi witness
+              (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+              (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref g))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam g
+          (lam homotopy_fg
+            (lam witness
+              (app
+                (app
+                  (app
+                    (app (app (app (ref quasi_inverse_intro) (ref A)) (ref B)) (ref g))
+                    (app
+                      (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                      (ref witness)))
+                  (lam point
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (ref path_concat) (ref A))
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness))
+                                (app (ref g) (ref point))))
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (app (ref f) (ref point))))
+                          (ref point))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (app (ref ap) (ref B)) (ref A))
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness)))
+                              (app (ref g) (ref point)))
+                            (app (ref f) (ref point)))
+                          (app
+                            (app
+                              (app
+                                (app (ref path_inverse) (ref B))
+                                (app (ref f) (ref point)))
+                              (app (ref g) (ref point)))
+                            (app (ref homotopy_fg) (ref point)))))
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_section) (ref A)) (ref B))
+                            (ref f))
+                          (ref witness))
+                        (ref point)))))
+                (lam point
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (ref path_concat) (ref B))
+                            (app
+                              (ref g)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness))
+                                (ref point))))
+                          (app
+                            (ref f)
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (ref point))))
+                        (ref point))
+                      (app
+                        (app
+                          (app
+                            (app (ref path_inverse) (ref B))
+                            (app
+                              (ref f)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness))
+                                (ref point))))
+                          (app
+                            (ref g)
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (ref point))))
+                        (app
+                          (ref homotopy_fg)
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (ref point)))))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_retraction) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (ref point))))))))))))
