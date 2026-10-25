@@ -67,3 +67,12 @@ reverse of `homotopy_fg(x)` with the old section at `x`. The new retraction
 at `y` concatenates the reverse of `homotopy_fg(f_inverse(y))` with the
 old retraction at `y`. This uses no function extensionality; generic projection
 identities and identity-map computations are checked regressions.
+
+## Homotopy naturality
+
+For `f,g : A → B`, `H : f ~ g`, and `p : Id_A(x,y)`,
+`homotopy_naturality A B f g H x y p` proves
+`ap f p · H(y) = H(x) · ap g p`. The proof eliminates `p`; its
+reflexivity branch is exactly `path_concat_left_refl B (f(x)) (g(x)) (H(x))`.
+The branch is tested for arbitrary maps and homotopy witnesses, without
+identifying arbitrary proofs. No function extensionality is needed.
