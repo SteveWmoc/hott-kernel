@@ -7,6 +7,9 @@ are recorded here.
 
 ### Added
 
+- Proved homotopy naturality at universe zero by path induction, with
+  exact foundation audits and proof-relevant reflexivity computation tests.
+
 - Added transfer of chosen quasi-inverse data along a homotopy, preserving
   the inverse map, with exact audits and computation regressions.
 

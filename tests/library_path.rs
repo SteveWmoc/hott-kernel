@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 33);
+    assert_eq!(declarations.len(), 34);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -749,6 +749,23 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
             foundation.declarations(),
             &[0, 2, 8, 19, 23, 24, 25, 26, 27]
         );
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let naturality = &declarations[33];
+    assert_eq!(naturality.display_name(), "homotopy_naturality");
+    assert_eq!(naturality.kind(), AuditDeclarationKind::Transparent);
+    for foundation in [naturality.direct(), naturality.transitive()] {
+        assert_eq!(
+            foundation.kernel_features(),
+            &[
+                KernelFeature::Identity,
+                KernelFeature::Pi,
+                KernelFeature::Universe
+            ]
+        );
+        assert_eq!(foundation.declarations(), &[2, 4, 8, 19]);
         assert!(foundation.extensions().is_empty());
         assert!(foundation.postulates().is_empty());
     }
@@ -2223,4 +2240,114 @@ fn quasi_inverse_homotopy_projections_and_identity_compute() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("homotopy transfer projections and identity data must compute");
+}
+
+#[test]
+fn homotopy_naturality_reflexivity_preserves_the_left_unit_proof() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent homotopy_naturality_refl_computation
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi g
+          (pi point (ref A) (ref B))
+          (pi homotopy_fg
+            (app
+              (app (app (app (ref homotopy) (ref A)) (lam point (ref B))) (ref f))
+              (ref g))
+            (pi x
+              (ref A)
+              (id
+                (id
+                  (id (ref B) (app (ref f) (ref x)) (app (ref g) (ref x)))
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (app (ref path_concat) (ref B)) (app (ref f) (ref x)))
+                          (app (ref f) (ref x)))
+                        (app (ref g) (ref x)))
+                      (app
+                        (app
+                          (app
+                            (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                            (ref x))
+                          (ref x))
+                        (refl (ref x))))
+                    (app (ref homotopy_fg) (ref x)))
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (app (ref path_concat) (ref B)) (app (ref f) (ref x)))
+                          (app (ref g) (ref x)))
+                        (app (ref g) (ref x)))
+                      (app (ref homotopy_fg) (ref x)))
+                    (app
+                      (app
+                        (app (app (app (app (ref ap) (ref A)) (ref B)) (ref g)) (ref x))
+                        (ref x))
+                      (refl (ref x)))))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (app (ref homotopy_naturality) (ref A)) (ref B))
+                            (ref f))
+                          (ref g))
+                        (ref homotopy_fg))
+                      (ref x))
+                    (ref x))
+                  (refl (ref x)))
+                (app
+                  (app
+                    (app
+                      (app (ref path_concat_left_refl) (ref B))
+                      (app (ref f) (ref x)))
+                    (app (ref g) (ref x)))
+                  (app (ref homotopy_fg) (ref x))))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam g
+          (lam homotopy_fg
+            (lam x
+              (refl
+                (app
+                  (app
+                    (app
+                      (app (ref path_concat_left_refl) (ref B))
+                      (app (ref f) (ref x)))
+                    (app (ref g) (ref x)))
+                  (app (ref homotopy_fg) (ref x)))))))))))
+
+(transparent homotopy_naturality_identity_computation
+  (id
+    (id (id nat zero zero) (refl zero) (refl zero))
+    (app
+      (app
+        (app
+          (app
+            (app
+              (app
+                (app (app (ref homotopy_naturality) nat) nat)
+                (lam point (ref point)))
+              (lam point (ref point)))
+            (lam point (refl (ref point))))
+          zero)
+        zero)
+      (refl zero))
+    (refl (refl zero)))
+  (refl (refl (refl zero))))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("naturality must compute to the specified left-unit proof");
 }
