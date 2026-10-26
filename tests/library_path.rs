@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 34);
+    assert_eq!(declarations.len(), 36);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -768,6 +768,25 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
         assert_eq!(foundation.declarations(), &[2, 4, 8, 19]);
         assert!(foundation.extensions().is_empty());
         assert!(foundation.postulates().is_empty());
+    }
+
+    for (index, name) in [(34, "ap_identity"), (35, "ap_comp")] {
+        let action_law = &declarations[index];
+        assert_eq!(action_law.display_name(), name);
+        assert_eq!(action_law.kind(), AuditDeclarationKind::Transparent);
+        for foundation in [action_law.direct(), action_law.transitive()] {
+            assert_eq!(
+                foundation.kernel_features(),
+                &[
+                    KernelFeature::Identity,
+                    KernelFeature::Pi,
+                    KernelFeature::Universe
+                ]
+            );
+            assert_eq!(foundation.declarations(), &[8]);
+            assert!(foundation.extensions().is_empty());
+            assert!(foundation.postulates().is_empty());
+        }
     }
 }
 
@@ -2350,4 +2369,90 @@ fn homotopy_naturality_reflexivity_preserves_the_left_unit_proof() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("naturality must compute to the specified left-unit proof");
+}
+
+#[test]
+fn function_action_identity_and_composition_compute_at_reflexivity() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent ap_identity_reflexivity_computation
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (id
+        (id
+          (id (ref A) (ref x) (ref x))
+          (app
+            (app
+              (app
+                (app (app (app (ref ap) (ref A)) (ref A)) (lam point (ref point)))
+                (ref x))
+              (ref x))
+            (refl (ref x)))
+          (refl (ref x)))
+        (app (app (app (app (ref ap_identity) (ref A)) (ref x)) (ref x)) (refl (ref x)))
+        (refl (refl (ref x))))))
+  (lam A (lam x (refl (refl (refl (ref x)))))))
+
+(transparent ap_comp_reflexivity_computation
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi C
+        (universe 0)
+        (pi f
+          (pi point (ref A) (ref B))
+          (pi g
+            (pi point (ref B) (ref C))
+            (pi x
+              (ref A)
+              (id
+                (id
+                  (id
+                    (ref C)
+                    (app (ref g) (app (ref f) (ref x)))
+                    (app (ref g) (app (ref f) (ref x))))
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (app (ref ap) (ref A)) (ref C))
+                          (lam point (app (ref g) (app (ref f) (ref point)))))
+                        (ref x))
+                      (ref x))
+                    (refl (ref x)))
+                  (app
+                    (app
+                      (app
+                        (app (app (app (ref ap) (ref B)) (ref C)) (ref g))
+                        (app (ref f) (ref x)))
+                      (app (ref f) (ref x)))
+                    (app
+                      (app
+                        (app (app (app (app (ref ap) (ref A)) (ref B)) (ref f)) (ref x))
+                        (ref x))
+                      (refl (ref x)))))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref ap_comp) (ref A)) (ref B)) (ref C))
+                          (ref f))
+                        (ref g))
+                      (ref x))
+                    (ref x))
+                  (refl (ref x)))
+                (refl (refl (app (ref g) (app (ref f) (ref x))))))))))))
+  (lam A
+    (lam B
+      (lam C
+        (lam f (lam g (lam x (refl (refl (refl (app (ref g) (app (ref f) (ref x)))))))))))))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("ap laws must compute to their specified higher reflexivity proofs");
 }

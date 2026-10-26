@@ -1874,3 +1874,144 @@
                       (app (ref homotopy_fg) (ref x)))
                     (ref y)
                     (ref p)))))))))))
+
+; Function action on paths preserves identity functions and composition.
+(transparent ap_identity
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (pi y
+        (ref A)
+        (pi p
+          (id (ref A) (ref x) (ref y))
+          (id
+            (id (ref A) (ref x) (ref y))
+            (app
+              (app
+                (app
+                  (app (app (app (ref ap) (ref A)) (ref A)) (lam point (ref point)))
+                  (ref x))
+                (ref y))
+              (ref p))
+            (ref p))))))
+  (lam A
+    (lam x
+      (lam y
+        (lam p
+          (j
+            (ref A)
+            (ref x)
+            (ann
+              (lam endpoint
+                (lam path
+                  (id
+                    (id (ref A) (ref x) (ref endpoint))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (app (ref ap) (ref A)) (ref A))
+                            (lam point (ref point)))
+                          (ref x))
+                        (ref endpoint))
+                      (ref path))
+                    (ref path))))
+              (pi endpoint
+                (ref A)
+                (pi path (id (ref A) (ref x) (ref endpoint)) (universe 0))))
+            (refl (refl (ref x)))
+            (ref y)
+            (ref p)))))))
+
+(transparent ap_comp
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi C
+        (universe 0)
+        (pi f
+          (pi point (ref A) (ref B))
+          (pi g
+            (pi point (ref B) (ref C))
+            (pi x
+              (ref A)
+              (pi y
+                (ref A)
+                (pi p
+                  (id (ref A) (ref x) (ref y))
+                  (id
+                    (id
+                      (ref C)
+                      (app (ref g) (app (ref f) (ref x)))
+                      (app (ref g) (app (ref f) (ref y))))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (app (ref ap) (ref A)) (ref C))
+                            (lam point (app (ref g) (app (ref f) (ref point)))))
+                          (ref x))
+                        (ref y))
+                      (ref p))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref ap) (ref B)) (ref C)) (ref g))
+                          (app (ref f) (ref x)))
+                        (app (ref f) (ref y)))
+                      (app
+                        (app
+                          (app
+                            (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                            (ref x))
+                          (ref y))
+                        (ref p))))))))))))
+  (lam A
+    (lam B
+      (lam C
+        (lam f
+          (lam g
+            (lam x
+              (lam y
+                (lam p
+                  (j
+                    (ref A)
+                    (ref x)
+                    (ann
+                      (lam endpoint
+                        (lam path
+                          (id
+                            (id
+                              (ref C)
+                              (app (ref g) (app (ref f) (ref x)))
+                              (app (ref g) (app (ref f) (ref endpoint))))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref ap) (ref A)) (ref C))
+                                    (lam point (app (ref g) (app (ref f) (ref point)))))
+                                  (ref x))
+                                (ref endpoint))
+                              (ref path))
+                            (app
+                              (app
+                                (app
+                                  (app (app (app (ref ap) (ref B)) (ref C)) (ref g))
+                                  (app (ref f) (ref x)))
+                                (app (ref f) (ref endpoint)))
+                              (app
+                                (app
+                                  (app
+                                    (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                                    (ref x))
+                                  (ref endpoint))
+                                (ref path))))))
+                      (pi endpoint
+                        (ref A)
+                        (pi path (id (ref A) (ref x) (ref endpoint)) (universe 0))))
+                    (refl (refl (app (ref g) (app (ref f) (ref x)))))
+                    (ref y)
+                    (ref p)))))))))))
