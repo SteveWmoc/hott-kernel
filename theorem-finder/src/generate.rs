@@ -42,14 +42,8 @@ pub fn terms_by_exact_depth(variable_count: u32, max_depth: usize) -> Vec<BTreeS
                     continue;
                 }
 
-                layer.insert(Term::Add(
-                    Box::new(left.clone()),
-                    Box::new(right.clone()),
-                ));
-                layer.insert(Term::Mul(
-                    Box::new(left.clone()),
-                    Box::new(right.clone()),
-                ));
+                layer.insert(Term::Add(Box::new(left.clone()), Box::new(right.clone())));
+                layer.insert(Term::Mul(Box::new(left.clone()), Box::new(right.clone())));
             }
         }
 
