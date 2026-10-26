@@ -20,12 +20,12 @@ pub fn atomic_terms(variable_count: u32) -> BTreeSet<Term> {
 
 /// Generates terms grouped by exact AST depth.
 ///
-/// The returned vector has length \`max_depth + 1\`; entry \`d\` contains exactly
-/// the terms whose [\`Term::depth\`] is \`d\`. Generation is deterministic and
+/// The returned vector has length `max_depth + 1`; entry `d` contains exactly
+/// the terms whose [`Term::depth`] is `d`. Generation is deterministic and
 /// exact-AST duplicates are removed.
 ///
 /// This function materializes the search space and therefore grows extremely
-/// quickly. Use [\`count_terms_up_to_depth\`] when only the size of a deeper
+/// quickly. Use [`count_terms_up_to_depth`] when only the size of a deeper
 /// bounded search space is needed.
 #[must_use]
 pub fn terms_by_exact_depth(variable_count: u32, max_depth: usize) -> Vec<BTreeSet<Term>> {
@@ -60,14 +60,14 @@ pub fn terms_by_exact_depth(variable_count: u32, max_depth: usize) -> Vec<BTreeS
     layers
 }
 
-/// Counts terms of depth at most \`max_depth\` without materializing them.
+/// Counts terms of depth at most `max_depth` without materializing them.
 ///
-/// With \`a = variable_count + 2\` atoms and two binary constructors, the count
+/// With `a = variable_count + 2` atoms and two binary constructors, the count
 /// satisfies
 ///
-/// \`T(0) = a\` and \`T(d + 1) = a + 2 * T(d)^2\`.
+/// `T(0) = a` and `T(d + 1) = a + 2 * T(d)^2`.
 ///
-/// Returns \`None\` if the exact count exceeds [\`u128\`].
+/// Returns `None` if the exact count exceeds [`u128`].
 #[must_use]
 pub fn count_terms_up_to_depth(variable_count: u32, max_depth: usize) -> Option<u128> {
     let atoms = u128::from(variable_count).checked_add(2)?;
@@ -83,9 +83,9 @@ pub fn count_terms_up_to_depth(variable_count: u32, max_depth: usize) -> Option<
     Some(count)
 }
 
-/// Counts terms of exactly \`depth\` without materializing them.
+/// Counts terms of exactly `depth` without materializing them.
 ///
-/// Returns \`None\` if the corresponding bounded count exceeds [\`u128\`].
+/// Returns `None` if the corresponding bounded count exceeds [`u128`].
 #[must_use]
 pub fn count_terms_exact_depth(variable_count: u32, depth: usize) -> Option<u128> {
     if depth == 0 {
