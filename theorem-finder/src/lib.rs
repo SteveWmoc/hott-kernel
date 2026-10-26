@@ -11,4 +11,7 @@ pub mod kernel_bridge;
 pub mod term;
 
 pub use candidate::EquationCandidate;
+pub use generate::{
+    atomic_terms, count_terms_exact_depth, count_terms_up_to_depth, terms_by_exact_depth,
+};
 pub use term::Term;
