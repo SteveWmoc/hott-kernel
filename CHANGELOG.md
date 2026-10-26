@@ -7,6 +7,9 @@ are recorded here.
 
 ### Added
 
+- Proved that function action on paths preserves identity functions and
+  composition, with exact audits and higher reflexivity computation tests.
+
 - Proved homotopy naturality at universe zero by path induction, with
   exact foundation audits and proof-relevant reflexivity computation tests.
 

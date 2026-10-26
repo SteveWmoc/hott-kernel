@@ -53,7 +53,8 @@ propositional left-unit law, and associativity by path induction; transport and
 `ap` record their judgmental reflexivity computations, path inversion is
 propositionally involutive, satisfies both concatenation inverse laws, and
 reverses the order of concatenation propositionally. The action `ap` preserves
-path concatenation and path inversion propositionally. Transport along a
+identity functions, function composition, path concatenation, and path
+inversion propositionally. Transport along a
 concatenation agrees propositionally with successive transports, and transport
 along an inverse path undoes transport along the original path in both
 directions. Dependent pointwise homotopy has reflexive, symmetric, and

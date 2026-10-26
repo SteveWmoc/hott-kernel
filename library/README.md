@@ -76,3 +76,12 @@ For `f,g : A → B`, `H : f ~ g`, and `p : Id_A(x,y)`,
 reflexivity branch is exactly `path_concat_left_refl B (f(x)) (g(x)) (H(x))`.
 The branch is tested for arbitrary maps and homotopy witnesses, without
 identifying arbitrary proofs. No function extensionality is needed.
+
+## Identity and composition of function action
+
+`ap_identity A x y p` proves `ap id p = p`.
+For `f : A → B` and `g : B → C`, `ap_comp A B C f g x y p` proves
+`ap (g ∘ f) p = ap g (ap f p)`. Both use path induction on `p`. Their
+reflexivity branches are higher reflexivity, and generic computation tests
+pin these precise proof terms for arbitrary types, maps, and base points.
+Neither function extensionality nor a judgmental eta rule is used.
