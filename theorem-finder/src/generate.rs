@@ -1,8 +1,8 @@
-//! Bounded term generation for the first theorem-finding experiment.
+//! Bounded term and equation generation for the first theorem-finding experiment.
 
 use std::collections::BTreeSet;
 
-use crate::Term;
+use crate::{EquationCandidate, Term};
 
 /// Returns the atomic terms for the requested number of free variables.
 #[must_use]
@@ -20,12 +20,12 @@ pub fn atomic_terms(variable_count: u32) -> BTreeSet<Term> {
 
 /// Generates terms grouped by exact AST depth.
 ///
-/// The returned vector has length `max_depth + 1`; entry `d` contains exactly
-/// the terms whose [`Term::depth`] is `d`. Generation is deterministic and
+/// The returned vector has length max_depth + 1; entry d contains exactly
+/// the terms whose Term::depth is d. Generation is deterministic and
 /// exact-AST duplicates are removed.
 ///
 /// This function materializes the search space and therefore grows extremely
-/// quickly. Use [`count_terms_up_to_depth`] when only the size of a deeper
+/// quickly. Use count_terms_up_to_depth when only the size of a deeper
 /// bounded search space is needed.
 #[must_use]
 pub fn terms_by_exact_depth(variable_count: u32, max_depth: usize) -> Vec<BTreeSet<Term>> {
@@ -54,14 +54,38 @@ pub fn terms_by_exact_depth(variable_count: u32, max_depth: usize) -> Vec<BTreeS
     layers
 }
 
-/// Counts terms of depth at most `max_depth` without materializing them.
+/// Materializes all distinct terms of depth at most max_depth.
 ///
-/// With `a = variable_count + 2` atoms and two binary constructors, the count
-/// satisfies
+/// Prefer count_terms_up_to_depth when only the cardinality is required.
+#[must_use]
+pub fn terms_up_to_depth(variable_count: u32, max_depth: usize) -> BTreeSet<Term> {
+    terms_by_exact_depth(variable_count, max_depth)
+        .into_iter()
+        .flatten()
+        .collect()
+}
+
+/// Iterates over all canonical non-reflexive equations on a term set.
 ///
-/// `T(0) = a` and `T(d + 1) = a + 2 * T(d)^2`.
+/// Because terms is already deduplicated and ordered, each unordered pair of
+/// distinct terms occurs exactly once. No algebraic laws are used here.
+pub fn canonical_equations(
+    terms: &BTreeSet<Term>,
+) -> impl Iterator<Item = EquationCandidate> + '_ {
+    terms.iter().enumerate().flat_map(move |(index, lhs)| {
+        terms.iter().skip(index + 1).map(move |rhs| {
+            EquationCandidate::new(lhs.clone(), rhs.clone())
+                .expect("distinct ordered terms must form a candidate")
+        })
+    })
+}
+
+/// Counts terms of depth at most max_depth without materializing them.
 ///
-/// Returns `None` if the exact count exceeds [`u128`].
+/// With a = variable_count + 2 atoms and two binary constructors, the count
+/// satisfies T(0) = a and T(d + 1) = a + 2 * T(d)^2.
+///
+/// Returns None if the exact count exceeds u128.
 #[must_use]
 pub fn count_terms_up_to_depth(variable_count: u32, max_depth: usize) -> Option<u128> {
     let atoms = u128::from(variable_count).checked_add(2)?;
@@ -77,9 +101,9 @@ pub fn count_terms_up_to_depth(variable_count: u32, max_depth: usize) -> Option<
     Some(count)
 }
 
-/// Counts terms of exactly `depth` without materializing them.
+/// Counts terms of exactly depth without materializing them.
 ///
-/// Returns `None` if the corresponding bounded count exceeds [`u128`].
+/// Returns None if the corresponding bounded count exceeds u128.
 #[must_use]
 pub fn count_terms_exact_depth(variable_count: u32, depth: usize) -> Option<u128> {
     if depth == 0 {
@@ -96,7 +120,8 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::{
-        atomic_terms, count_terms_exact_depth, count_terms_up_to_depth, terms_by_exact_depth,
+        atomic_terms, canonical_equations, count_terms_exact_depth, count_terms_up_to_depth,
+        terms_by_exact_depth, terms_up_to_depth,
     };
 
     #[test]
@@ -123,6 +148,20 @@ mod tests {
         for (depth, layer) in layers.iter().enumerate() {
             assert!(layer.iter().all(|term| term.depth() == depth));
         }
+    }
+
+    #[test]
+    fn materializes_cumulative_term_set() {
+        assert_eq!(terms_up_to_depth(3, 1).len(), 55);
+    }
+
+    #[test]
+    fn canonical_equations_use_each_unordered_pair_once() {
+        let terms = atomic_terms(3);
+        let candidates: Vec<_> = canonical_equations(&terms).collect();
+
+        assert_eq!(candidates.len(), 10);
+        assert!(candidates.iter().all(|candidate| candidate.lhs() < candidate.rhs()));
     }
 
     #[test]
