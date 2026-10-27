@@ -7,6 +7,9 @@ are recorded here.
 
 ### Added
 
+- Proved left and right cancellation for path concatenation, with complete
+  foundation audits and generic proof-relevant computation tests.
+
 - Proved that function action on paths preserves identity functions and
   composition, with exact audits and higher reflexivity computation tests.
 

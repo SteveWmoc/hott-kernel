@@ -2015,3 +2015,227 @@
                     (refl (refl (app (ref g) (app (ref f) (ref x)))))
                     (ref y)
                     (ref p)))))))))))
+
+; Cancel a common prefix or suffix without identifying arbitrary path proofs.
+(transparent path_concat_left_cancel
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (pi y
+        (ref A)
+        (pi p
+          (id (ref A) (ref x) (ref y))
+          (pi z
+            (ref A)
+            (pi q
+              (id (ref A) (ref y) (ref z))
+              (pi s
+                (id (ref A) (ref y) (ref z))
+                (pi equality
+                  (id
+                    (id (ref A) (ref x) (ref z))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref path_concat) (ref A)) (ref x)) (ref y))
+                          (ref z))
+                        (ref p))
+                      (ref q))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref path_concat) (ref A)) (ref x)) (ref y))
+                          (ref z))
+                        (ref p))
+                      (ref s)))
+                  (id (id (ref A) (ref y) (ref z)) (ref q) (ref s))))))))))
+  (lam A
+    (lam x
+      (lam y
+        (lam p
+          (j
+            (ref A)
+            (ref x)
+            (ann
+              (lam endpoint
+                (lam path
+                  (pi z
+                    (ref A)
+                    (pi q
+                      (id (ref A) (ref endpoint) (ref z))
+                      (pi s
+                        (id (ref A) (ref endpoint) (ref z))
+                        (pi equality
+                          (id
+                            (id (ref A) (ref x) (ref z))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref path_concat) (ref A)) (ref x))
+                                    (ref endpoint))
+                                  (ref z))
+                                (ref path))
+                              (ref q))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref path_concat) (ref A)) (ref x))
+                                    (ref endpoint))
+                                  (ref z))
+                                (ref path))
+                              (ref s)))
+                          (id (id (ref A) (ref endpoint) (ref z)) (ref q) (ref s))))))))
+              (pi endpoint
+                (ref A)
+                (pi path (id (ref A) (ref x) (ref endpoint)) (universe 0))))
+            (lam z
+              (lam q
+                (lam s
+                  (lam equality
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (ref path_concat) (id (ref A) (ref x) (ref z)))
+                              (ref q))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref path_concat) (ref A)) (ref x))
+                                    (ref x))
+                                  (ref z))
+                                (refl (ref x)))
+                              (ref q)))
+                          (ref s))
+                        (app
+                          (app
+                            (app
+                              (app (ref path_inverse) (id (ref A) (ref x) (ref z)))
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app (app (ref path_concat) (ref A)) (ref x))
+                                      (ref x))
+                                    (ref z))
+                                  (refl (ref x)))
+                                (ref q)))
+                            (ref q))
+                          (app
+                            (app
+                              (app (app (ref path_concat_left_refl) (ref A)) (ref x))
+                              (ref z))
+                            (ref q))))
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (ref path_concat) (id (ref A) (ref x) (ref z)))
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (app (ref path_concat) (ref A)) (ref x))
+                                        (ref x))
+                                      (ref z))
+                                    (refl (ref x)))
+                                  (ref q)))
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app (app (ref path_concat) (ref A)) (ref x))
+                                      (ref x))
+                                    (ref z))
+                                  (refl (ref x)))
+                                (ref s)))
+                            (ref s))
+                          (ref equality))
+                        (app
+                          (app
+                            (app (app (ref path_concat_left_refl) (ref A)) (ref x))
+                            (ref z))
+                          (ref s))))))))
+            (ref y)
+            (ref p)))))))
+
+(transparent path_concat_right_cancel
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (pi y
+        (ref A)
+        (pi z
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (pi s
+              (id (ref A) (ref x) (ref y))
+              (pi q
+                (id (ref A) (ref y) (ref z))
+                (pi equality
+                  (id
+                    (id (ref A) (ref x) (ref z))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref path_concat) (ref A)) (ref x)) (ref y))
+                          (ref z))
+                        (ref p))
+                      (ref q))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref path_concat) (ref A)) (ref x)) (ref y))
+                          (ref z))
+                        (ref s))
+                      (ref q)))
+                  (id (id (ref A) (ref x) (ref y)) (ref p) (ref s))))))))))
+  (lam A
+    (lam x
+      (lam y
+        (lam z
+          (lam p
+            (lam s
+              (lam q
+                (j
+                  (ref A)
+                  (ref y)
+                  (ann
+                    (lam endpoint
+                      (lam path
+                        (pi equality
+                          (id
+                            (id (ref A) (ref x) (ref endpoint))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref path_concat) (ref A)) (ref x))
+                                    (ref y))
+                                  (ref endpoint))
+                                (ref p))
+                              (ref path))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref path_concat) (ref A)) (ref x))
+                                    (ref y))
+                                  (ref endpoint))
+                                (ref s))
+                              (ref path)))
+                          (id (id (ref A) (ref x) (ref y)) (ref p) (ref s)))))
+                    (pi endpoint
+                      (ref A)
+                      (pi path (id (ref A) (ref y) (ref endpoint)) (universe 0))))
+                  (lam equality (ref equality))
+                  (ref z)
+                  (ref q))))))))))
