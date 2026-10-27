@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 36);
+    assert_eq!(declarations.len(), 38);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -784,6 +784,28 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
                 ]
             );
             assert_eq!(foundation.declarations(), &[8]);
+            assert!(foundation.extensions().is_empty());
+            assert!(foundation.postulates().is_empty());
+        }
+    }
+
+    for (index, name, dependencies) in [
+        (36, "path_concat_left_cancel", &[0, 2, 4][..]),
+        (37, "path_concat_right_cancel", &[2][..]),
+    ] {
+        let cancellation = &declarations[index];
+        assert_eq!(cancellation.display_name(), name);
+        assert_eq!(cancellation.kind(), AuditDeclarationKind::Transparent);
+        for foundation in [cancellation.direct(), cancellation.transitive()] {
+            assert_eq!(
+                foundation.kernel_features(),
+                &[
+                    KernelFeature::Identity,
+                    KernelFeature::Pi,
+                    KernelFeature::Universe
+                ]
+            );
+            assert_eq!(foundation.declarations(), dependencies);
             assert!(foundation.extensions().is_empty());
             assert!(foundation.postulates().is_empty());
         }
@@ -2455,4 +2477,230 @@ fn function_action_identity_and_composition_compute_at_reflexivity() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("ap laws must compute to their specified higher reflexivity proofs");
+}
+
+#[test]
+fn path_cancellation_reflexivity_preserves_the_specified_proofs() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent left_cancel_reflexivity_computation
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (pi z
+        (ref A)
+        (pi q
+          (id (ref A) (ref x) (ref z))
+          (pi s
+            (id (ref A) (ref x) (ref z))
+            (pi equality
+              (id
+                (id (ref A) (ref x) (ref z))
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref path_concat) (ref A)) (ref x)) (ref x))
+                      (ref z))
+                    (refl (ref x)))
+                  (ref q))
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref path_concat) (ref A)) (ref x)) (ref x))
+                      (ref z))
+                    (refl (ref x)))
+                  (ref s)))
+              (id
+                (id (id (ref A) (ref x) (ref z)) (ref q) (ref s))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (app (ref path_concat_left_cancel) (ref A)) (ref x))
+                            (ref x))
+                          (refl (ref x)))
+                        (ref z))
+                      (ref q))
+                    (ref s))
+                  (ref equality))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (ref path_concat) (id (ref A) (ref x) (ref z)))
+                          (ref q))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (app (ref path_concat) (ref A)) (ref x))
+                                (ref x))
+                              (ref z))
+                            (refl (ref x)))
+                          (ref q)))
+                      (ref s))
+                    (app
+                      (app
+                        (app
+                          (app (ref path_inverse) (id (ref A) (ref x) (ref z)))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref path_concat) (ref A)) (ref x))
+                                  (ref x))
+                                (ref z))
+                              (refl (ref x)))
+                            (ref q)))
+                        (ref q))
+                      (app
+                        (app
+                          (app (app (ref path_concat_left_refl) (ref A)) (ref x))
+                          (ref z))
+                        (ref q))))
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (ref path_concat) (id (ref A) (ref x) (ref z)))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref path_concat) (ref A)) (ref x))
+                                    (ref x))
+                                  (ref z))
+                                (refl (ref x)))
+                              (ref q)))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref path_concat) (ref A)) (ref x))
+                                  (ref x))
+                                (ref z))
+                              (refl (ref x)))
+                            (ref s)))
+                        (ref s))
+                      (ref equality))
+                    (app
+                      (app
+                        (app (app (ref path_concat_left_refl) (ref A)) (ref x))
+                        (ref z))
+                      (ref s)))))))))))
+  (lam A
+    (lam x
+      (lam z
+        (lam q
+          (lam s
+            (lam equality
+              (refl
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (ref path_concat) (id (ref A) (ref x) (ref z)))
+                          (ref q))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (app (ref path_concat) (ref A)) (ref x))
+                                (ref x))
+                              (ref z))
+                            (refl (ref x)))
+                          (ref q)))
+                      (ref s))
+                    (app
+                      (app
+                        (app
+                          (app (ref path_inverse) (id (ref A) (ref x) (ref z)))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref path_concat) (ref A)) (ref x))
+                                  (ref x))
+                                (ref z))
+                              (refl (ref x)))
+                            (ref q)))
+                        (ref q))
+                      (app
+                        (app
+                          (app (app (ref path_concat_left_refl) (ref A)) (ref x))
+                          (ref z))
+                        (ref q))))
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (ref path_concat) (id (ref A) (ref x) (ref z)))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref path_concat) (ref A)) (ref x))
+                                    (ref x))
+                                  (ref z))
+                                (refl (ref x)))
+                              (ref q)))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref path_concat) (ref A)) (ref x))
+                                  (ref x))
+                                (ref z))
+                              (refl (ref x)))
+                            (ref s)))
+                        (ref s))
+                      (ref equality))
+                    (app
+                      (app
+                        (app (app (ref path_concat_left_refl) (ref A)) (ref x))
+                        (ref z))
+                      (ref s))))))))))))
+
+(transparent right_cancel_reflexivity_computation
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (pi y
+        (ref A)
+        (pi p
+          (id (ref A) (ref x) (ref y))
+          (pi s
+            (id (ref A) (ref x) (ref y))
+            (pi equality
+              (id (id (ref A) (ref x) (ref y)) (ref p) (ref s))
+              (id
+                (id (id (ref A) (ref x) (ref y)) (ref p) (ref s))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (app (ref path_concat_right_cancel) (ref A)) (ref x))
+                            (ref y))
+                          (ref y))
+                        (ref p))
+                      (ref s))
+                    (refl (ref y)))
+                  (ref equality))
+                (ref equality))))))))
+  (lam A (lam x (lam y (lam p (lam s (lam equality (refl (ref equality)))))))))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("cancellation must compute on arbitrary paths and equality witnesses");
 }

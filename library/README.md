@@ -85,3 +85,15 @@ For `f : A → B` and `g : B → C`, `ap_comp A B C f g x y p` proves
 reflexivity branches are higher reflexivity, and generic computation tests
 pin these precise proof terms for arbitrary types, maps, and base points.
 Neither function extensionality nor a judgmental eta rule is used.
+
+## Path cancellation
+
+`path_concat_left_cancel A x y p z q s equality` cancels the common
+prefix `p : Id_A(x,y)` from `p · q = p · s`, producing `q = s`.
+`path_concat_right_cancel A x y z p s q equality` cancels the common
+suffix `q : Id_A(y,z)` from `p · q = s · q`, producing `p = s`.
+Both use path induction on the common path. At a reflexive suffix, right
+cancellation returns the supplied equality proof unchanged. At a reflexive
+prefix, left cancellation uses `(left_unit q)⁻¹ · (equality · left_unit s)`
+in the path type. Tests pin these exact computations for arbitrary paths
+and equality witnesses. Neither law requires uniqueness of identity proofs.

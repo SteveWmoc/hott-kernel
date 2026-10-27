@@ -52,7 +52,8 @@ eliminator `J`. Concatenation records its judgmental right-unit computation,
 propositional left-unit law, and associativity by path induction; transport and
 `ap` record their judgmental reflexivity computations, path inversion is
 propositionally involutive, satisfies both concatenation inverse laws, and
-reverses the order of concatenation propositionally. The action `ap` preserves
+reverses the order of concatenation propositionally. Common prefixes and
+suffixes can be cancelled from equal concatenations. The action `ap` preserves
 identity functions, function composition, path concatenation, and path
 inversion propositionally. Transport along a
 concatenation agrees propositionally with successive transports, and transport
