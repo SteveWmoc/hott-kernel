@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use crate::{EquationCandidate, Term};
+use crate::{CandidateCounts, EquationCandidate, Term};
 
 /// Returns the atomic terms for the requested number of free variables.
 #[must_use]
@@ -101,6 +101,17 @@ pub fn count_terms_up_to_depth(variable_count: u32, max_depth: usize) -> Option<
     Some(count)
 }
 
+/// Counts the cheap equation-filtering stages for all terms up to max_depth.
+///
+/// This computes the counts symbolically without materializing equations.
+#[must_use]
+pub fn count_candidate_stages_up_to_depth(
+    variable_count: u32,
+    max_depth: usize,
+) -> Option<CandidateCounts> {
+    CandidateCounts::from_term_count(count_terms_up_to_depth(variable_count, max_depth)?)
+}
+
 /// Counts terms of exactly depth without materializing them.
 ///
 /// Returns None if the corresponding bounded count exceeds u128.
@@ -120,8 +131,8 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::{
-        atomic_terms, canonical_equations, count_terms_exact_depth, count_terms_up_to_depth,
-        terms_by_exact_depth, terms_up_to_depth,
+        atomic_terms, canonical_equations, count_candidate_stages_up_to_depth,
+        count_terms_exact_depth, count_terms_up_to_depth, terms_by_exact_depth, terms_up_to_depth,
     };
 
     #[test]
@@ -162,6 +173,15 @@ mod tests {
 
         assert_eq!(candidates.len(), 10);
         assert!(candidates.iter().all(|candidate| candidate.lhs() < candidate.rhs()));
+    }
+
+    #[test]
+    fn candidate_stage_counts_match_three_variable_depth_one() {
+        let counts = count_candidate_stages_up_to_depth(3, 1).unwrap();
+
+        assert_eq!(counts.ordered_with_reflexive(), 3_025);
+        assert_eq!(counts.ordered_non_reflexive(), 2_970);
+        assert_eq!(counts.canonical_non_reflexive(), 1_485);
     }
 
     #[test]
