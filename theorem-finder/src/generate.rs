@@ -69,9 +69,7 @@ pub fn terms_up_to_depth(variable_count: u32, max_depth: usize) -> BTreeSet<Term
 ///
 /// Because terms is already deduplicated and ordered, each unordered pair of
 /// distinct terms occurs exactly once. No algebraic laws are used here.
-pub fn canonical_equations(
-    terms: &BTreeSet<Term>,
-) -> impl Iterator<Item = EquationCandidate> + '_ {
+pub fn canonical_equations(terms: &BTreeSet<Term>) -> impl Iterator<Item = EquationCandidate> + '_ {
     terms.iter().enumerate().flat_map(move |(index, lhs)| {
         terms.iter().skip(index + 1).map(move |rhs| {
             EquationCandidate::new(lhs.clone(), rhs.clone())
@@ -172,7 +170,11 @@ mod tests {
         let candidates: Vec<_> = canonical_equations(&terms).collect();
 
         assert_eq!(candidates.len(), 10);
-        assert!(candidates.iter().all(|candidate| candidate.lhs() < candidate.rhs()));
+        assert!(
+            candidates
+                .iter()
+                .all(|candidate| candidate.lhs() < candidate.rhs())
+        );
     }
 
     #[test]
