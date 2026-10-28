@@ -188,8 +188,9 @@ mod tests {
 
     #[test]
     fn variable_canonicalization_does_not_merge_distinct_variables() {
-        let candidate =
-            EquationCandidate::new(Term::Var(2), Term::Var(7)).unwrap().canonicalize_variables();
+        let candidate = EquationCandidate::new(Term::Var(2), Term::Var(7))
+            .unwrap()
+            .canonicalize_variables();
 
         assert_eq!(candidate.lhs(), &Term::Var(0));
         assert_eq!(candidate.rhs(), &Term::Var(1));
