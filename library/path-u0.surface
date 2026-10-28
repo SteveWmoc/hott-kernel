@@ -2239,3 +2239,152 @@
                   (lam equality (ref equality))
                   (ref z)
                   (ref q))))))))))
+
+; A homotopy f ~ id satisfies ap f (H(x)) = H(f(x)).
+(transparent homotopy_to_identity_coherence
+  (pi A
+    (universe 0)
+    (pi f
+      (pi point (ref A) (ref A))
+      (pi homotopy_f_id
+        (app
+          (app (app (app (ref homotopy) (ref A)) (lam point (ref A))) (ref f))
+          (lam point (ref point)))
+        (pi x
+          (ref A)
+          (id
+            (id (ref A) (app (ref f) (app (ref f) (ref x))) (app (ref f) (ref x)))
+            (app
+              (app
+                (app
+                  (app (app (app (ref ap) (ref A)) (ref A)) (ref f))
+                  (app (ref f) (ref x)))
+                (ref x))
+              (app (ref homotopy_f_id) (ref x)))
+            (app (ref homotopy_f_id) (app (ref f) (ref x))))))))
+  (lam A
+    (lam f
+      (lam homotopy_f_id
+        (lam x
+          (app
+            (app
+              (app
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (ref path_concat_right_cancel) (ref A))
+                        (app (ref f) (app (ref f) (ref x))))
+                      (app (ref f) (ref x)))
+                    (ref x))
+                  (app
+                    (app
+                      (app
+                        (app (app (app (ref ap) (ref A)) (ref A)) (ref f))
+                        (app (ref f) (ref x)))
+                      (ref x))
+                    (app (ref homotopy_f_id) (ref x))))
+                (app (ref homotopy_f_id) (app (ref f) (ref x))))
+              (app (ref homotopy_f_id) (ref x)))
+            (app
+              (app
+                (app
+                  (app
+                    (app
+                      (app
+                        (ref path_concat)
+                        (id (ref A) (app (ref f) (app (ref f) (ref x))) (ref x)))
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (ref path_concat) (ref A))
+                                (app (ref f) (app (ref f) (ref x))))
+                              (app (ref f) (ref x)))
+                            (ref x))
+                          (app
+                            (app
+                              (app
+                                (app (app (app (ref ap) (ref A)) (ref A)) (ref f))
+                                (app (ref f) (ref x)))
+                              (ref x))
+                            (app (ref homotopy_f_id) (ref x))))
+                        (app (ref homotopy_f_id) (ref x))))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (ref path_concat) (ref A))
+                              (app (ref f) (app (ref f) (ref x))))
+                            (app (ref f) (ref x)))
+                          (ref x))
+                        (app (ref homotopy_f_id) (app (ref f) (ref x))))
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (app (ref ap) (ref A)) (ref A))
+                              (lam point (ref point)))
+                            (app (ref f) (ref x)))
+                          (ref x))
+                        (app (ref homotopy_f_id) (ref x)))))
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (ref path_concat) (ref A))
+                            (app (ref f) (app (ref f) (ref x))))
+                          (app (ref f) (ref x)))
+                        (ref x))
+                      (app (ref homotopy_f_id) (app (ref f) (ref x))))
+                    (app (ref homotopy_f_id) (ref x))))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (app (ref homotopy_naturality) (ref A)) (ref A))
+                            (ref f))
+                          (lam point (ref point)))
+                        (ref homotopy_f_id))
+                      (app (ref f) (ref x)))
+                    (ref x))
+                  (app (ref homotopy_f_id) (ref x))))
+              (app
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (ref ap) (id (ref A) (app (ref f) (ref x)) (ref x)))
+                        (id (ref A) (app (ref f) (app (ref f) (ref x))) (ref x)))
+                      (lam tail
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (ref path_concat) (ref A))
+                                  (app (ref f) (app (ref f) (ref x))))
+                                (app (ref f) (ref x)))
+                              (ref x))
+                            (app (ref homotopy_f_id) (app (ref f) (ref x))))
+                          (ref tail))))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (app (ref ap) (ref A)) (ref A))
+                            (lam point (ref point)))
+                          (app (ref f) (ref x)))
+                        (ref x))
+                      (app (ref homotopy_f_id) (ref x))))
+                  (app (ref homotopy_f_id) (ref x)))
+                (app
+                  (app
+                    (app (app (ref ap_identity) (ref A)) (app (ref f) (ref x)))
+                    (ref x))
+                  (app (ref homotopy_f_id) (ref x)))))))))))

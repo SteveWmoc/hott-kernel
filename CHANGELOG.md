@@ -7,6 +7,9 @@ are recorded here.
 
 ### Added
 
+- Derived coherence for a homotopy to the identity from naturality and
+  cancellation, with exact audits and an identity-homotopy computation test.
+
 - Proved left and right cancellation for path concatenation, with complete
   foundation audits and generic proof-relevant computation tests.
 

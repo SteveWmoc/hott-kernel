@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 38);
+    assert_eq!(declarations.len(), 39);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -809,6 +809,27 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
             assert!(foundation.extensions().is_empty());
             assert!(foundation.postulates().is_empty());
         }
+    }
+
+    let coherence = &declarations[38];
+    assert_eq!(coherence.display_name(), "homotopy_to_identity_coherence");
+    assert_eq!(coherence.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(coherence.direct().declarations(), &[2, 8, 19, 33, 34, 37]);
+    assert_eq!(
+        coherence.transitive().declarations(),
+        &[2, 4, 8, 19, 33, 34, 37]
+    );
+    for foundation in [coherence.direct(), coherence.transitive()] {
+        assert_eq!(
+            foundation.kernel_features(),
+            &[
+                KernelFeature::Identity,
+                KernelFeature::Pi,
+                KernelFeature::Universe
+            ]
+        );
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
     }
 }
 
@@ -2703,4 +2724,31 @@ fn path_cancellation_reflexivity_preserves_the_specified_proofs() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("cancellation must compute on arbitrary paths and equality witnesses");
+}
+
+#[test]
+fn homotopy_identity_coherence_computes_at_the_identity_homotopy() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent identity_homotopy_coherence_computation
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (id
+        (id (id (ref A) (ref x) (ref x)) (refl (ref x)) (refl (ref x)))
+        (app
+          (app
+            (app
+              (app (ref homotopy_to_identity_coherence) (ref A))
+              (lam point (ref point)))
+            (lam point (refl (ref point))))
+          (ref x))
+        (refl (refl (ref x))))))
+  (lam A (lam x (refl (refl (refl (ref x)))))))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("identity homotopy coherence must compute to higher reflexivity");
 }
