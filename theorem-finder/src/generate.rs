@@ -83,9 +83,7 @@ pub fn canonical_equations(terms: &BTreeSet<Term>) -> impl Iterator<Item = Equat
 /// This is intended only for small bounded experiments. With the initial
 /// three-variable cap, each candidate has at most six variable renamings.
 #[must_use]
-pub fn equations_mod_variable_renaming(
-    terms: &BTreeSet<Term>,
-) -> BTreeSet<EquationCandidate> {
+pub fn equations_mod_variable_renaming(terms: &BTreeSet<Term>) -> BTreeSet<EquationCandidate> {
     canonical_equations(terms)
         .map(|candidate| candidate.canonicalize_variables())
         .collect()
