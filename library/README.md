@@ -97,3 +97,14 @@ cancellation returns the supplied equality proof unchanged. At a reflexive
 prefix, left cancellation uses `(left_unit q)⁻¹ · (equality · left_unit s)`
 in the path type. Tests pin these exact computations for arbitrary paths
 and equality witnesses. Neither law requires uniqueness of identity proofs.
+
+## Coherence of a homotopy to the identity
+
+For `f : A → A` and `H : f ~ id`,
+`homotopy_to_identity_coherence A f H x` proves `ap f (H(x)) = H(f(x))`.
+Naturality at the path `H(x) : Id_A(f(x),x)` first gives
+`ap f (H(x)) · H(x) = H(f(x)) · ap id (H(x))`.
+Applying `ap_identity` under concatenation replaces the final path with `H(x)`,
+and right cancellation gives the result. This is a derived higher path,
+not an extra coherence axiom. For the identity map and reflexivity homotopy,
+the construction computes to higher reflexivity for any type and base point.
