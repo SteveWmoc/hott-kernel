@@ -78,6 +78,26 @@ pub fn canonical_equations(terms: &BTreeSet<Term>) -> impl Iterator<Item = Equat
     })
 }
 
+/// Materializes equation classes modulo uniform renaming of free variables.
+///
+/// This is intended only for small bounded experiments. With the initial
+/// three-variable cap, each candidate has at most six variable renamings.
+#[must_use]
+pub fn equations_mod_variable_renaming(
+    terms: &BTreeSet<Term>,
+) -> BTreeSet<EquationCandidate> {
+    canonical_equations(terms)
+        .map(|candidate| candidate.canonicalize_variables())
+        .collect()
+}
+
+/// Counts variable-renaming classes for a small bounded term universe.
+#[must_use]
+pub fn count_equations_mod_variable_renaming(variable_count: u32, max_depth: usize) -> usize {
+    let terms = terms_up_to_depth(variable_count, max_depth);
+    equations_mod_variable_renaming(&terms).len()
+}
+
 /// Counts terms of depth at most max_depth without materializing them.
 ///
 /// With a = variable_count + 2 atoms and two binary constructors, the count
@@ -130,7 +150,8 @@ mod tests {
 
     use super::{
         atomic_terms, canonical_equations, count_candidate_stages_up_to_depth,
-        count_terms_exact_depth, count_terms_up_to_depth, terms_by_exact_depth, terms_up_to_depth,
+        count_equations_mod_variable_renaming, count_terms_exact_depth, count_terms_up_to_depth,
+        equations_mod_variable_renaming, terms_by_exact_depth, terms_up_to_depth,
     };
 
     #[test]
@@ -175,6 +196,19 @@ mod tests {
                 .iter()
                 .all(|candidate| candidate.lhs() < candidate.rhs())
         );
+    }
+
+    #[test]
+    fn variable_renaming_collapses_atomic_candidates() {
+        let terms = atomic_terms(3);
+        let candidates = equations_mod_variable_renaming(&terms);
+
+        assert_eq!(candidates.len(), 4);
+    }
+
+    #[test]
+    fn variable_renaming_collapses_depth_one_candidates() {
+        assert_eq!(count_equations_mod_variable_renaming(3, 1), 376);
     }
 
     #[test]
