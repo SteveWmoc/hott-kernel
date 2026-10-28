@@ -1,6 +1,9 @@
 //! Candidate propositions considered by the discovery engine.
 
-use std::cmp::Ordering;
+use std::{
+    cmp::Ordering,
+    collections::{BTreeMap, BTreeSet},
+};
 
 use crate::Term;
 
@@ -37,6 +40,64 @@ impl EquationCandidate {
     #[must_use]
     pub fn rhs(&self) -> &Term {
         &self.rhs
+    }
+
+    /// Returns the least representative under bijective renaming of variables.
+    ///
+    /// Variable names carry no meaning after universal closure. The initial
+    /// experiment uses at most three variables, so this exact implementation
+    /// simply checks every bijection onto 0, ..., k - 1.
+    #[must_use]
+    pub fn canonicalize_variables(&self) -> Self {
+        let mut variables = BTreeSet::new();
+        self.lhs.collect_variables(&mut variables);
+        self.rhs.collect_variables(&mut variables);
+
+        let originals: Vec<_> = variables.into_iter().collect();
+        if originals.is_empty() {
+            return self.clone();
+        }
+
+        let variable_count =
+            u32::try_from(originals.len()).expect("finder variable count must fit in u32");
+        let mut targets: Vec<_> = (0..variable_count).collect();
+        let mut best = None;
+
+        for_each_permutation(&mut targets, 0, &mut |permutation| {
+            let mapping: BTreeMap<_, _> = originals
+                .iter()
+                .copied()
+                .zip(permutation.iter().copied())
+                .collect();
+            let candidate = Self::new(
+                self.lhs.rename_variables(&mapping),
+                self.rhs.rename_variables(&mapping),
+            )
+            .expect("renaming preserves non-reflexivity");
+
+            match &best {
+                Some(current) if current <= &candidate => {}
+                _ => best = Some(candidate),
+            }
+        });
+
+        best.expect("a nonempty variable set has at least one permutation")
+    }
+}
+
+fn for_each_permutation<F>(values: &mut [u32], start: usize, visit: &mut F)
+where
+    F: FnMut(&[u32]),
+{
+    if start == values.len() {
+        visit(values);
+        return;
+    }
+
+    for index in start..values.len() {
+        values.swap(start, index);
+        for_each_permutation(values, start + 1, visit);
+        values.swap(start, index);
     }
 }
 
@@ -105,6 +166,34 @@ mod tests {
 
         assert_eq!(forward, reverse);
         assert!(forward.lhs() < forward.rhs());
+    }
+
+    #[test]
+    fn canonicalizes_uniform_variable_renaming() {
+        let first = EquationCandidate::new(
+            Term::Add(Box::new(Term::Var(2)), Box::new(Term::Var(0))),
+            Term::Var(1),
+        )
+        .unwrap()
+        .canonicalize_variables();
+        let second = EquationCandidate::new(
+            Term::Add(Box::new(Term::Var(1)), Box::new(Term::Var(2))),
+            Term::Var(0),
+        )
+        .unwrap()
+        .canonicalize_variables();
+
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn variable_canonicalization_does_not_merge_distinct_variables() {
+        let candidate = EquationCandidate::new(Term::Var(2), Term::Var(7))
+            .unwrap()
+            .canonicalize_variables();
+
+        assert_eq!(candidate.lhs(), &Term::Var(0));
+        assert_eq!(candidate.rhs(), &Term::Var(1));
     }
 
     #[test]

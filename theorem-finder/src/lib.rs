@@ -12,7 +12,8 @@ pub mod term;
 
 pub use candidate::{CandidateCounts, EquationCandidate};
 pub use generate::{
-    atomic_terms, canonical_equations, count_candidate_stages_up_to_depth, count_terms_exact_depth,
-    count_terms_up_to_depth, terms_by_exact_depth, terms_up_to_depth,
+    atomic_terms, canonical_equations, count_candidate_stages_up_to_depth,
+    count_equations_mod_variable_renaming, count_terms_exact_depth, count_terms_up_to_depth,
+    equations_mod_variable_renaming, terms_by_exact_depth, terms_up_to_depth,
 };
 pub use term::Term;
