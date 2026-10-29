@@ -127,24 +127,15 @@ mod tests {
         let x = var(0);
 
         assert_eq!(
-            SemiringNormalForm::from_term(&Term::Add(
-                Box::new(x.clone()),
-                Box::new(Term::Zero)
-            )),
+            SemiringNormalForm::from_term(&Term::Add(Box::new(x.clone()), Box::new(Term::Zero))),
             SemiringNormalForm::from_term(&x)
         );
         assert_eq!(
-            SemiringNormalForm::from_term(&Term::Mul(
-                Box::new(x.clone()),
-                Box::new(Term::One)
-            )),
+            SemiringNormalForm::from_term(&Term::Mul(Box::new(x.clone()), Box::new(Term::One))),
             SemiringNormalForm::from_term(&x)
         );
         assert_eq!(
-            SemiringNormalForm::from_term(&Term::Mul(
-                Box::new(Term::Zero),
-                Box::new(x)
-            )),
+            SemiringNormalForm::from_term(&Term::Mul(Box::new(Term::Zero), Box::new(x))),
             SemiringNormalForm::from_term(&Term::Zero)
         );
     }
@@ -159,10 +150,7 @@ mod tests {
             Box::new(Term::Add(Box::new(x.clone()), Box::new(y.clone()))),
             Box::new(z.clone()),
         );
-        let right = Term::Add(
-            Box::new(z),
-            Box::new(Term::Add(Box::new(y), Box::new(x))),
-        );
+        let right = Term::Add(Box::new(z), Box::new(Term::Add(Box::new(y), Box::new(x))));
 
         assert_eq!(
             SemiringNormalForm::from_term(&left),
