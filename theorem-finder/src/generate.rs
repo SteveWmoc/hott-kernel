@@ -279,10 +279,7 @@ mod tests {
 
     #[test]
     fn normalization_then_variable_renaming_collapses_depth_one_candidates() {
-        assert_eq!(
-            count_normalized_equations_mod_variable_renaming(3, 1),
-            65
-        );
+        assert_eq!(count_normalized_equations_mod_variable_renaming(3, 1), 65);
     }
 
     #[test]
