@@ -62,7 +62,9 @@ directions. Dependent pointwise homotopy has reflexive, symmetric, and
 transitive laws built from reflexivity, inversion, and concatenation.
 Homotopy naturality relates function action on paths to the homotopy components.
 A homotopy `H : f ~ id` satisfies `ap f (H(x)) = H(f(x))`, derived by
-naturality and cancellation.
+naturality and cancellation. Half-adjoint inverse data explicitly records
+the triangle law relating the two inverse homotopies, with a constructor,
+coherence projection, forgetful map to quasi-inverse data, and identity example.
 Chosen quasi-inverse data packages an inverse map and both pointwise homotopy
 laws, with a constructor, projections, and the identity example. This data is
 not asserted to be a proposition or used as a definition of `isEquiv`.

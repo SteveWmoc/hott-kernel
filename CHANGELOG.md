@@ -7,6 +7,10 @@ are recorded here.
 
 ### Added
 
+- Defined half-adjoint inverse data with its triangle coherence, constructor,
+  coherence projection, forgetful map, and identity example, with exact audits
+  and generic computation tests.
+
 - Derived coherence for a homotopy to the identity from naturality and
   cancellation, with exact audits and an identity-homotopy computation test.
 

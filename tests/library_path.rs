@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 39);
+    assert_eq!(declarations.len(), 44);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -828,6 +828,148 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
                 KernelFeature::Universe
             ]
         );
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[39];
+    assert_eq!(declaration.display_name(), "half_adjoint_inverse");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[8, 19]);
+    assert_eq!(declaration.transitive().declarations(), &[8, 19]);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[40];
+    assert_eq!(declaration.display_name(), "half_adjoint_inverse_intro");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[8, 19, 39]);
+    assert_eq!(declaration.transitive().declarations(), &[8, 19, 39]);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[41];
+    assert_eq!(declaration.display_name(), "half_adjoint_inverse_forget");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[23, 24, 39]);
+    assert_eq!(
+        declaration.transitive().declarations(),
+        &[8, 19, 23, 24, 39]
+    );
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[42];
+    assert_eq!(declaration.display_name(), "half_adjoint_inverse_coherence");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[8, 39]);
+    assert_eq!(declaration.transitive().declarations(), &[8, 19, 39]);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[43];
+    assert_eq!(declaration.display_name(), "identity_half_adjoint_inverse");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[39]);
+    assert_eq!(declaration.transitive().declarations(), &[8, 19, 39]);
+    for foundation in [declaration.direct(), declaration.transitive()] {
         assert!(foundation.extensions().is_empty());
         assert!(foundation.postulates().is_empty());
     }
@@ -2751,4 +2893,203 @@ fn homotopy_identity_coherence_computes_at_the_identity_homotopy() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("identity homotopy coherence must compute to higher reflexivity");
+}
+
+#[test]
+fn half_adjoint_constructor_forgetful_map_and_coherence_compute() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent half_adjoint_forget_constructor
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi g
+          (pi point (ref B) (ref A))
+          (pi section
+            (app
+              (app
+                (app (app (ref homotopy) (ref A)) (lam point (ref A)))
+                (lam point (app (ref g) (app (ref f) (ref point)))))
+              (lam point (ref point)))
+            (pi retraction
+              (app
+                (app
+                  (app (app (ref homotopy) (ref B)) (lam point (ref B)))
+                  (lam point (app (ref f) (app (ref g) (ref point)))))
+                (lam point (ref point)))
+              (pi coherence
+                (pi point
+                  (ref A)
+                  (id
+                    (id
+                      (ref B)
+                      (app (ref f) (app (ref g) (app (ref f) (ref point))))
+                      (app (ref f) (ref point)))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                          (app (ref g) (app (ref f) (ref point))))
+                        (ref point))
+                      (app (ref section) (ref point)))
+                    (app (ref retraction) (app (ref f) (ref point)))))
+                (id
+                  (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+                  (app
+                    (app
+                      (app (app (ref half_adjoint_inverse_forget) (ref A)) (ref B))
+                      (ref f))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (ref half_adjoint_inverse_intro) (ref A))
+                                (ref B))
+                              (ref f))
+                            (ref g))
+                          (ref section))
+                        (ref retraction))
+                      (ref coherence)))
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_intro) (ref A)) (ref B))
+                          (ref f))
+                        (ref g))
+                      (ref section))
+                    (ref retraction))))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam g
+          (lam section
+            (lam retraction
+              (lam coherence
+                (refl
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_intro) (ref A)) (ref B))
+                          (ref f))
+                        (ref g))
+                      (ref section))
+                    (ref retraction)))))))))))
+
+(transparent half_adjoint_coherence_constructor
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi g
+          (pi point (ref B) (ref A))
+          (pi section
+            (app
+              (app
+                (app (app (ref homotopy) (ref A)) (lam point (ref A)))
+                (lam point (app (ref g) (app (ref f) (ref point)))))
+              (lam point (ref point)))
+            (pi retraction
+              (app
+                (app
+                  (app (app (ref homotopy) (ref B)) (lam point (ref B)))
+                  (lam point (app (ref f) (app (ref g) (ref point)))))
+                (lam point (ref point)))
+              (pi coherence
+                (pi point
+                  (ref A)
+                  (id
+                    (id
+                      (ref B)
+                      (app (ref f) (app (ref g) (app (ref f) (ref point))))
+                      (app (ref f) (ref point)))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                          (app (ref g) (app (ref f) (ref point))))
+                        (ref point))
+                      (app (ref section) (ref point)))
+                    (app (ref retraction) (app (ref f) (ref point)))))
+                (id
+                  (pi point
+                    (ref A)
+                    (id
+                      (id
+                        (ref B)
+                        (app (ref f) (app (ref g) (app (ref f) (ref point))))
+                        (app (ref f) (ref point)))
+                      (app
+                        (app
+                          (app
+                            (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                            (app (ref g) (app (ref f) (ref point))))
+                          (ref point))
+                        (app (ref section) (ref point)))
+                      (app (ref retraction) (app (ref f) (ref point)))))
+                  (app
+                    (app
+                      (app (app (ref half_adjoint_inverse_coherence) (ref A)) (ref B))
+                      (ref f))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (ref half_adjoint_inverse_intro) (ref A))
+                                (ref B))
+                              (ref f))
+                            (ref g))
+                          (ref section))
+                        (ref retraction))
+                      (ref coherence)))
+                  (ref coherence)))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam g (lam section (lam retraction (lam coherence (refl (ref coherence))))))))))
+
+(transparent half_adjoint_forget_identity
+  (pi A
+    (universe 0)
+    (id
+      (app (app (app (ref quasi_inverse) (ref A)) (ref A)) (lam point (ref point)))
+      (app
+        (app
+          (app (app (ref half_adjoint_inverse_forget) (ref A)) (ref A))
+          (lam point (ref point)))
+        (app (ref identity_half_adjoint_inverse) (ref A)))
+      (app (ref identity_quasi_inverse) (ref A))))
+  (lam A (refl (app (ref identity_quasi_inverse) (ref A)))))
+
+(transparent half_adjoint_identity_triangle
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (id
+        (id (id (ref A) (ref x) (ref x)) (refl (ref x)) (refl (ref x)))
+        (app
+          (app
+            (app
+              (app (app (ref half_adjoint_inverse_coherence) (ref A)) (ref A))
+              (lam point (ref point)))
+            (app (ref identity_half_adjoint_inverse) (ref A)))
+          (ref x))
+        (refl (refl (ref x))))))
+  (lam A (lam x (refl (refl (refl (ref x)))))))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("half-adjoint data must preserve its fields and compute on identity data");
 }
