@@ -5,7 +5,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
 };
 
-use crate::Term;
+use crate::{SemiringNormalForm, Term};
 
 /// A non-reflexive equation with a canonical orientation.
 ///
@@ -74,6 +74,89 @@ impl EquationCandidate {
                 self.rhs.rename_variables(&mapping),
             )
             .expect("renaming preserves non-reflexivity");
+
+            match &best {
+                Some(current) if current <= &candidate => {}
+                _ => best = Some(candidate),
+            }
+        });
+
+        best.expect("a nonempty variable set has at least one permutation")
+    }
+
+    /// Normalizes both sides in the free noncommutative semiring.
+    ///
+    /// Returns None when the equation becomes reflexive under the semiring
+    /// axioms encoded by the normal form.
+    #[must_use]
+    pub fn semiring_normalize(&self) -> Option<NormalizedEquationCandidate> {
+        NormalizedEquationCandidate::new(
+            SemiringNormalForm::from_term(&self.lhs),
+            SemiringNormalForm::from_term(&self.rhs),
+        )
+    }
+}
+
+/// A non-reflexive equation between canonical semiring normal forms.
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct NormalizedEquationCandidate {
+    lhs: SemiringNormalForm,
+    rhs: SemiringNormalForm,
+}
+
+impl NormalizedEquationCandidate {
+    /// Creates a canonically oriented normalized equation.
+    ///
+    /// Returns None when both normal forms are equal.
+    #[must_use]
+    pub fn new(lhs: SemiringNormalForm, rhs: SemiringNormalForm) -> Option<Self> {
+        match lhs.cmp(&rhs) {
+            Ordering::Less => Some(Self { lhs, rhs }),
+            Ordering::Equal => None,
+            Ordering::Greater => Some(Self { lhs: rhs, rhs: lhs }),
+        }
+    }
+
+    /// Returns the canonical left-hand side.
+    #[must_use]
+    pub fn lhs(&self) -> &SemiringNormalForm {
+        &self.lhs
+    }
+
+    /// Returns the canonical right-hand side.
+    #[must_use]
+    pub fn rhs(&self) -> &SemiringNormalForm {
+        &self.rhs
+    }
+
+    /// Returns the least representative under bijective variable renaming.
+    #[must_use]
+    pub fn canonicalize_variables(&self) -> Self {
+        let mut variables = BTreeSet::new();
+        self.lhs.collect_variables(&mut variables);
+        self.rhs.collect_variables(&mut variables);
+
+        let originals: Vec<_> = variables.into_iter().collect();
+        if originals.is_empty() {
+            return self.clone();
+        }
+
+        let variable_count =
+            u32::try_from(originals.len()).expect("finder variable count must fit in u32");
+        let mut targets: Vec<_> = (0..variable_count).collect();
+        let mut best = None;
+
+        for_each_permutation(&mut targets, 0, &mut |permutation| {
+            let mapping: BTreeMap<_, _> = originals
+                .iter()
+                .copied()
+                .zip(permutation.iter().copied())
+                .collect();
+            let candidate = Self::new(
+                self.lhs.rename_variables(&mapping),
+                self.rhs.rename_variables(&mapping),
+            )
+            .expect("renaming preserves normalized non-reflexivity");
 
             match &best {
                 Some(current) if current <= &candidate => {}
@@ -194,6 +277,39 @@ mod tests {
 
         assert_eq!(candidate.lhs(), &Term::Var(0));
         assert_eq!(candidate.rhs(), &Term::Var(1));
+    }
+
+    #[test]
+    fn semiring_normalization_rejects_axiom_consequences() {
+        let candidate = EquationCandidate::new(
+            Term::Add(Box::new(Term::Var(0)), Box::new(Term::Zero)),
+            Term::Var(0),
+        )
+        .unwrap();
+
+        assert!(candidate.semiring_normalize().is_none());
+    }
+
+    #[test]
+    fn normalized_variable_canonicalization_is_uniform() {
+        let first = EquationCandidate::new(
+            Term::Add(Box::new(Term::Var(7)), Box::new(Term::Var(2))),
+            Term::Var(7),
+        )
+        .unwrap()
+        .semiring_normalize()
+        .unwrap()
+        .canonicalize_variables();
+        let second = EquationCandidate::new(
+            Term::Add(Box::new(Term::Var(1)), Box::new(Term::Var(0))),
+            Term::Var(1),
+        )
+        .unwrap()
+        .semiring_normalize()
+        .unwrap()
+        .canonicalize_variables();
+
+        assert_eq!(first, second);
     }
 
     #[test]
