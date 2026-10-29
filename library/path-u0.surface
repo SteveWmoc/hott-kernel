@@ -2388,3 +2388,147 @@
                     (app (app (ref ap_identity) (ref A)) (app (ref f) (ref x)))
                     (ref x))
                   (app (ref homotopy_f_id) (ref x)))))))))))
+
+; Half-adjoint inverse data records the triangle law ap f (section x) = retraction (f x).
+(transparent half_adjoint_inverse
+  (pi A (universe 0) (pi B (universe 0) (pi f (pi point (ref A) (ref B)) (universe 0))))
+  (lam A
+    (lam B
+      (lam f
+        (sigma g
+          (pi point (ref B) (ref A))
+          (sigma section
+            (app
+              (app
+                (app (app (ref homotopy) (ref A)) (lam point (ref A)))
+                (lam point (app (ref g) (app (ref f) (ref point)))))
+              (lam point (ref point)))
+            (sigma retraction
+              (app
+                (app
+                  (app (app (ref homotopy) (ref B)) (lam point (ref B)))
+                  (lam point (app (ref f) (app (ref g) (ref point)))))
+                (lam point (ref point)))
+              (pi point
+                (ref A)
+                (id
+                  (id
+                    (ref B)
+                    (app (ref f) (app (ref g) (app (ref f) (ref point))))
+                    (app (ref f) (ref point)))
+                  (app
+                    (app
+                      (app
+                        (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                        (app (ref g) (app (ref f) (ref point))))
+                      (ref point))
+                    (app (ref section) (ref point)))
+                  (app (ref retraction) (app (ref f) (ref point))))))))))))
+
+(transparent half_adjoint_inverse_intro
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi g
+          (pi point (ref B) (ref A))
+          (pi section
+            (app
+              (app
+                (app (app (ref homotopy) (ref A)) (lam point (ref A)))
+                (lam point (app (ref g) (app (ref f) (ref point)))))
+              (lam point (ref point)))
+            (pi retraction
+              (app
+                (app
+                  (app (app (ref homotopy) (ref B)) (lam point (ref B)))
+                  (lam point (app (ref f) (app (ref g) (ref point)))))
+                (lam point (ref point)))
+              (pi coherence
+                (pi point
+                  (ref A)
+                  (id
+                    (id
+                      (ref B)
+                      (app (ref f) (app (ref g) (app (ref f) (ref point))))
+                      (app (ref f) (ref point)))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                          (app (ref g) (app (ref f) (ref point))))
+                        (ref point))
+                      (app (ref section) (ref point)))
+                    (app (ref retraction) (app (ref f) (ref point)))))
+                (app (app (app (ref half_adjoint_inverse) (ref A)) (ref B)) (ref f)))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam g
+          (lam section
+            (lam retraction
+              (lam coherence
+                (pair
+                  (ref g)
+                  (pair (ref section) (pair (ref retraction) (ref coherence))))))))))))
+
+(transparent half_adjoint_inverse_forget
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref half_adjoint_inverse) (ref A)) (ref B)) (ref f))
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (app
+            (app
+              (app
+                (app (app (app (ref quasi_inverse_intro) (ref A)) (ref B)) (ref f))
+                (fst (ref witness)))
+              (fst (snd (ref witness))))
+            (fst (snd (snd (ref witness))))))))))
+
+(transparent half_adjoint_inverse_coherence
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref half_adjoint_inverse) (ref A)) (ref B)) (ref f))
+          (pi point
+            (ref A)
+            (id
+              (id
+                (ref B)
+                (app (ref f) (app (fst (ref witness)) (app (ref f) (ref point))))
+                (app (ref f) (ref point)))
+              (app
+                (app
+                  (app
+                    (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                    (app (fst (ref witness)) (app (ref f) (ref point))))
+                  (ref point))
+                (app (fst (snd (ref witness))) (ref point)))
+              (app (fst (snd (snd (ref witness)))) (app (ref f) (ref point)))))))))
+  (lam A (lam B (lam f (lam witness (snd (snd (snd (ref witness)))))))))
+
+(transparent identity_half_adjoint_inverse
+  (pi A
+    (universe 0)
+    (app (app (app (ref half_adjoint_inverse) (ref A)) (ref A)) (lam point (ref point))))
+  (lam A
+    (pair
+      (lam point (ref point))
+      (pair
+        (lam point (refl (ref point)))
+        (pair (lam point (refl (ref point))) (lam point (refl (refl (ref point)))))))))

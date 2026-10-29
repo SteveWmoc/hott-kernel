@@ -108,3 +108,17 @@ Applying `ap_identity` under concatenation replaces the final path with `H(x)`,
 and right cancellation gives the result. This is a derived higher path,
 not an extra coherence axiom. For the identity map and reflexivity homotopy,
 the construction computes to higher reflexivity for any type and base point.
+
+## Half-adjoint inverse data
+
+For a fixed map `f : A → B`, `half_adjoint_inverse A B f` stores an inverse
+`g`, a section `eta : g ∘ f ~ id_A`, a retraction `epsilon : f ∘ g ~ id_B`,
+and triangle coherence `ap f (eta(x)) = epsilon(f(x))` for every `x : A`.
+`half_adjoint_inverse_intro` packages these four fields.
+`half_adjoint_inverse_forget` returns the underlying chosen quasi-inverse
+data, so the existing quasi-inverse projections recover its inverse and
+homotopies. `half_adjoint_inverse_coherence` recovers the triangle witness.
+`identity_half_adjoint_inverse` supplies the identity example.
+These are explicit universe-zero data, not a new kernel rule or a claim that
+ordinary quasi-inverse witnesses already satisfy the triangle law. Conversion
+from arbitrary quasi-inverse data to half-adjoint data is not yet implemented.
