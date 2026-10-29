@@ -2,7 +2,9 @@
 
 use std::collections::BTreeSet;
 
-use crate::{CandidateCounts, EquationCandidate, Term};
+use crate::{
+    CandidateCounts, EquationCandidate, NormalizedEquationCandidate, SemiringNormalForm, Term,
+};
 
 /// Returns the atomic terms for the requested number of free variables.
 #[must_use]
@@ -89,11 +91,60 @@ pub fn equations_mod_variable_renaming(terms: &BTreeSet<Term>) -> BTreeSet<Equat
         .collect()
 }
 
+/// Computes the distinct semiring normal forms represented by a term set.
+#[must_use]
+pub fn semiring_normal_forms(terms: &BTreeSet<Term>) -> BTreeSet<SemiringNormalForm> {
+    terms.iter().map(SemiringNormalForm::from_term).collect()
+}
+
+/// Iterates over all non-reflexive equations between distinct semiring forms.
+pub fn canonical_normalized_equations(
+    normal_forms: &BTreeSet<SemiringNormalForm>,
+) -> impl Iterator<Item = NormalizedEquationCandidate> + '_ {
+    normal_forms
+        .iter()
+        .enumerate()
+        .flat_map(move |(index, lhs)| {
+            normal_forms.iter().skip(index + 1).map(move |rhs| {
+                NormalizedEquationCandidate::new(lhs.clone(), rhs.clone())
+                    .expect("distinct normal forms must form a candidate")
+            })
+        })
+}
+
+/// Materializes normalized equation classes modulo variable renaming.
+#[must_use]
+pub fn normalized_equations_mod_variable_renaming(
+    terms: &BTreeSet<Term>,
+) -> BTreeSet<NormalizedEquationCandidate> {
+    let normal_forms = semiring_normal_forms(terms);
+    canonical_normalized_equations(&normal_forms)
+        .map(|candidate| candidate.canonicalize_variables())
+        .collect()
+}
+
 /// Counts variable-renaming classes for a small bounded term universe.
 #[must_use]
 pub fn count_equations_mod_variable_renaming(variable_count: u32, max_depth: usize) -> usize {
     let terms = terms_up_to_depth(variable_count, max_depth);
     equations_mod_variable_renaming(&terms).len()
+}
+
+/// Counts distinct semiring normal forms represented up to a bounded depth.
+#[must_use]
+pub fn count_semiring_normal_forms(variable_count: u32, max_depth: usize) -> usize {
+    let terms = terms_up_to_depth(variable_count, max_depth);
+    semiring_normal_forms(&terms).len()
+}
+
+/// Counts normalized equation classes modulo variable renaming.
+#[must_use]
+pub fn count_normalized_equations_mod_variable_renaming(
+    variable_count: u32,
+    max_depth: usize,
+) -> usize {
+    let terms = terms_up_to_depth(variable_count, max_depth);
+    normalized_equations_mod_variable_renaming(&terms).len()
 }
 
 /// Counts terms of depth at most max_depth without materializing them.
@@ -147,9 +198,11 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::{
-        atomic_terms, canonical_equations, count_candidate_stages_up_to_depth,
-        count_equations_mod_variable_renaming, count_terms_exact_depth, count_terms_up_to_depth,
-        equations_mod_variable_renaming, terms_by_exact_depth, terms_up_to_depth,
+        atomic_terms, canonical_equations, canonical_normalized_equations,
+        count_candidate_stages_up_to_depth, count_equations_mod_variable_renaming,
+        count_normalized_equations_mod_variable_renaming, count_semiring_normal_forms,
+        count_terms_exact_depth, count_terms_up_to_depth, equations_mod_variable_renaming,
+        semiring_normal_forms, terms_by_exact_depth, terms_up_to_depth,
     };
 
     #[test]
@@ -207,6 +260,34 @@ mod tests {
     #[test]
     fn variable_renaming_collapses_depth_one_candidates() {
         assert_eq!(count_equations_mod_variable_renaming(3, 1), 376);
+    }
+
+    #[test]
+    fn semiring_normalization_collapses_term_universe() {
+        assert_eq!(count_semiring_normal_forms(3, 0), 5);
+        assert_eq!(count_semiring_normal_forms(3, 1), 24);
+        assert_eq!(count_semiring_normal_forms(3, 2), 568);
+    }
+
+    #[test]
+    fn normalized_depth_one_has_expected_equation_count() {
+        let terms = terms_up_to_depth(3, 1);
+        let normal_forms = semiring_normal_forms(&terms);
+
+        assert_eq!(canonical_normalized_equations(&normal_forms).count(), 276);
+    }
+
+    #[test]
+    fn normalization_then_variable_renaming_collapses_depth_one_candidates() {
+        assert_eq!(count_normalized_equations_mod_variable_renaming(3, 1), 65);
+    }
+
+    #[test]
+    fn normalization_then_variable_renaming_collapses_depth_two_candidates() {
+        assert_eq!(
+            count_normalized_equations_mod_variable_renaming(3, 2),
+            27_539
+        );
     }
 
     #[test]
