@@ -20,5 +20,9 @@ pub use generate::{
     normalized_equations_mod_variable_renaming, semiring_normal_forms, terms_by_exact_depth,
     terms_up_to_depth,
 };
+pub use kernel_bridge::{
+    BridgeError, SEMIRING_SURFACE, check_candidate_with_proof, render_equation_type,
+    render_transparent_candidate,
+};
 pub use normal_form::{Monomial, SemiringNormalForm};
 pub use term::Term;

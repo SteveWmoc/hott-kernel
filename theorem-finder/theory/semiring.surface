@@ -1,0 +1,117 @@
+; Experimental noncommutative semiring theory for theorem discovery.
+; All algebraic laws are explicit postulates. This file is untrusted Surface
+; source and acquires no logical status until accepted by the Core checker.
+(surface 0 1)
+(module FinderSemiring)
+
+(postulate A (universe 0))
+(postulate zeroA (ref A))
+(postulate oneA (ref A))
+
+(postulate add
+  (pi x (ref A)
+    (pi y (ref A)
+      (ref A))))
+
+(postulate mul
+  (pi x (ref A)
+    (pi y (ref A)
+      (ref A))))
+
+(postulate add_assoc
+  (pi x (ref A)
+    (pi y (ref A)
+      (pi z (ref A)
+        (id
+          (ref A)
+          (app (app (ref add) (ref x))
+            (app (app (ref add) (ref y)) (ref z)))
+          (app
+            (app (ref add)
+              (app (app (ref add) (ref x)) (ref y)))
+            (ref z)))))))
+
+(postulate add_comm
+  (pi x (ref A)
+    (pi y (ref A)
+      (id
+        (ref A)
+        (app (app (ref add) (ref x)) (ref y))
+        (app (app (ref add) (ref y)) (ref x))))))
+
+(postulate add_zero_right
+  (pi x (ref A)
+    (id
+      (ref A)
+      (ref x)
+      (app (app (ref add) (ref x)) (ref zeroA)))))
+
+(postulate mul_assoc
+  (pi x (ref A)
+    (pi y (ref A)
+      (pi z (ref A)
+        (id
+          (ref A)
+          (app (app (ref mul) (ref x))
+            (app (app (ref mul) (ref y)) (ref z)))
+          (app
+            (app (ref mul)
+              (app (app (ref mul) (ref x)) (ref y)))
+            (ref z)))))))
+
+(postulate mul_one_left
+  (pi x (ref A)
+    (id
+      (ref A)
+      (ref x)
+      (app (app (ref mul) (ref oneA)) (ref x)))))
+
+(postulate mul_one_right
+  (pi x (ref A)
+    (id
+      (ref A)
+      (ref x)
+      (app (app (ref mul) (ref x)) (ref oneA)))))
+
+(postulate left_distrib
+  (pi x (ref A)
+    (pi y (ref A)
+      (pi z (ref A)
+        (id
+          (ref A)
+          (app
+            (app (ref add)
+              (app (app (ref mul) (ref x)) (ref y)))
+            (app (app (ref mul) (ref x)) (ref z)))
+          (app
+            (app (ref mul) (ref x))
+            (app (app (ref add) (ref y)) (ref z))))))))
+
+(postulate right_distrib
+  (pi x (ref A)
+    (pi y (ref A)
+      (pi z (ref A)
+        (id
+          (ref A)
+          (app
+            (app (ref add)
+              (app (app (ref mul) (ref x)) (ref z)))
+            (app (app (ref mul) (ref y)) (ref z)))
+          (app
+            (app (ref mul)
+              (app (app (ref add) (ref x)) (ref y)))
+            (ref z)))))))
+
+(postulate zero_mul
+  (pi x (ref A)
+    (id
+      (ref A)
+      (ref zeroA)
+      (app (app (ref mul) (ref zeroA)) (ref x)))))
+
+(postulate mul_zero
+  (pi x (ref A)
+    (id
+      (ref A)
+      (ref zeroA)
+      (app (app (ref mul) (ref x)) (ref zeroA)))))
