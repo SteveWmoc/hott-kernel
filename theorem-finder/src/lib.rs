@@ -21,8 +21,8 @@ pub use generate::{
     terms_up_to_depth,
 };
 pub use kernel_bridge::{
-    SEMIRING_SURFACE, check_candidate_with_proof, render_equation_type,
-    render_transparent_candidate, semiring_source_with,
+    BridgeError, SEMIRING_SURFACE, check_candidate_with_proof, render_equation_type,
+    render_transparent_candidate,
 };
 pub use normal_form::{Monomial, SemiringNormalForm};
 pub use term::Term;
