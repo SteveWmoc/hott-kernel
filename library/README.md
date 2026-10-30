@@ -122,3 +122,21 @@ homotopies. `half_adjoint_inverse_coherence` recovers the triangle witness.
 These are explicit universe-zero data, not a new kernel rule or a claim that
 ordinary quasi-inverse witnesses already satisfy the triangle law. Conversion
 from arbitrary quasi-inverse data to half-adjoint data is not yet implemented.
+
+## Retraction adjustment toward half-adjoint data
+
+`quasi_inverse_adjoint_retraction A B f witness` constructs a new retraction
+from chosen quasi-inverse data `(g, eta, epsilon)`. Its value at `b : B` is
+
+`epsilon(f(g(b)))⁻¹ · (ap f (eta(g(b))) · epsilon(b))`.
+
+The parentheses are part of the specified formula. The first path runs from
+`f(g(b))` to `f(g(f(g(b))))`, the second returns to `f(g(b))`, and the last
+ends at `b`. This is the retraction adjustment in the
+[HoTT book, Theorem 4.2.3](https://hott.github.io/book/hott-online-76-ga40a78c.pdf).
+`quasi_inverse_adjoint_adjust A B f witness` packages the original inverse map
+and section with this new retraction as chosen quasi-inverse data.
+Generic computation tests pin the complete formula and all three projections;
+the identity quasi-inverse computes to itself. This slice constructs the
+adjusted data only. Its triangle-coherence proof, and hence the conversion to
+`half_adjoint_inverse`, remain to be implemented.

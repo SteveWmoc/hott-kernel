@@ -65,6 +65,8 @@ A homotopy `H : f ~ id` satisfies `ap f (H(x)) = H(f(x))`, derived by
 naturality and cancellation. Half-adjoint inverse data explicitly records
 the triangle law relating the two inverse homotopies, with a constructor,
 coherence projection, forgetful map to quasi-inverse data, and identity example.
+A retraction adjustment for chosen quasi-inverse data prepares the conversion
+to half-adjoint data; the triangle-coherence proof remains to be implemented.
 Chosen quasi-inverse data packages an inverse map and both pointwise homotopy
 laws, with a constructor, projections, and the identity example. This data is
 not asserted to be a proposition or used as a definition of `isEquiv`.

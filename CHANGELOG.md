@@ -7,6 +7,10 @@ are recorded here.
 
 ### Added
 
+- Added the retraction adjustment toward half-adjoint inverse data, preserving
+  the chosen inverse and section, with exact audits and formula, projection,
+  and identity computation tests. Triangle coherence remains a subsequent proof.
+
 - Defined half-adjoint inverse data with its triangle coherence, constructor,
   coherence projection, forgetful map, and identity example, with exact audits
   and generic computation tests.
