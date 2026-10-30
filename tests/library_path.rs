@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 44);
+    assert_eq!(declarations.len(), 46);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -969,6 +969,63 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     );
     assert_eq!(declaration.direct().declarations(), &[39]);
     assert_eq!(declaration.transitive().declarations(), &[8, 19, 39]);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+    let declaration = &declarations[44];
+    assert_eq!(
+        declaration.display_name(),
+        "quasi_inverse_adjoint_retraction"
+    );
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[KernelFeature::Pi, KernelFeature::Universe]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.direct().declarations(),
+        &[0, 2, 8, 19, 23, 25, 26, 27]
+    );
+    assert_eq!(
+        declaration.transitive().declarations(),
+        &[0, 2, 8, 19, 23, 25, 26, 27]
+    );
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[45];
+    assert_eq!(declaration.display_name(), "quasi_inverse_adjoint_adjust");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[KernelFeature::Pi, KernelFeature::Universe]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[23, 24, 25, 26, 44]);
+    assert_eq!(
+        declaration.transitive().declarations(),
+        &[0, 2, 8, 19, 23, 24, 25, 26, 27, 44]
+    );
     for foundation in [declaration.direct(), declaration.transitive()] {
         assert!(foundation.extensions().is_empty());
         assert!(foundation.postulates().is_empty());
@@ -3092,4 +3149,514 @@ fn half_adjoint_constructor_forgetful_map_and_coherence_compute() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("half-adjoint data must preserve its fields and compute on identity data");
+}
+
+#[test]
+fn adjoint_retraction_adjustment_formula_and_projections_compute() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent adjusted_retraction_formula
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (pi b
+            (ref B)
+            (id
+              (id
+                (ref B)
+                (app
+                  (ref f)
+                  (app
+                    (app
+                      (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                      (ref witness))
+                    (ref b)))
+                (ref b))
+              (app
+                (app
+                  (app
+                    (app (app (ref quasi_inverse_adjoint_retraction) (ref A)) (ref B))
+                    (ref f))
+                  (ref witness))
+                (ref b))
+              (app
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (ref path_concat) (ref B))
+                        (app
+                          (ref f)
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (ref b))))
+                      (app
+                        (ref f)
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness))
+                          (app
+                            (ref f)
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (ref b))))))
+                    (ref b))
+                  (app
+                    (app
+                      (app
+                        (app (ref path_inverse) (ref B))
+                        (app
+                          (ref f)
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (app
+                              (ref f)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness))
+                                (ref b))))))
+                      (app
+                        (ref f)
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness))
+                          (ref b))))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_retraction) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (app
+                        (ref f)
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness))
+                          (ref b))))))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (ref path_concat) (ref B))
+                          (app
+                            (ref f)
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (app
+                                (ref f)
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref quasi_inverse_map) (ref A))
+                                        (ref B))
+                                      (ref f))
+                                    (ref witness))
+                                  (ref b))))))
+                        (app
+                          (ref f)
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (ref b))))
+                      (ref b))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (app
+                              (ref f)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness))
+                                (ref b)))))
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness))
+                          (ref b)))
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_section) (ref A)) (ref B))
+                            (ref f))
+                          (ref witness))
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness))
+                          (ref b)))))
+                  (app
+                    (app
+                      (app
+                        (app (app (ref quasi_inverse_retraction) (ref A)) (ref B))
+                        (ref f))
+                      (ref witness))
+                    (ref b))))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (lam b
+            (refl
+              (app
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (ref path_concat) (ref B))
+                        (app
+                          (ref f)
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (ref b))))
+                      (app
+                        (ref f)
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness))
+                          (app
+                            (ref f)
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (ref b))))))
+                    (ref b))
+                  (app
+                    (app
+                      (app
+                        (app (ref path_inverse) (ref B))
+                        (app
+                          (ref f)
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (app
+                              (ref f)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness))
+                                (ref b))))))
+                      (app
+                        (ref f)
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness))
+                          (ref b))))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_retraction) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (app
+                        (ref f)
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness))
+                          (ref b))))))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (ref path_concat) (ref B))
+                          (app
+                            (ref f)
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                  (ref f))
+                                (ref witness))
+                              (app
+                                (ref f)
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref quasi_inverse_map) (ref A))
+                                        (ref B))
+                                      (ref f))
+                                    (ref witness))
+                                  (ref b))))))
+                        (app
+                          (ref f)
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (ref b))))
+                      (ref b))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                          (app
+                            (app
+                              (app
+                                (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                (ref f))
+                              (ref witness))
+                            (app
+                              (ref f)
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                                    (ref f))
+                                  (ref witness))
+                                (ref b)))))
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness))
+                          (ref b)))
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_section) (ref A)) (ref B))
+                            (ref f))
+                          (ref witness))
+                        (app
+                          (app
+                            (app
+                              (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                              (ref f))
+                            (ref witness))
+                          (ref b)))))
+                  (app
+                    (app
+                      (app
+                        (app (app (ref quasi_inverse_retraction) (ref A)) (ref B))
+                        (ref f))
+                      (ref witness))
+                    (ref b)))))))))))
+
+(transparent adjoint_adjust_preserves_map
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (id
+            (pi point (ref B) (ref A))
+            (app
+              (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+              (app
+                (app
+                  (app (app (ref quasi_inverse_adjoint_adjust) (ref A)) (ref B))
+                  (ref f))
+                (ref witness)))
+            (app
+              (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+              (ref witness)))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (refl
+            (app
+              (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+              (ref witness))))))))
+
+(transparent adjoint_adjust_preserves_section
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (id
+            (app
+              (app
+                (app (app (ref homotopy) (ref A)) (lam point (ref A)))
+                (lam point
+                  (app
+                    (app
+                      (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                      (ref witness))
+                    (app (ref f) (ref point)))))
+              (lam point (ref point)))
+            (app
+              (app (app (app (ref quasi_inverse_section) (ref A)) (ref B)) (ref f))
+              (app
+                (app
+                  (app (app (ref quasi_inverse_adjoint_adjust) (ref A)) (ref B))
+                  (ref f))
+                (ref witness)))
+            (app
+              (app (app (app (ref quasi_inverse_section) (ref A)) (ref B)) (ref f))
+              (ref witness)))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (refl
+            (app
+              (app (app (app (ref quasi_inverse_section) (ref A)) (ref B)) (ref f))
+              (ref witness))))))))
+
+(transparent adjoint_adjust_preserves_retraction
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (id
+            (app
+              (app
+                (app (app (ref homotopy) (ref B)) (lam point (ref B)))
+                (lam point
+                  (app
+                    (ref f)
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (ref point)))))
+              (lam point (ref point)))
+            (app
+              (app (app (app (ref quasi_inverse_retraction) (ref A)) (ref B)) (ref f))
+              (app
+                (app
+                  (app (app (ref quasi_inverse_adjoint_adjust) (ref A)) (ref B))
+                  (ref f))
+                (ref witness)))
+            (app
+              (app
+                (app (app (ref quasi_inverse_adjoint_retraction) (ref A)) (ref B))
+                (ref f))
+              (ref witness)))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (refl
+            (app
+              (app
+                (app (app (ref quasi_inverse_adjoint_retraction) (ref A)) (ref B))
+                (ref f))
+              (ref witness))))))))
+
+(transparent adjoint_retraction_identity
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (id
+        (id (ref A) (ref x) (ref x))
+        (app
+          (app
+            (app
+              (app (app (ref quasi_inverse_adjoint_retraction) (ref A)) (ref A))
+              (lam point (ref point)))
+            (app (ref identity_quasi_inverse) (ref A)))
+          (ref x))
+        (refl (ref x)))))
+  (lam A (lam x (refl (refl (ref x))))))
+
+(transparent adjoint_adjust_identity
+  (pi A
+    (universe 0)
+    (id
+      (app (app (app (ref quasi_inverse) (ref A)) (ref A)) (lam point (ref point)))
+      (app
+        (app
+          (app (app (ref quasi_inverse_adjoint_adjust) (ref A)) (ref A))
+          (lam point (ref point)))
+        (app (ref identity_quasi_inverse) (ref A)))
+      (app (ref identity_quasi_inverse) (ref A))))
+  (lam A (refl (app (ref identity_quasi_inverse) (ref A)))))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("adjoint retraction adjustment must preserve fields and compute by its formula");
 }
