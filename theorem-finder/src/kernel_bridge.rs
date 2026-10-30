@@ -266,7 +266,8 @@ mod tests {
     #[test]
     fn rejects_proof_term_declaration_injection() {
         let candidate = EquationCandidate::new(Term::Zero, Term::One).unwrap();
-        let injected_proof = "(ref zeroA))\n(postulate invented (id (ref A) (ref zeroA) (ref oneA)))\n;";
+        let injected_proof =
+            "(ref zeroA))\n(postulate invented (id (ref A) (ref zeroA) (ref oneA)))\n;";
 
         let error = check_candidate_with_proof("candidate", &candidate, injected_proof)
             .expect_err("proof-term declaration injection must be rejected");
