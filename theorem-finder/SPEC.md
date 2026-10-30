@@ -44,6 +44,12 @@ The finder is untrusted. It may rank, discard, mutate, or invent candidates by
 any heuristic method. Successful discoveries must be represented as proof
 objects accepted through the same public checker path as hand-authored input.
 
+The initial semiring bridge emits ordinary Surface v0.1 source for universally
+closed equations and submits the resulting module through
+`compile_and_check_surface`. The experimental semiring signature and axioms are
+themselves explicit Surface postulates. No finder-side normalization, rendering,
+or proof generation is trusted for logical validity.
+
 `hott-kernel` must not depend on this crate.
 
 ## Version-0 milestones
