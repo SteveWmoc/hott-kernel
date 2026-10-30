@@ -12,6 +12,10 @@ pub mod normal_form;
 pub mod term;
 
 pub use candidate::{CandidateCounts, EquationCandidate, NormalizedEquationCandidate};
+pub use kernel_bridge::{
+    SEMIRING_SURFACE, check_candidate_with_proof, render_equation_type,
+    render_transparent_candidate, semiring_source_with,
+};
 pub use generate::{
     atomic_terms, canonical_equations, canonical_normalized_equations,
     count_candidate_stages_up_to_depth, count_equations_mod_variable_renaming,
