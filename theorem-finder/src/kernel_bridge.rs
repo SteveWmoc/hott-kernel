@@ -96,10 +96,7 @@ pub(crate) fn render_axiom_application(
 
     let mut proof = format!("(ref {axiom_name})");
     for argument in arguments {
-        proof = format!(
-            "(app {proof} {})",
-            render_term(argument, &variable_names)
-        );
+        proof = format!("(app {proof} {})", render_term(argument, &variable_names));
     }
 
     for variable in free_variables.iter().rev() {
