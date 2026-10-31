@@ -9,20 +9,24 @@ pub mod candidate;
 pub mod generate;
 pub mod kernel_bridge;
 pub mod normal_form;
+pub mod search;
 pub mod term;
 
 pub use candidate::{CandidateCounts, EquationCandidate, NormalizedEquationCandidate};
 pub use generate::{
     atomic_terms, canonical_equations, canonical_normalized_equations,
     count_candidate_stages_up_to_depth, count_equations_mod_variable_renaming,
-    count_normalized_equations_mod_variable_renaming, count_semiring_normal_forms,
-    count_terms_exact_depth, count_terms_up_to_depth, equations_mod_variable_renaming,
-    normalized_equations_mod_variable_renaming, semiring_normal_forms, terms_by_exact_depth,
-    terms_up_to_depth,
+    count_normalized_equations_mod_variable_renaming, count_semiring_identity_candidates,
+    count_semiring_normal_forms, count_terms_exact_depth, count_terms_up_to_depth,
+    equations_mod_variable_renaming, normalized_equations_mod_variable_renaming,
+    semiring_identity_candidates, semiring_normal_forms, terms_by_exact_depth, terms_up_to_depth,
 };
 pub use kernel_bridge::{
     BridgeError, SEMIRING_SURFACE, check_candidate_with_proof, render_equation_type,
     render_transparent_candidate,
 };
 pub use normal_form::{Monomial, SemiringNormalForm};
+pub use search::{
+    DIRECT_AXIOMS, DirectProof, DirectSearchResult, SemiringAxiom, search_direct_axiom,
+};
 pub use term::Term;
