@@ -43,8 +43,14 @@ impl SemiringAxiom {
 
         match self {
             Self::AddAssoc => (
-                Add(Box::new(Meta(0)), Box::new(Add(Box::new(Meta(1)), Box::new(Meta(2))))),
-                Add(Box::new(Add(Box::new(Meta(0)), Box::new(Meta(1)))), Box::new(Meta(2))),
+                Add(
+                    Box::new(Meta(0)),
+                    Box::new(Add(Box::new(Meta(1)), Box::new(Meta(2)))),
+                ),
+                Add(
+                    Box::new(Add(Box::new(Meta(0)), Box::new(Meta(1)))),
+                    Box::new(Meta(2)),
+                ),
                 3,
             ),
             Self::AddComm => (
@@ -52,26 +58,20 @@ impl SemiringAxiom {
                 Add(Box::new(Meta(1)), Box::new(Meta(0))),
                 2,
             ),
-            Self::AddZeroRight => (
-                Meta(0),
-                Add(Box::new(Meta(0)), Box::new(Zero)),
-                1,
-            ),
+            Self::AddZeroRight => (Meta(0), Add(Box::new(Meta(0)), Box::new(Zero)), 1),
             Self::MulAssoc => (
-                Mul(Box::new(Meta(0)), Box::new(Mul(Box::new(Meta(1)), Box::new(Meta(2))))),
-                Mul(Box::new(Mul(Box::new(Meta(0)), Box::new(Meta(1)))), Box::new(Meta(2))),
+                Mul(
+                    Box::new(Meta(0)),
+                    Box::new(Mul(Box::new(Meta(1)), Box::new(Meta(2)))),
+                ),
+                Mul(
+                    Box::new(Mul(Box::new(Meta(0)), Box::new(Meta(1)))),
+                    Box::new(Meta(2)),
+                ),
                 3,
             ),
-            Self::MulOneLeft => (
-                Meta(0),
-                Mul(Box::new(One), Box::new(Meta(0))),
-                1,
-            ),
-            Self::MulOneRight => (
-                Meta(0),
-                Mul(Box::new(Meta(0)), Box::new(One)),
-                1,
-            ),
+            Self::MulOneLeft => (Meta(0), Mul(Box::new(One), Box::new(Meta(0))), 1),
+            Self::MulOneRight => (Meta(0), Mul(Box::new(Meta(0)), Box::new(One)), 1),
             Self::LeftDistrib => (
                 Add(
                     Box::new(Mul(Box::new(Meta(0)), Box::new(Meta(1)))),
@@ -94,16 +94,8 @@ impl SemiringAxiom {
                 ),
                 3,
             ),
-            Self::ZeroMul => (
-                Zero,
-                Mul(Box::new(Zero), Box::new(Meta(0))),
-                1,
-            ),
-            Self::MulZero => (
-                Zero,
-                Mul(Box::new(Meta(0)), Box::new(Zero)),
-                1,
-            ),
+            Self::ZeroMul => (Zero, Mul(Box::new(Zero), Box::new(Meta(0))), 1),
+            Self::MulZero => (Zero, Mul(Box::new(Meta(0)), Box::new(Zero)), 1),
         }
     }
 
@@ -144,11 +136,7 @@ enum Pattern {
     Mul(Box<Pattern>, Box<Pattern>),
 }
 
-fn match_pattern(
-    pattern: &Pattern,
-    term: &Term,
-    substitution: &mut [Option<Term>],
-) -> bool {
+fn match_pattern(pattern: &Pattern, term: &Term, substitution: &mut [Option<Term>]) -> bool {
     match (pattern, term) {
         (Pattern::Meta(index), term) => match &substitution[*index] {
             Some(existing) => existing == term,
@@ -247,9 +235,7 @@ pub fn search_direct_axiom(
 #[cfg(test)]
 mod tests {
     use super::{DirectSearchResult, SemiringAxiom, search_direct_axiom};
-    use crate::{
-        EquationCandidate, Term, semiring_identity_candidates, terms_up_to_depth,
-    };
+    use crate::{EquationCandidate, Term, semiring_identity_candidates, terms_up_to_depth};
 
     #[test]
     fn proves_direct_additive_identity_instance() {
