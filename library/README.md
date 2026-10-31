@@ -120,8 +120,8 @@ data, so the existing quasi-inverse projections recover its inverse and
 homotopies. `half_adjoint_inverse_coherence` recovers the triangle witness.
 `identity_half_adjoint_inverse` supplies the identity example.
 These are explicit universe-zero data, not a new kernel rule or a claim that
-ordinary quasi-inverse witnesses already satisfy the triangle law. Conversion
-from arbitrary quasi-inverse data to half-adjoint data is not yet implemented.
+ordinary quasi-inverse witnesses already satisfy the triangle law. The
+conversion below adjusts the retraction before constructing the triangle witness.
 
 ## Retraction adjustment toward half-adjoint data
 
@@ -133,10 +133,38 @@ from chosen quasi-inverse data `(g, eta, epsilon)`. Its value at `b : B` is
 The parentheses are part of the specified formula. The first path runs from
 `f(g(b))` to `f(g(f(g(b))))`, the second returns to `f(g(b))`, and the last
 ends at `b`. This is the retraction adjustment in the
-[HoTT book, Theorem 4.2.3](https://hott.github.io/book/hott-online-76-ga40a78c.pdf).
+[HoTT book, Theorem 4.2.3](https://homotopytypetheory.org/book/).
 `quasi_inverse_adjoint_adjust A B f witness` packages the original inverse map
 and section with this new retraction as chosen quasi-inverse data.
 Generic computation tests pin the complete formula and all three projections;
-the identity quasi-inverse computes to itself. This slice constructs the
-adjusted data only. Its triangle-coherence proof, and hence the conversion to
-`half_adjoint_inverse`, remain to be implemented.
+the identity quasi-inverse computes to itself. The triangle proof below equips
+this adjusted data with half-adjoint coherence.
+
+## Adjointification and triangle coherence
+
+`path_concat_inverse_left_assoc A x y z p q` proves
+`p⁻¹ · (p · q) = q`. It uses associativity, the inverse law, and the left-unit
+law; its all-reflexivity instance computes to higher reflexivity.
+
+`quasi_inverse_adjoint_coherence A B f witness a` proves
+`ap f (eta(a)) = epsilon'(f(a))` for the adjusted retraction above.
+Write `u = g ∘ f`, `v = f ∘ g`, and `P = ap f (eta(a))`.
+Function-action composition and `homotopy_to_identity_coherence` give
+`ap v P = ap f (eta(u(a)))`. Naturality of `epsilon` at `P`, followed by
+`ap_identity`, then gives
+
+`ap f (eta(u(a))) · epsilon(f(a)) = epsilon(v(f(a))) · P`.
+
+Prepending the inverse of `epsilon(v(f(a)))` and applying the new
+inverse-concatenation lemma yields the triangle law with the specified
+parentheses. Every step is a derived path in the existing identity types.
+
+`quasi_inverse_to_half_adjoint A B f witness` packages the original inverse
+map and section, the adjusted retraction, and this coherence proof.
+Forgetting the result computes to `quasi_inverse_adjoint_adjust`; its coherence
+projection computes to `quasi_inverse_adjoint_coherence`. On identity data the
+whole conversion computes to `identity_half_adjoint_inverse`, and the triangle
+proof computes to higher reflexivity. Generic checked-Surface regressions pin
+these computations for arbitrary universe-zero types and input witnesses.
+The conversion is not asserted to be an inverse to the forgetful map on all
+chosen data, nor is any proposition-valuedness or function extensionality assumed.

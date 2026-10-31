@@ -7,9 +7,13 @@ are recorded here.
 
 ### Added
 
+- Completed conversion from chosen quasi-inverse to half-adjoint inverse data
+  by proving the adjusted triangle law, with an inverse-concatenation lemma,
+  exact foundation audits, and generic projection and identity computations.
+
 - Added the retraction adjustment toward half-adjoint inverse data, preserving
   the chosen inverse and section, with exact audits and formula, projection,
-  and identity computation tests. Triangle coherence remains a subsequent proof.
+  and identity computation tests.
 
 - Defined half-adjoint inverse data with its triangle coherence, constructor,
   coherence projection, forgetful map, and identity example, with exact audits

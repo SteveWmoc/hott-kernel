@@ -2747,3 +2747,2009 @@
                 (app (app (ref quasi_inverse_adjoint_retraction) (ref A)) (ref B))
                 (ref f))
               (ref witness))))))))
+
+; An inverse prefix cancels a composite, with the displayed association.
+(transparent path_concat_inverse_left_assoc
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (pi y
+        (ref A)
+        (pi z
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (pi q
+              (id (ref A) (ref y) (ref z))
+              (id
+                (id (ref A) (ref y) (ref z))
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref path_concat) (ref A)) (ref y)) (ref x))
+                      (ref z))
+                    (app
+                      (app (app (app (ref path_inverse) (ref A)) (ref x)) (ref y))
+                      (ref p)))
+                  (app
+                    (app
+                      (app
+                        (app (app (app (ref path_concat) (ref A)) (ref x)) (ref y))
+                        (ref z))
+                      (ref p))
+                    (ref q)))
+                (ref q))))))))
+  (lam A
+    (lam x
+      (lam y
+        (lam z
+          (lam p
+            (lam q
+              (app
+                (app
+                  (app
+                    (app
+                      (app
+                        (app (ref path_concat) (id (ref A) (ref y) (ref z)))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (app (ref path_concat) (ref A)) (ref y))
+                                (ref x))
+                              (ref z))
+                            (app
+                              (app
+                                (app (app (ref path_inverse) (ref A)) (ref x))
+                                (ref y))
+                              (ref p)))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref path_concat) (ref A)) (ref x))
+                                  (ref y))
+                                (ref z))
+                              (ref p))
+                            (ref q))))
+                      (app
+                        (app
+                          (app
+                            (app (app (app (ref path_concat) (ref A)) (ref y)) (ref y))
+                            (ref z))
+                          (refl (ref y)))
+                        (ref q)))
+                    (ref q))
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app (ref path_concat) (id (ref A) (ref y) (ref z)))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref path_concat) (ref A)) (ref y))
+                                    (ref x))
+                                  (ref z))
+                                (app
+                                  (app
+                                    (app (app (ref path_inverse) (ref A)) (ref x))
+                                    (ref y))
+                                  (ref p)))
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app (app (ref path_concat) (ref A)) (ref x))
+                                      (ref y))
+                                    (ref z))
+                                  (ref p))
+                                (ref q))))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref path_concat) (ref A)) (ref y))
+                                  (ref y))
+                                (ref z))
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app (app (ref path_concat) (ref A)) (ref y))
+                                      (ref x))
+                                    (ref y))
+                                  (app
+                                    (app
+                                      (app (app (ref path_inverse) (ref A)) (ref x))
+                                      (ref y))
+                                    (ref p)))
+                                (ref p)))
+                            (ref q)))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app (app (ref path_concat) (ref A)) (ref y))
+                                (ref y))
+                              (ref z))
+                            (refl (ref y)))
+                          (ref q)))
+                      (app
+                        (app
+                          (app
+                            (app (ref path_inverse) (id (ref A) (ref y) (ref z)))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref path_concat) (ref A)) (ref y))
+                                    (ref y))
+                                  (ref z))
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (app (ref path_concat) (ref A)) (ref y))
+                                        (ref x))
+                                      (ref y))
+                                    (app
+                                      (app
+                                        (app (app (ref path_inverse) (ref A)) (ref x))
+                                        (ref y))
+                                      (ref p)))
+                                  (ref p)))
+                              (ref q)))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref path_concat) (ref A)) (ref y))
+                                  (ref x))
+                                (ref z))
+                              (app
+                                (app
+                                  (app (app (ref path_inverse) (ref A)) (ref x))
+                                  (ref y))
+                                (ref p)))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref path_concat) (ref A)) (ref x))
+                                    (ref y))
+                                  (ref z))
+                                (ref p))
+                              (ref q))))
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app (app (ref path_concat_assoc) (ref A)) (ref y))
+                                    (ref x))
+                                  (ref y))
+                                (ref z))
+                              (app
+                                (app
+                                  (app (app (ref path_inverse) (ref A)) (ref x))
+                                  (ref y))
+                                (ref p)))
+                            (ref p))
+                          (ref q))))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app (ref ap) (id (ref A) (ref y) (ref y)))
+                              (id (ref A) (ref y) (ref z)))
+                            (lam loop
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app (app (ref path_concat) (ref A)) (ref y))
+                                      (ref y))
+                                    (ref z))
+                                  (ref loop))
+                                (ref q))))
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref path_concat) (ref A)) (ref y))
+                                  (ref x))
+                                (ref y))
+                              (app
+                                (app
+                                  (app (app (ref path_inverse) (ref A)) (ref x))
+                                  (ref y))
+                                (ref p)))
+                            (ref p)))
+                        (refl (ref y)))
+                      (app
+                        (app
+                          (app (app (ref path_concat_inverse_left) (ref A)) (ref x))
+                          (ref y))
+                        (ref p)))))
+                (app
+                  (app (app (app (ref path_concat_left_refl) (ref A)) (ref y)) (ref z))
+                  (ref q))))))))))
+
+; Naturality and section coherence prove the adjusted triangle law.
+; In the annotated local function below, u = g o f and v = f o g.
+; Put P = ap f (eta a), K = epsilon (v (f a)), and Q = ap f (eta (u a)).
+; ap_comp and section coherence give ap v P = Q.
+; Naturality of epsilon at P and ap_identity give Q . epsilon (f a) = K . P.
+; Prepend inverse K, cancel K with path_concat_inverse_left_assoc, then invert.
+; The local g, eta, epsilon arguments are the original witness projections.
+(transparent quasi_inverse_adjoint_coherence
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (pi a
+            (ref A)
+            (id
+              (id
+                (ref B)
+                (app
+                  (ref f)
+                  (app
+                    (app
+                      (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                      (ref witness))
+                    (app (ref f) (ref a))))
+                (app (ref f) (ref a)))
+              (app
+                (app
+                  (app
+                    (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (app (ref f) (ref a))))
+                  (ref a))
+                (app
+                  (app
+                    (app
+                      (app (app (ref quasi_inverse_section) (ref A)) (ref B))
+                      (ref f))
+                    (ref witness))
+                  (ref a)))
+              (app
+                (app
+                  (app
+                    (app (app (ref quasi_inverse_adjoint_retraction) (ref A)) (ref B))
+                    (ref f))
+                  (ref witness))
+                (app (ref f) (ref a)))))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (lam a
+            (app
+              (app
+                (app
+                  (ann
+                    (lam g
+                      (lam eta
+                        (lam epsilon
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (ref path_inverse)
+                                  (id
+                                    (ref B)
+                                    (app (ref f) (app (ref g) (app (ref f) (ref a))))
+                                    (app (ref f) (ref a))))
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (ref path_concat) (ref B))
+                                          (app
+                                            (ref f)
+                                            (app (ref g) (app (ref f) (ref a)))))
+                                        (app
+                                          (ref f)
+                                          (app
+                                            (ref g)
+                                            (app
+                                              (ref f)
+                                              (app (ref g) (app (ref f) (ref a)))))))
+                                      (app (ref f) (ref a)))
+                                    (app
+                                      (app
+                                        (app
+                                          (app (ref path_inverse) (ref B))
+                                          (app
+                                            (ref f)
+                                            (app
+                                              (ref g)
+                                              (app
+                                                (ref f)
+                                                (app (ref g) (app (ref f) (ref a)))))))
+                                        (app
+                                          (ref f)
+                                          (app (ref g) (app (ref f) (ref a)))))
+                                      (app
+                                        (ref epsilon)
+                                        (app
+                                          (ref f)
+                                          (app (ref g) (app (ref f) (ref a)))))))
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app
+                                            (app (ref path_concat) (ref B))
+                                            (app
+                                              (ref f)
+                                              (app
+                                                (ref g)
+                                                (app
+                                                  (ref f)
+                                                  (app (ref g) (app (ref f) (ref a)))))))
+                                          (app
+                                            (ref f)
+                                            (app (ref g) (app (ref f) (ref a)))))
+                                        (app (ref f) (ref a)))
+                                      (app
+                                        (app
+                                          (app
+                                            (app
+                                              (app (app (ref ap) (ref A)) (ref B))
+                                              (ref f))
+                                            (app
+                                              (ref g)
+                                              (app
+                                                (ref f)
+                                                (app (ref g) (app (ref f) (ref a))))))
+                                          (app (ref g) (app (ref f) (ref a))))
+                                        (app
+                                          (ref eta)
+                                          (app (ref g) (app (ref f) (ref a))))))
+                                    (app (ref epsilon) (app (ref f) (ref a))))))
+                              (app
+                                (app
+                                  (app
+                                    (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                                    (app (ref g) (app (ref f) (ref a))))
+                                  (ref a))
+                                (app (ref eta) (ref a))))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (ref path_concat)
+                                        (id
+                                          (ref B)
+                                          (app
+                                            (ref f)
+                                            (app (ref g) (app (ref f) (ref a))))
+                                          (app (ref f) (ref a))))
+                                      (app
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app (ref path_concat) (ref B))
+                                                (app
+                                                  (ref f)
+                                                  (app (ref g) (app (ref f) (ref a)))))
+                                              (app
+                                                (ref f)
+                                                (app
+                                                  (ref g)
+                                                  (app
+                                                    (ref f)
+                                                    (app (ref g) (app (ref f) (ref a)))))))
+                                            (app (ref f) (ref a)))
+                                          (app
+                                            (app
+                                              (app
+                                                (app (ref path_inverse) (ref B))
+                                                (app
+                                                  (ref f)
+                                                  (app
+                                                    (ref g)
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a)))))))
+                                              (app
+                                                (ref f)
+                                                (app (ref g) (app (ref f) (ref a)))))
+                                            (app
+                                              (ref epsilon)
+                                              (app
+                                                (ref f)
+                                                (app (ref g) (app (ref f) (ref a)))))))
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app (ref path_concat) (ref B))
+                                                  (app
+                                                    (ref f)
+                                                    (app
+                                                      (ref g)
+                                                      (app
+                                                        (ref f)
+                                                        (app
+                                                          (ref g)
+                                                          (app (ref f) (ref a)))))))
+                                                (app
+                                                  (ref f)
+                                                  (app (ref g) (app (ref f) (ref a)))))
+                                              (app (ref f) (ref a)))
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app (app (ref ap) (ref A)) (ref B))
+                                                    (ref f))
+                                                  (app
+                                                    (ref g)
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a))))))
+                                                (app (ref g) (app (ref f) (ref a))))
+                                              (app
+                                                (ref eta)
+                                                (app (ref g) (app (ref f) (ref a))))))
+                                          (app (ref epsilon) (app (ref f) (ref a))))))
+                                    (app
+                                      (app
+                                        (app
+                                          (app
+                                            (app
+                                              (app (ref path_concat) (ref B))
+                                              (app
+                                                (ref f)
+                                                (app (ref g) (app (ref f) (ref a)))))
+                                            (app
+                                              (ref f)
+                                              (app
+                                                (ref g)
+                                                (app
+                                                  (ref f)
+                                                  (app (ref g) (app (ref f) (ref a)))))))
+                                          (app (ref f) (ref a)))
+                                        (app
+                                          (app
+                                            (app
+                                              (app (ref path_inverse) (ref B))
+                                              (app
+                                                (ref f)
+                                                (app
+                                                  (ref g)
+                                                  (app
+                                                    (ref f)
+                                                    (app (ref g) (app (ref f) (ref a)))))))
+                                            (app
+                                              (ref f)
+                                              (app (ref g) (app (ref f) (ref a)))))
+                                          (app
+                                            (ref epsilon)
+                                            (app
+                                              (ref f)
+                                              (app (ref g) (app (ref f) (ref a)))))))
+                                      (app
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app (ref path_concat) (ref B))
+                                                (app
+                                                  (ref f)
+                                                  (app
+                                                    (ref g)
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a)))))))
+                                              (app
+                                                (ref f)
+                                                (app (ref g) (app (ref f) (ref a)))))
+                                            (app (ref f) (ref a)))
+                                          (app
+                                            (ref epsilon)
+                                            (app
+                                              (ref f)
+                                              (app (ref g) (app (ref f) (ref a))))))
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app (app (ref ap) (ref A)) (ref B))
+                                                (ref f))
+                                              (app (ref g) (app (ref f) (ref a))))
+                                            (ref a))
+                                          (app (ref eta) (ref a))))))
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (app (ref ap) (ref A)) (ref B))
+                                          (ref f))
+                                        (app (ref g) (app (ref f) (ref a))))
+                                      (ref a))
+                                    (app (ref eta) (ref a))))
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app
+                                            (ref ap)
+                                            (id
+                                              (ref B)
+                                              (app
+                                                (ref f)
+                                                (app
+                                                  (ref g)
+                                                  (app
+                                                    (ref f)
+                                                    (app (ref g) (app (ref f) (ref a))))))
+                                              (app (ref f) (ref a))))
+                                          (id
+                                            (ref B)
+                                            (app
+                                              (ref f)
+                                              (app (ref g) (app (ref f) (ref a))))
+                                            (app (ref f) (ref a))))
+                                        (lam path
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app (ref path_concat) (ref B))
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a)))))
+                                                  (app
+                                                    (ref f)
+                                                    (app
+                                                      (ref g)
+                                                      (app
+                                                        (ref f)
+                                                        (app
+                                                          (ref g)
+                                                          (app (ref f) (ref a)))))))
+                                                (app (ref f) (ref a)))
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app (ref path_inverse) (ref B))
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a)))))))
+                                                  (app
+                                                    (ref f)
+                                                    (app (ref g) (app (ref f) (ref a)))))
+                                                (app
+                                                  (ref epsilon)
+                                                  (app
+                                                    (ref f)
+                                                    (app (ref g) (app (ref f) (ref a)))))))
+                                            (ref path))))
+                                      (app
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app (ref path_concat) (ref B))
+                                                (app
+                                                  (ref f)
+                                                  (app
+                                                    (ref g)
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a)))))))
+                                              (app
+                                                (ref f)
+                                                (app (ref g) (app (ref f) (ref a)))))
+                                            (app (ref f) (ref a)))
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app (app (ref ap) (ref A)) (ref B))
+                                                  (ref f))
+                                                (app
+                                                  (ref g)
+                                                  (app
+                                                    (ref f)
+                                                    (app (ref g) (app (ref f) (ref a))))))
+                                              (app (ref g) (app (ref f) (ref a))))
+                                            (app
+                                              (ref eta)
+                                              (app (ref g) (app (ref f) (ref a))))))
+                                        (app (ref epsilon) (app (ref f) (ref a)))))
+                                    (app
+                                      (app
+                                        (app
+                                          (app
+                                            (app
+                                              (app (ref path_concat) (ref B))
+                                              (app
+                                                (ref f)
+                                                (app
+                                                  (ref g)
+                                                  (app
+                                                    (ref f)
+                                                    (app (ref g) (app (ref f) (ref a)))))))
+                                            (app
+                                              (ref f)
+                                              (app (ref g) (app (ref f) (ref a)))))
+                                          (app (ref f) (ref a)))
+                                        (app
+                                          (ref epsilon)
+                                          (app
+                                            (ref f)
+                                            (app (ref g) (app (ref f) (ref a))))))
+                                      (app
+                                        (app
+                                          (app
+                                            (app
+                                              (app (app (ref ap) (ref A)) (ref B))
+                                              (ref f))
+                                            (app (ref g) (app (ref f) (ref a))))
+                                          (ref a))
+                                        (app (ref eta) (ref a)))))
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app
+                                            (app
+                                              (ref path_concat)
+                                              (id
+                                                (ref B)
+                                                (app
+                                                  (ref f)
+                                                  (app
+                                                    (ref g)
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a))))))
+                                                (app (ref f) (ref a))))
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app (ref path_concat) (ref B))
+                                                      (app
+                                                        (ref f)
+                                                        (app
+                                                          (ref g)
+                                                          (app
+                                                            (ref f)
+                                                            (app
+                                                              (ref g)
+                                                              (app (ref f) (ref a)))))))
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a)))))
+                                                  (app (ref f) (ref a)))
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app (ref ap) (ref A))
+                                                          (ref B))
+                                                        (ref f))
+                                                      (app
+                                                        (ref g)
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a))))))
+                                                    (app (ref g) (app (ref f) (ref a))))
+                                                  (app
+                                                    (ref eta)
+                                                    (app (ref g) (app (ref f) (ref a))))))
+                                              (app (ref epsilon) (app (ref f) (ref a)))))
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app (ref path_concat) (ref B))
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a)))))))
+                                                  (app
+                                                    (ref f)
+                                                    (app (ref g) (app (ref f) (ref a)))))
+                                                (app (ref f) (ref a)))
+                                              (app
+                                                (ref epsilon)
+                                                (app
+                                                  (ref f)
+                                                  (app (ref g) (app (ref f) (ref a))))))
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app (app (ref ap) (ref B)) (ref B))
+                                                    (lam point (ref point)))
+                                                  (app
+                                                    (ref f)
+                                                    (app (ref g) (app (ref f) (ref a)))))
+                                                (app (ref f) (ref a)))
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app (ref ap) (ref A))
+                                                        (ref B))
+                                                      (ref f))
+                                                    (app (ref g) (app (ref f) (ref a))))
+                                                  (ref a))
+                                                (app (ref eta) (ref a))))))
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app (ref path_concat) (ref B))
+                                                  (app
+                                                    (ref f)
+                                                    (app
+                                                      (ref g)
+                                                      (app
+                                                        (ref f)
+                                                        (app
+                                                          (ref g)
+                                                          (app (ref f) (ref a)))))))
+                                                (app
+                                                  (ref f)
+                                                  (app (ref g) (app (ref f) (ref a)))))
+                                              (app (ref f) (ref a)))
+                                            (app
+                                              (ref epsilon)
+                                              (app
+                                                (ref f)
+                                                (app (ref g) (app (ref f) (ref a))))))
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app (app (ref ap) (ref A)) (ref B))
+                                                  (ref f))
+                                                (app (ref g) (app (ref f) (ref a))))
+                                              (ref a))
+                                            (app (ref eta) (ref a)))))
+                                      (app
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (ref path_concat)
+                                                  (id
+                                                    (ref B)
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a))))))
+                                                    (app (ref f) (ref a))))
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (ref path_concat)
+                                                            (ref B))
+                                                          (app
+                                                            (ref f)
+                                                            (app
+                                                              (ref g)
+                                                              (app
+                                                                (ref f)
+                                                                (app
+                                                                  (ref g)
+                                                                  (app (ref f) (ref a)))))))
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a)))))
+                                                      (app (ref f) (ref a)))
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app (ref ap) (ref A))
+                                                              (ref B))
+                                                            (ref f))
+                                                          (app
+                                                            (ref g)
+                                                            (app
+                                                              (ref f)
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a))))))
+                                                        (app
+                                                          (ref g)
+                                                          (app (ref f) (ref a))))
+                                                      (app
+                                                        (ref eta)
+                                                        (app
+                                                          (ref g)
+                                                          (app (ref f) (ref a))))))
+                                                  (app
+                                                    (ref epsilon)
+                                                    (app (ref f) (ref a)))))
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app (ref path_concat) (ref B))
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app
+                                                              (ref f)
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a)))))))
+                                                      (app
+                                                        (ref f)
+                                                        (app
+                                                          (ref g)
+                                                          (app (ref f) (ref a)))))
+                                                    (app (ref f) (ref a)))
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app (ref ap) (ref B))
+                                                            (ref B))
+                                                          (lam point
+                                                            (app
+                                                              (ref f)
+                                                              (app (ref g) (ref point)))))
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a)))))
+                                                      (app (ref f) (ref a)))
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app (ref ap) (ref A))
+                                                              (ref B))
+                                                            (ref f))
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a))))
+                                                        (ref a))
+                                                      (app (ref eta) (ref a)))))
+                                                (app
+                                                  (ref epsilon)
+                                                  (app (ref f) (ref a)))))
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app (ref path_concat) (ref B))
+                                                      (app
+                                                        (ref f)
+                                                        (app
+                                                          (ref g)
+                                                          (app
+                                                            (ref f)
+                                                            (app
+                                                              (ref g)
+                                                              (app (ref f) (ref a)))))))
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a)))))
+                                                  (app (ref f) (ref a)))
+                                                (app
+                                                  (ref epsilon)
+                                                  (app
+                                                    (ref f)
+                                                    (app (ref g) (app (ref f) (ref a))))))
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app (ref ap) (ref B))
+                                                        (ref B))
+                                                      (lam point (ref point)))
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a)))))
+                                                  (app (ref f) (ref a)))
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app (ref ap) (ref A))
+                                                          (ref B))
+                                                        (ref f))
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a))))
+                                                    (ref a))
+                                                  (app (ref eta) (ref a))))))
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (ref path_inverse)
+                                                  (id
+                                                    (ref B)
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a))))))
+                                                    (app (ref f) (ref a))))
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (ref path_concat)
+                                                            (ref B))
+                                                          (app
+                                                            (ref f)
+                                                            (app
+                                                              (ref g)
+                                                              (app
+                                                                (ref f)
+                                                                (app
+                                                                  (ref g)
+                                                                  (app (ref f) (ref a)))))))
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a)))))
+                                                      (app (ref f) (ref a)))
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app (ref ap) (ref B))
+                                                              (ref B))
+                                                            (lam point
+                                                              (app
+                                                                (ref f)
+                                                                (app
+                                                                  (ref g)
+                                                                  (ref point)))))
+                                                          (app
+                                                            (ref f)
+                                                            (app
+                                                              (ref g)
+                                                              (app (ref f) (ref a)))))
+                                                        (app (ref f) (ref a)))
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app (ref ap) (ref A))
+                                                                (ref B))
+                                                              (ref f))
+                                                            (app
+                                                              (ref g)
+                                                              (app (ref f) (ref a))))
+                                                          (ref a))
+                                                        (app (ref eta) (ref a)))))
+                                                  (app
+                                                    (ref epsilon)
+                                                    (app (ref f) (ref a)))))
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app (ref path_concat) (ref B))
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app
+                                                              (ref f)
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a)))))))
+                                                      (app
+                                                        (ref f)
+                                                        (app
+                                                          (ref g)
+                                                          (app (ref f) (ref a)))))
+                                                    (app (ref f) (ref a)))
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app (ref ap) (ref A))
+                                                            (ref B))
+                                                          (ref f))
+                                                        (app
+                                                          (ref g)
+                                                          (app
+                                                            (ref f)
+                                                            (app
+                                                              (ref g)
+                                                              (app (ref f) (ref a))))))
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a))))
+                                                    (app
+                                                      (ref eta)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a))))))
+                                                (app
+                                                  (ref epsilon)
+                                                  (app (ref f) (ref a)))))
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (ref ap)
+                                                        (id
+                                                          (ref B)
+                                                          (app
+                                                            (ref f)
+                                                            (app
+                                                              (ref g)
+                                                              (app
+                                                                (ref f)
+                                                                (app
+                                                                  (ref g)
+                                                                  (app (ref f) (ref a))))))
+                                                          (app
+                                                            (ref f)
+                                                            (app
+                                                              (ref g)
+                                                              (app (ref f) (ref a))))))
+                                                      (id
+                                                        (ref B)
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app
+                                                              (ref f)
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a))))))
+                                                        (app (ref f) (ref a))))
+                                                    (lam path
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (ref path_concat)
+                                                                  (ref B))
+                                                                (app
+                                                                  (ref f)
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (app
+                                                                        (ref g)
+                                                                        (app
+                                                                          (ref f)
+                                                                          (ref a)))))))
+                                                              (app
+                                                                (ref f)
+                                                                (app
+                                                                  (ref g)
+                                                                  (app (ref f) (ref a)))))
+                                                            (app (ref f) (ref a)))
+                                                          (ref path))
+                                                        (app
+                                                          (ref epsilon)
+                                                          (app (ref f) (ref a))))))
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app (ref ap) (ref B))
+                                                            (ref B))
+                                                          (lam point
+                                                            (app
+                                                              (ref f)
+                                                              (app (ref g) (ref point)))))
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a)))))
+                                                      (app (ref f) (ref a)))
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app (ref ap) (ref A))
+                                                              (ref B))
+                                                            (ref f))
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a))))
+                                                        (ref a))
+                                                      (app (ref eta) (ref a)))))
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app (ref ap) (ref A))
+                                                          (ref B))
+                                                        (ref f))
+                                                      (app
+                                                        (ref g)
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a))))))
+                                                    (app (ref g) (app (ref f) (ref a))))
+                                                  (app
+                                                    (ref eta)
+                                                    (app (ref g) (app (ref f) (ref a))))))
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (ref path_concat)
+                                                          (id
+                                                            (ref B)
+                                                            (app
+                                                              (ref f)
+                                                              (app
+                                                                (ref g)
+                                                                (app
+                                                                  (ref f)
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (ref a))))))
+                                                            (app
+                                                              (ref f)
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a))))))
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app (ref ap) (ref B))
+                                                                  (ref B))
+                                                                (lam point
+                                                                  (app
+                                                                    (ref f)
+                                                                    (app
+                                                                      (ref g)
+                                                                      (ref point)))))
+                                                              (app
+                                                                (ref f)
+                                                                (app
+                                                                  (ref g)
+                                                                  (app (ref f) (ref a)))))
+                                                            (app (ref f) (ref a)))
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app
+                                                                    (app
+                                                                      (ref ap)
+                                                                      (ref A))
+                                                                    (ref B))
+                                                                  (ref f))
+                                                                (app
+                                                                  (ref g)
+                                                                  (app (ref f) (ref a))))
+                                                              (ref a))
+                                                            (app (ref eta) (ref a)))))
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app (ref ap) (ref A))
+                                                                (ref B))
+                                                              (ref f))
+                                                            (app
+                                                              (ref g)
+                                                              (app
+                                                                (ref f)
+                                                                (app
+                                                                  (ref g)
+                                                                  (app (ref f) (ref a))))))
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a))))
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app (ref ap) (ref A))
+                                                                  (ref A))
+                                                                (lam point
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (ref point)))))
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a))))
+                                                            (ref a))
+                                                          (app (ref eta) (ref a)))))
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app (ref ap) (ref A))
+                                                              (ref B))
+                                                            (ref f))
+                                                          (app
+                                                            (ref g)
+                                                            (app
+                                                              (ref f)
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a))))))
+                                                        (app
+                                                          (ref g)
+                                                          (app (ref f) (ref a))))
+                                                      (app
+                                                        (ref eta)
+                                                        (app
+                                                          (ref g)
+                                                          (app (ref f) (ref a))))))
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (ref path_concat)
+                                                              (id
+                                                                (ref B)
+                                                                (app
+                                                                  (ref f)
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (app
+                                                                        (ref g)
+                                                                        (app
+                                                                          (ref f)
+                                                                          (ref a))))))
+                                                                (app
+                                                                  (ref f)
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (ref a))))))
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app
+                                                                    (app
+                                                                      (app
+                                                                        (ref ap)
+                                                                        (ref B))
+                                                                      (ref B))
+                                                                    (lam point
+                                                                      (app
+                                                                        (ref f)
+                                                                        (app
+                                                                          (ref g)
+                                                                          (ref point)))))
+                                                                  (app
+                                                                    (ref f)
+                                                                    (app
+                                                                      (ref g)
+                                                                      (app
+                                                                        (ref f)
+                                                                        (ref a)))))
+                                                                (app (ref f) (ref a)))
+                                                              (app
+                                                                (app
+                                                                  (app
+                                                                    (app
+                                                                      (app
+                                                                        (app
+                                                                          (ref ap)
+                                                                          (ref A))
+                                                                        (ref B))
+                                                                      (ref f))
+                                                                    (app
+                                                                      (ref g)
+                                                                      (app
+                                                                        (ref f)
+                                                                        (ref a))))
+                                                                  (ref a))
+                                                                (app (ref eta) (ref a)))))
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app
+                                                                    (app
+                                                                      (ref ap)
+                                                                      (ref A))
+                                                                    (ref B))
+                                                                  (lam point
+                                                                    (app
+                                                                      (ref f)
+                                                                      (app
+                                                                        (ref g)
+                                                                        (app
+                                                                          (ref f)
+                                                                          (ref point))))))
+                                                                (app
+                                                                  (ref g)
+                                                                  (app (ref f) (ref a))))
+                                                              (ref a))
+                                                            (app (ref eta) (ref a))))
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app (ref ap) (ref A))
+                                                                  (ref B))
+                                                                (ref f))
+                                                              (app
+                                                                (ref g)
+                                                                (app
+                                                                  (ref f)
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (ref a))))))
+                                                            (app
+                                                              (ref g)
+                                                              (app (ref f) (ref a))))
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app
+                                                                    (app
+                                                                      (ref ap)
+                                                                      (ref A))
+                                                                    (ref A))
+                                                                  (lam point
+                                                                    (app
+                                                                      (ref g)
+                                                                      (app
+                                                                        (ref f)
+                                                                        (ref point)))))
+                                                                (app
+                                                                  (ref g)
+                                                                  (app (ref f) (ref a))))
+                                                              (ref a))
+                                                            (app (ref eta) (ref a)))))
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (ref path_inverse)
+                                                              (id
+                                                                (ref B)
+                                                                (app
+                                                                  (ref f)
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (app
+                                                                        (ref g)
+                                                                        (app
+                                                                          (ref f)
+                                                                          (ref a))))))
+                                                                (app
+                                                                  (ref f)
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (ref a))))))
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app
+                                                                    (app
+                                                                      (app
+                                                                        (ref ap)
+                                                                        (ref A))
+                                                                      (ref B))
+                                                                    (lam point
+                                                                      (app
+                                                                        (ref f)
+                                                                        (app
+                                                                          (ref g)
+                                                                          (app
+                                                                            (ref f)
+                                                                            (ref point))))))
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (ref a))))
+                                                                (ref a))
+                                                              (app (ref eta) (ref a))))
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app
+                                                                    (app
+                                                                      (ref ap)
+                                                                      (ref B))
+                                                                    (ref B))
+                                                                  (lam point
+                                                                    (app
+                                                                      (ref f)
+                                                                      (app
+                                                                        (ref g)
+                                                                        (ref point)))))
+                                                                (app
+                                                                  (ref f)
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (ref a)))))
+                                                              (app (ref f) (ref a)))
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app
+                                                                    (app
+                                                                      (app
+                                                                        (ref ap)
+                                                                        (ref A))
+                                                                      (ref B))
+                                                                    (ref f))
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (ref a))))
+                                                                (ref a))
+                                                              (app (ref eta) (ref a)))))
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app
+                                                                    (app
+                                                                      (app
+                                                                        (ref ap_comp)
+                                                                        (ref A))
+                                                                      (ref B))
+                                                                    (ref B))
+                                                                  (ref f))
+                                                                (lam point
+                                                                  (app
+                                                                    (ref f)
+                                                                    (app
+                                                                      (ref g)
+                                                                      (ref point)))))
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a))))
+                                                            (ref a))
+                                                          (app (ref eta) (ref a)))))
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app
+                                                                    (ref ap_comp)
+                                                                    (ref A))
+                                                                  (ref A))
+                                                                (ref B))
+                                                              (lam point
+                                                                (app
+                                                                  (ref g)
+                                                                  (app
+                                                                    (ref f)
+                                                                    (ref point)))))
+                                                            (ref f))
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref a))))
+                                                        (ref a))
+                                                      (app (ref eta) (ref a)))))
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (ref ap)
+                                                            (id
+                                                              (ref A)
+                                                              (app
+                                                                (ref g)
+                                                                (app
+                                                                  (ref f)
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (ref a)))))
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a)))))
+                                                          (id
+                                                            (ref B)
+                                                            (app
+                                                              (ref f)
+                                                              (app
+                                                                (ref g)
+                                                                (app
+                                                                  (ref f)
+                                                                  (app
+                                                                    (ref g)
+                                                                    (app
+                                                                      (ref f)
+                                                                      (ref a))))))
+                                                            (app
+                                                              (ref f)
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a))))))
+                                                        (lam path
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app
+                                                                  (app
+                                                                    (app
+                                                                      (ref ap)
+                                                                      (ref A))
+                                                                    (ref B))
+                                                                  (ref f))
+                                                                (app
+                                                                  (ref g)
+                                                                  (app
+                                                                    (ref f)
+                                                                    (app
+                                                                      (ref g)
+                                                                      (app
+                                                                        (ref f)
+                                                                        (ref a))))))
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a))))
+                                                            (ref path))))
+                                                      (app
+                                                        (app
+                                                          (app
+                                                            (app
+                                                              (app
+                                                                (app (ref ap) (ref A))
+                                                                (ref A))
+                                                              (lam point
+                                                                (app
+                                                                  (ref g)
+                                                                  (app
+                                                                    (ref f)
+                                                                    (ref point)))))
+                                                            (app
+                                                              (ref g)
+                                                              (app (ref f) (ref a))))
+                                                          (ref a))
+                                                        (app (ref eta) (ref a))))
+                                                    (app
+                                                      (ref eta)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a)))))
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (ref
+                                                            homotopy_to_identity_coherence)
+                                                          (ref A))
+                                                        (lam point
+                                                          (app
+                                                            (ref g)
+                                                            (app (ref f) (ref point)))))
+                                                      (ref eta))
+                                                    (ref a)))))))
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (ref homotopy_naturality)
+                                                        (ref B))
+                                                      (ref B))
+                                                    (lam point
+                                                      (app
+                                                        (ref f)
+                                                        (app (ref g) (ref point)))))
+                                                  (lam point (ref point)))
+                                                (ref epsilon))
+                                              (app
+                                                (ref f)
+                                                (app (ref g) (app (ref f) (ref a)))))
+                                            (app (ref f) (ref a)))
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app (app (ref ap) (ref A)) (ref B))
+                                                  (ref f))
+                                                (app (ref g) (app (ref f) (ref a))))
+                                              (ref a))
+                                            (app (ref eta) (ref a))))))
+                                    (app
+                                      (app
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (ref ap)
+                                                (id
+                                                  (ref B)
+                                                  (app
+                                                    (ref f)
+                                                    (app (ref g) (app (ref f) (ref a))))
+                                                  (app (ref f) (ref a))))
+                                              (id
+                                                (ref B)
+                                                (app
+                                                  (ref f)
+                                                  (app
+                                                    (ref g)
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a))))))
+                                                (app (ref f) (ref a))))
+                                            (lam path
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app (ref path_concat) (ref B))
+                                                        (app
+                                                          (ref f)
+                                                          (app
+                                                            (ref g)
+                                                            (app
+                                                              (ref f)
+                                                              (app
+                                                                (ref g)
+                                                                (app (ref f) (ref a)))))))
+                                                      (app
+                                                        (ref f)
+                                                        (app
+                                                          (ref g)
+                                                          (app (ref f) (ref a)))))
+                                                    (app (ref f) (ref a)))
+                                                  (app
+                                                    (ref epsilon)
+                                                    (app
+                                                      (ref f)
+                                                      (app
+                                                        (ref g)
+                                                        (app (ref f) (ref a))))))
+                                                (ref path))))
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app (app (ref ap) (ref B)) (ref B))
+                                                  (lam point (ref point)))
+                                                (app
+                                                  (ref f)
+                                                  (app (ref g) (app (ref f) (ref a)))))
+                                              (app (ref f) (ref a)))
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app (app (ref ap) (ref A)) (ref B))
+                                                    (ref f))
+                                                  (app (ref g) (app (ref f) (ref a))))
+                                                (ref a))
+                                              (app (ref eta) (ref a)))))
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app (app (ref ap) (ref A)) (ref B))
+                                                (ref f))
+                                              (app (ref g) (app (ref f) (ref a))))
+                                            (ref a))
+                                          (app (ref eta) (ref a))))
+                                      (app
+                                        (app
+                                          (app
+                                            (app (ref ap_identity) (ref B))
+                                            (app
+                                              (ref f)
+                                              (app (ref g) (app (ref f) (ref a)))))
+                                          (app (ref f) (ref a)))
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app (app (ref ap) (ref A)) (ref B))
+                                                (ref f))
+                                              (app (ref g) (app (ref f) (ref a))))
+                                            (ref a))
+                                          (app (ref eta) (ref a))))))))
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (ref path_concat_inverse_left_assoc)
+                                          (ref B))
+                                        (app
+                                          (ref f)
+                                          (app
+                                            (ref g)
+                                            (app
+                                              (ref f)
+                                              (app (ref g) (app (ref f) (ref a)))))))
+                                      (app (ref f) (app (ref g) (app (ref f) (ref a)))))
+                                    (app (ref f) (ref a)))
+                                  (app
+                                    (ref epsilon)
+                                    (app (ref f) (app (ref g) (app (ref f) (ref a))))))
+                                (app
+                                  (app
+                                    (app
+                                      (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                                      (app (ref g) (app (ref f) (ref a))))
+                                    (ref a))
+                                  (app (ref eta) (ref a)))))))))
+                    (pi g
+                      (pi point (ref B) (ref A))
+                      (pi eta
+                        (app
+                          (app
+                            (app (app (ref homotopy) (ref A)) (lam point (ref A)))
+                            (lam point (app (ref g) (app (ref f) (ref point)))))
+                          (lam point (ref point)))
+                        (pi epsilon
+                          (app
+                            (app
+                              (app (app (ref homotopy) (ref B)) (lam point (ref B)))
+                              (lam point (app (ref f) (app (ref g) (ref point)))))
+                            (lam point (ref point)))
+                          (id
+                            (id
+                              (ref B)
+                              (app (ref f) (app (ref g) (app (ref f) (ref a))))
+                              (app (ref f) (ref a)))
+                            (app
+                              (app
+                                (app
+                                  (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                                  (app (ref g) (app (ref f) (ref a))))
+                                (ref a))
+                              (app (ref eta) (ref a)))
+                            (app
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app (ref path_concat) (ref B))
+                                      (app (ref f) (app (ref g) (app (ref f) (ref a)))))
+                                    (app
+                                      (ref f)
+                                      (app
+                                        (ref g)
+                                        (app
+                                          (ref f)
+                                          (app (ref g) (app (ref f) (ref a)))))))
+                                  (app (ref f) (ref a)))
+                                (app
+                                  (app
+                                    (app
+                                      (app (ref path_inverse) (ref B))
+                                      (app
+                                        (ref f)
+                                        (app
+                                          (ref g)
+                                          (app
+                                            (ref f)
+                                            (app (ref g) (app (ref f) (ref a)))))))
+                                    (app (ref f) (app (ref g) (app (ref f) (ref a)))))
+                                  (app
+                                    (ref epsilon)
+                                    (app (ref f) (app (ref g) (app (ref f) (ref a)))))))
+                              (app
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app (ref path_concat) (ref B))
+                                        (app
+                                          (ref f)
+                                          (app
+                                            (ref g)
+                                            (app
+                                              (ref f)
+                                              (app (ref g) (app (ref f) (ref a)))))))
+                                      (app (ref f) (app (ref g) (app (ref f) (ref a)))))
+                                    (app (ref f) (ref a)))
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (app (ref ap) (ref A)) (ref B))
+                                          (ref f))
+                                        (app
+                                          (ref g)
+                                          (app
+                                            (ref f)
+                                            (app (ref g) (app (ref f) (ref a))))))
+                                      (app (ref g) (app (ref f) (ref a))))
+                                    (app (ref eta) (app (ref g) (app (ref f) (ref a))))))
+                                (app (ref epsilon) (app (ref f) (ref a))))))))))
+                  (app
+                    (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                    (ref witness)))
+                (app
+                  (app (app (app (ref quasi_inverse_section) (ref A)) (ref B)) (ref f))
+                  (ref witness)))
+              (app
+                (app (app (app (ref quasi_inverse_retraction) (ref A)) (ref B)) (ref f))
+                (ref witness)))))))))
+
+(transparent quasi_inverse_to_half_adjoint
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (app (app (app (ref half_adjoint_inverse) (ref A)) (ref B)) (ref f))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (app
+            (app
+              (app
+                (app
+                  (app
+                    (app (app (ref half_adjoint_inverse_intro) (ref A)) (ref B))
+                    (ref f))
+                  (app
+                    (app (app (app (ref quasi_inverse_map) (ref A)) (ref B)) (ref f))
+                    (ref witness)))
+                (app
+                  (app (app (app (ref quasi_inverse_section) (ref A)) (ref B)) (ref f))
+                  (ref witness)))
+              (app
+                (app
+                  (app (app (ref quasi_inverse_adjoint_retraction) (ref A)) (ref B))
+                  (ref f))
+                (ref witness)))
+            (app
+              (app
+                (app (app (ref quasi_inverse_adjoint_coherence) (ref A)) (ref B))
+                (ref f))
+              (ref witness))))))))

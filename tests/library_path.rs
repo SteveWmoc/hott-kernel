@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 46);
+    assert_eq!(declarations.len(), 49);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -1025,6 +1025,103 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     assert_eq!(
         declaration.transitive().declarations(),
         &[0, 2, 8, 19, 23, 24, 25, 26, 27, 44]
+    );
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+    let declaration = &declarations[46];
+    assert_eq!(declaration.display_name(), "path_concat_inverse_left_assoc");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(declaration.direct().declarations(), &[0, 2, 4, 5, 8, 14]);
+    assert_eq!(
+        declaration.transitive().declarations(),
+        &[0, 2, 4, 5, 8, 14]
+    );
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[47];
+    assert_eq!(
+        declaration.display_name(),
+        "quasi_inverse_adjoint_coherence"
+    );
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.direct().declarations(),
+        &[0, 2, 8, 19, 23, 25, 26, 27, 33, 34, 35, 38, 44, 46]
+    );
+    assert_eq!(
+        declaration.transitive().declarations(),
+        &[
+            0, 2, 4, 5, 8, 14, 19, 23, 25, 26, 27, 33, 34, 35, 37, 38, 44, 46
+        ]
+    );
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[48];
+    assert_eq!(declaration.display_name(), "quasi_inverse_to_half_adjoint");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    assert_eq!(
+        declaration.direct().kernel_features(),
+        &[KernelFeature::Pi, KernelFeature::Universe]
+    );
+    assert_eq!(
+        declaration.transitive().kernel_features(),
+        &[
+            KernelFeature::Identity,
+            KernelFeature::Pi,
+            KernelFeature::Sigma,
+            KernelFeature::Universe
+        ]
+    );
+    assert_eq!(
+        declaration.direct().declarations(),
+        &[23, 25, 26, 39, 40, 44, 47]
+    );
+    assert_eq!(
+        declaration.transitive().declarations(),
+        &[
+            0, 2, 4, 5, 8, 14, 19, 23, 25, 26, 27, 33, 34, 35, 37, 38, 39, 40, 44, 46, 47
+        ]
     );
     for foundation in [declaration.direct(), declaration.transitive()] {
         assert!(foundation.extensions().is_empty());
@@ -3659,4 +3756,177 @@ fn adjoint_retraction_adjustment_formula_and_projections_compute() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("adjoint retraction adjustment must preserve fields and compute by its formula");
+}
+
+#[test]
+fn adjointification_forgetful_map_coherence_and_identity_compute() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent adjoint_conversion_forgets_to_adjustment
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (id
+            (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+            (app
+              (app
+                (app (app (ref half_adjoint_inverse_forget) (ref A)) (ref B))
+                (ref f))
+              (app
+                (app
+                  (app (app (ref quasi_inverse_to_half_adjoint) (ref A)) (ref B))
+                  (ref f))
+                (ref witness)))
+            (app
+              (app
+                (app (app (ref quasi_inverse_adjoint_adjust) (ref A)) (ref B))
+                (ref f))
+              (ref witness)))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (refl
+            (app
+              (app
+                (app (app (ref quasi_inverse_adjoint_adjust) (ref A)) (ref B))
+                (ref f))
+              (ref witness))))))))
+
+(transparent adjoint_conversion_projects_supplied_coherence
+  (pi A
+    (universe 0)
+    (pi B
+      (universe 0)
+      (pi f
+        (pi point (ref A) (ref B))
+        (pi witness
+          (app (app (app (ref quasi_inverse) (ref A)) (ref B)) (ref f))
+          (id
+            (pi a
+              (ref A)
+              (id
+                (id
+                  (ref B)
+                  (app
+                    (ref f)
+                    (app
+                      (app
+                        (app
+                          (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                          (ref f))
+                        (ref witness))
+                      (app (ref f) (ref a))))
+                  (app (ref f) (ref a)))
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref ap) (ref A)) (ref B)) (ref f))
+                      (app
+                        (app
+                          (app
+                            (app (app (ref quasi_inverse_map) (ref A)) (ref B))
+                            (ref f))
+                          (ref witness))
+                        (app (ref f) (ref a))))
+                    (ref a))
+                  (app
+                    (app
+                      (app
+                        (app (app (ref quasi_inverse_section) (ref A)) (ref B))
+                        (ref f))
+                      (ref witness))
+                    (ref a)))
+                (app
+                  (app
+                    (app
+                      (app (app (ref quasi_inverse_adjoint_retraction) (ref A)) (ref B))
+                      (ref f))
+                    (ref witness))
+                  (app (ref f) (ref a)))))
+            (app
+              (app
+                (app (app (ref half_adjoint_inverse_coherence) (ref A)) (ref B))
+                (ref f))
+              (app
+                (app
+                  (app (app (ref quasi_inverse_to_half_adjoint) (ref A)) (ref B))
+                  (ref f))
+                (ref witness)))
+            (app
+              (app
+                (app (app (ref quasi_inverse_adjoint_coherence) (ref A)) (ref B))
+                (ref f))
+              (ref witness)))))))
+  (lam A
+    (lam B
+      (lam f
+        (lam witness
+          (refl
+            (app
+              (app
+                (app (app (ref quasi_inverse_adjoint_coherence) (ref A)) (ref B))
+                (ref f))
+              (ref witness))))))))
+
+(transparent adjoint_conversion_identity
+  (pi A
+    (universe 0)
+    (id
+      (app
+        (app (app (ref half_adjoint_inverse) (ref A)) (ref A))
+        (lam point (ref point)))
+      (app
+        (app
+          (app (app (ref quasi_inverse_to_half_adjoint) (ref A)) (ref A))
+          (lam point (ref point)))
+        (app (ref identity_quasi_inverse) (ref A)))
+      (app (ref identity_half_adjoint_inverse) (ref A))))
+  (lam A (refl (app (ref identity_half_adjoint_inverse) (ref A)))))
+
+(transparent adjoint_triangle_identity
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (id
+        (id (id (ref A) (ref x) (ref x)) (refl (ref x)) (refl (ref x)))
+        (app
+          (app
+            (app
+              (app (app (ref quasi_inverse_adjoint_coherence) (ref A)) (ref A))
+              (lam point (ref point)))
+            (app (ref identity_quasi_inverse) (ref A)))
+          (ref x))
+        (refl (refl (ref x))))))
+  (lam A (lam x (refl (refl (refl (ref x)))))))
+
+(transparent inverse_concat_assoc_reflexivity
+  (pi A
+    (universe 0)
+    (pi x
+      (ref A)
+      (id
+        (id (id (ref A) (ref x) (ref x)) (refl (ref x)) (refl (ref x)))
+        (app
+          (app
+            (app
+              (app
+                (app (app (ref path_concat_inverse_left_assoc) (ref A)) (ref x))
+                (ref x))
+              (ref x))
+            (refl (ref x)))
+          (refl (ref x)))
+        (refl (refl (ref x))))))
+  (lam A (lam x (refl (refl (refl (ref x)))))))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("adjointification must preserve its specified fields and compute on identity data");
 }
