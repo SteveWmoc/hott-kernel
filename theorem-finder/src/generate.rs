@@ -139,7 +139,11 @@ pub fn semiring_normal_forms(terms: &BTreeSet<Term>) -> BTreeSet<SemiringNormalF
     terms.iter().map(SemiringNormalForm::from_term).collect()
 }
 
-/// Iterates over all non-reflexive equations between distinct semiring forms.
+/// Iterates over equations between distinct semiring normal forms.
+///
+/// These are counterexample classes for semiring theoremhood, not theorem
+/// candidates: distinct free-semiring normal forms cannot be equated from the
+/// semiring axioms.
 pub fn canonical_normalized_equations(
     normal_forms: &BTreeSet<SemiringNormalForm>,
 ) -> impl Iterator<Item = NormalizedEquationCandidate> + '_ {
@@ -154,7 +158,10 @@ pub fn canonical_normalized_equations(
         })
 }
 
-/// Materializes normalized equation classes modulo variable renaming.
+/// Materializes inequivalent-normal-form classes modulo variable renaming.
+///
+/// These classes are useful as negative examples because their sides are not
+/// equal in the free noncommutative semiring.
 #[must_use]
 pub fn normalized_equations_mod_variable_renaming(
     terms: &BTreeSet<Term>,
