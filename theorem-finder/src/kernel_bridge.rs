@@ -79,6 +79,39 @@ fn render_term(term: &Term, variables: &BTreeMap<u32, String>) -> String {
     }
 }
 
+pub(crate) fn render_axiom_application(
+    candidate: &EquationCandidate,
+    axiom_name: &str,
+    arguments: &[Term],
+) -> String {
+    let mut free_variables = BTreeSet::new();
+    candidate.lhs().collect_variables(&mut free_variables);
+    candidate.rhs().collect_variables(&mut free_variables);
+
+    let variable_names: BTreeMap<_, _> = free_variables
+        .iter()
+        .enumerate()
+        .map(|(index, variable)| (*variable, format!("x{index}")))
+        .collect();
+
+    let mut proof = format!("(ref {axiom_name})");
+    for argument in arguments {
+        proof = format!(
+            "(app {proof} {})",
+            render_term(argument, &variable_names)
+        );
+    }
+
+    for variable in free_variables.iter().rev() {
+        let name = variable_names
+            .get(variable)
+            .expect("collected variable must have a binder name");
+        proof = format!("(lam {name} {proof})");
+    }
+
+    proof
+}
+
 /// Renders a finder candidate as its universally closed Surface proposition.
 ///
 /// Free-variable identifiers are irrelevant to the logical proposition. They
