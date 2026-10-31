@@ -1,6 +1,6 @@
 //! Bounded term and equation generation for the first theorem-finding experiment.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
     CandidateCounts, EquationCandidate, NormalizedEquationCandidate, SemiringNormalForm, Term,
@@ -89,6 +89,48 @@ pub fn equations_mod_variable_renaming(terms: &BTreeSet<Term>) -> BTreeSet<Equat
     canonical_equations(terms)
         .map(|candidate| candidate.canonicalize_variables())
         .collect()
+}
+
+/// Materializes candidate equations that are identities of the semiring theory.
+///
+/// Terms are grouped by exact free-semiring normal form. Distinct terms in the
+/// same group represent equations valid in every noncommutative semiring. The
+/// resulting equations are then quotiented by uniform variable renaming.
+///
+/// This is a theorem-candidate classifier, not a proof certificate. Every
+/// retained identity still requires a proof accepted by the kernel.
+#[must_use]
+pub fn semiring_identity_candidates(terms: &BTreeSet<Term>) -> BTreeSet<EquationCandidate> {
+    let mut classes: BTreeMap<SemiringNormalForm, Vec<Term>> = BTreeMap::new();
+
+    for term in terms {
+        classes
+            .entry(SemiringNormalForm::from_term(term))
+            .or_default()
+            .push(term.clone());
+    }
+
+    let mut candidates = BTreeSet::new();
+
+    for class in classes.values() {
+        for (index, lhs) in class.iter().enumerate() {
+            for rhs in class.iter().skip(index + 1) {
+                let candidate = EquationCandidate::new(lhs.clone(), rhs.clone())
+                    .expect("distinct terms in one normal-form class form an equation")
+                    .canonicalize_variables();
+                candidates.insert(candidate);
+            }
+        }
+    }
+
+    candidates
+}
+
+/// Counts semiring-identity candidates modulo variable renaming.
+#[must_use]
+pub fn count_semiring_identity_candidates(variable_count: u32, max_depth: usize) -> usize {
+    let terms = terms_up_to_depth(variable_count, max_depth);
+    semiring_identity_candidates(&terms).len()
 }
 
 /// Computes the distinct semiring normal forms represented by a term set.
@@ -200,9 +242,10 @@ mod tests {
     use super::{
         atomic_terms, canonical_equations, canonical_normalized_equations,
         count_candidate_stages_up_to_depth, count_equations_mod_variable_renaming,
-        count_normalized_equations_mod_variable_renaming, count_semiring_normal_forms,
-        count_terms_exact_depth, count_terms_up_to_depth, equations_mod_variable_renaming,
-        semiring_normal_forms, terms_by_exact_depth, terms_up_to_depth,
+        count_normalized_equations_mod_variable_renaming, count_semiring_identity_candidates,
+        count_semiring_normal_forms, count_terms_exact_depth, count_terms_up_to_depth,
+        equations_mod_variable_renaming, semiring_identity_candidates, semiring_normal_forms,
+        terms_by_exact_depth, terms_up_to_depth,
     };
 
     #[test]
@@ -260,6 +303,19 @@ mod tests {
     #[test]
     fn variable_renaming_collapses_depth_one_candidates() {
         assert_eq!(count_equations_mod_variable_renaming(3, 1), 376);
+    }
+
+    #[test]
+    fn semiring_identity_frontier_keeps_theorems_not_counterexamples() {
+        assert_eq!(count_semiring_identity_candidates(3, 0), 0);
+        assert_eq!(count_semiring_identity_candidates(3, 1), 42);
+
+        let terms = terms_up_to_depth(3, 1);
+        assert!(
+            semiring_identity_candidates(&terms)
+                .iter()
+                .all(|candidate| candidate.semiring_normalize().is_none())
+        );
     }
 
     #[test]
