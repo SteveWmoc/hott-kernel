@@ -168,3 +168,22 @@ proof computes to higher reflexivity. Generic checked-Surface regressions pin
 these computations for arbitrary universe-zero types and input witnesses.
 The conversion is not asserted to be an inverse to the forgetful map on all
 chosen data, nor is any proposition-valuedness or function extensionality assumed.
+
+## Paths between dependent pairs
+
+For `P : A → U0`, `p : Id_A(x,y)`, `u : P(x)`, `v : P(y)`, and
+`q : Id_(P(y))(transport P p u, v)`,
+`sigma_path A P x y p u v q` constructs
+`Id_(Σ point:A, P(point))((x,u),(y,v))`.
+The proof eliminates `p`. Its reflexivity branch is exactly
+`ap (fun value => (x,value)) q`, using inclusion of the fiber over `x`.
+With both component paths reflexive, the pair path computes to reflexivity.
+
+`sigma_path_fst A P x y p u v q` proves
+`ap fst (sigma_path A P x y p u v q) = p`.
+The proof eliminates the base path and then the fiber path. Its
+all-reflexivity case computes to higher reflexivity. Tests pin the generic
+fiber-inclusion computation for arbitrary dependent families and fiber paths,
+as well as both all-reflexivity computations. These constructions use only
+existing identity elimination, transport, function action, and dependent pairs;
+no dependent-pair eta rule or uniqueness of identity proofs is assumed.

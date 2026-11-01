@@ -7,6 +7,10 @@ are recorded here.
 
 ### Added
 
+- Constructed dependent-pair paths from base and transported-fiber paths and
+  proved their first-projection law, with exact foundation audits and generic
+  computation tests.
+
 - Completed conversion from chosen quasi-inverse to half-adjoint inverse data
   by proving the adjusted triangle law, with an inverse-concatenation lemma,
   exact foundation audits, and generic projection and identity computations.
