@@ -105,9 +105,7 @@ pub(crate) fn render_axiom_application(
     )
 }
 
-pub(crate) fn candidate_variable_names(
-    candidate: &EquationCandidate,
-) -> BTreeMap<u32, String> {
+pub(crate) fn candidate_variable_names(candidate: &EquationCandidate) -> BTreeMap<u32, String> {
     let mut free_variables = BTreeSet::new();
     candidate.lhs().collect_variables(&mut free_variables);
     candidate.rhs().collect_variables(&mut free_variables);
@@ -123,10 +121,7 @@ pub(crate) fn render_candidate_term(term: &Term, candidate: &EquationCandidate) 
     render_term(term, &candidate_variable_names(candidate))
 }
 
-pub(crate) fn wrap_candidate_lambdas(
-    candidate: &EquationCandidate,
-    mut proof: String,
-) -> String {
+pub(crate) fn wrap_candidate_lambdas(candidate: &EquationCandidate, mut proof: String) -> String {
     let variable_names = candidate_variable_names(candidate);
 
     for variable in variable_names.keys().rev() {
