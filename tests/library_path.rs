@@ -11,7 +11,7 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
     let audit = check_and_extract_audit(&mut module).expect("checked path library must audit");
 
     let declarations = audit.declarations();
-    assert_eq!(declarations.len(), 49);
+    assert_eq!(declarations.len(), 51);
 
     let inverse = &declarations[0];
     assert_eq!(inverse.display_name(), "path_inverse");
@@ -1124,6 +1124,41 @@ fn path_algebra_u0_checks_without_postulates_or_extensions() {
         ]
     );
     for foundation in [declaration.direct(), declaration.transitive()] {
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+    let declaration = &declarations[49];
+    assert_eq!(declaration.display_name(), "sigma_path");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert_eq!(
+            foundation.kernel_features(),
+            &[
+                KernelFeature::Identity,
+                KernelFeature::Pi,
+                KernelFeature::Sigma,
+                KernelFeature::Universe
+            ]
+        );
+        assert_eq!(foundation.declarations(), &[6, 8]);
+        assert!(foundation.extensions().is_empty());
+        assert!(foundation.postulates().is_empty());
+    }
+
+    let declaration = &declarations[50];
+    assert_eq!(declaration.display_name(), "sigma_path_fst");
+    assert_eq!(declaration.kind(), AuditDeclarationKind::Transparent);
+    for foundation in [declaration.direct(), declaration.transitive()] {
+        assert_eq!(
+            foundation.kernel_features(),
+            &[
+                KernelFeature::Identity,
+                KernelFeature::Pi,
+                KernelFeature::Sigma,
+                KernelFeature::Universe
+            ]
+        );
+        assert_eq!(foundation.declarations(), &[6, 8, 49]);
         assert!(foundation.extensions().is_empty());
         assert!(foundation.postulates().is_empty());
     }
@@ -3929,4 +3964,126 @@ fn adjointification_forgetful_map_coherence_and_identity_compute() {
     );
     compile_and_check_surface(source.as_bytes())
         .expect("adjointification must preserve its specified fields and compute on identity data");
+}
+
+#[test]
+fn dependent_pair_paths_compute_at_reflexive_components() {
+    let source = concat!(
+        include_str!("../library/path-u0.surface"),
+        r#"
+(transparent sigma_path_reflexive_base
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi u
+          (app (ref P) (ref x))
+          (pi v
+            (app (ref P) (ref x))
+            (pi q
+              (id (app (ref P) (ref x)) (ref u) (ref v))
+              (id
+                (id
+                  (sigma point (ref A) (app (ref P) (ref point)))
+                  (pair (ref x) (ref u))
+                  (pair (ref x) (ref v)))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref sigma_path) (ref A)) (ref P)) (ref x))
+                          (ref x))
+                        (refl (ref x)))
+                      (ref u))
+                    (ref v))
+                  (ref q))
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (ref ap) (app (ref P) (ref x)))
+                          (sigma point (ref A) (app (ref P) (ref point))))
+                        (lam value (pair (ref x) (ref value))))
+                      (ref u))
+                    (ref v))
+                  (ref q)))))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam u
+          (lam v
+            (lam q
+              (refl
+                (app
+                  (app
+                    (app
+                      (app
+                        (app
+                          (app (ref ap) (app (ref P) (ref x)))
+                          (sigma point (ref A) (app (ref P) (ref point))))
+                        (lam value (pair (ref x) (ref value))))
+                      (ref u))
+                    (ref v))
+                  (ref q))))))))))
+
+(transparent sigma_path_all_reflexivity
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi u
+          (app (ref P) (ref x))
+          (id
+            (id
+              (sigma point (ref A) (app (ref P) (ref point)))
+              (pair (ref x) (ref u))
+              (pair (ref x) (ref u)))
+            (app
+              (app
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref sigma_path) (ref A)) (ref P)) (ref x))
+                      (ref x))
+                    (refl (ref x)))
+                  (ref u))
+                (ref u))
+              (refl (ref u)))
+            (refl (ann (pair (ref x) (ref u)) (sigma point (ref A) (app (ref P) (ref point))))))))))
+  (lam A (lam P (lam x (lam u (refl (refl (ann (pair (ref x) (ref u)) (sigma point (ref A) (app (ref P) (ref point)))))))))))
+
+(transparent sigma_path_fst_all_reflexivity
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi u
+          (app (ref P) (ref x))
+          (id
+            (id (id (ref A) (ref x) (ref x)) (refl (ref x)) (refl (ref x)))
+            (app
+              (app
+                (app
+                  (app
+                    (app
+                      (app (app (app (ref sigma_path_fst) (ref A)) (ref P)) (ref x))
+                      (ref x))
+                    (refl (ref x)))
+                  (ref u))
+                (ref u))
+              (refl (ref u)))
+            (refl (refl (ref x))))))))
+  (lam A (lam P (lam x (lam u (refl (refl (refl (ref x)))))))))
+"#
+    );
+    compile_and_check_surface(source.as_bytes())
+        .expect("dependent pair paths must compute by fiber inclusion and project correctly");
 }

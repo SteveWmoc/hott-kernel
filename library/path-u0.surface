@@ -4753,3 +4753,283 @@
                 (app (app (ref quasi_inverse_adjoint_coherence) (ref A)) (ref B))
                 (ref f))
               (ref witness))))))))
+
+; Paths between dependent pairs, with transport in the second component.
+(transparent sigma_path
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi y
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (pi u
+              (app (ref P) (ref x))
+              (pi v
+                (app (ref P) (ref y))
+                (pi q
+                  (id
+                    (app (ref P) (ref y))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                          (ref y))
+                        (ref p))
+                      (ref u))
+                    (ref v))
+                  (id
+                    (sigma point (ref A) (app (ref P) (ref point)))
+                    (pair (ref x) (ref u))
+                    (pair (ref y) (ref v)))))))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam y
+          (lam p
+            (lam u
+              (lam v
+                (lam q
+                  (app
+                    (app
+                      (app
+                        (j
+                          (ref A)
+                          (ref x)
+                          (ann
+                            (lam endpoint
+                              (lam path
+                                (pi u
+                                  (app (ref P) (ref x))
+                                  (pi v
+                                    (app (ref P) (ref endpoint))
+                                    (pi q
+                                      (id
+                                        (app (ref P) (ref endpoint))
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app (ref transport) (ref A))
+                                                  (ref P))
+                                                (ref x))
+                                              (ref endpoint))
+                                            (ref path))
+                                          (ref u))
+                                        (ref v))
+                                      (id
+                                        (sigma point (ref A) (app (ref P) (ref point)))
+                                        (pair (ref x) (ref u))
+                                        (pair (ref endpoint) (ref v))))))))
+                            (pi endpoint
+                              (ref A)
+                              (pi path (id (ref A) (ref x) (ref endpoint)) (universe 0))))
+                          (lam u
+                            (lam v
+                              (lam q
+                                (app
+                                  (app
+                                    (app
+                                      (app
+                                        (app
+                                          (app (ref ap) (app (ref P) (ref x)))
+                                          (sigma point
+                                            (ref A)
+                                            (app (ref P) (ref point))))
+                                        (lam value (pair (ref x) (ref value))))
+                                      (ref u))
+                                    (ref v))
+                                  (ref q)))))
+                          (ref y)
+                          (ref p))
+                        (ref u))
+                      (ref v))
+                    (ref q)))))))))))
+
+; The constructed pair path projects to its specified first-component path.
+(transparent sigma_path_fst
+  (pi A
+    (universe 0)
+    (pi P
+      (pi point (ref A) (universe 0))
+      (pi x
+        (ref A)
+        (pi y
+          (ref A)
+          (pi p
+            (id (ref A) (ref x) (ref y))
+            (pi u
+              (app (ref P) (ref x))
+              (pi v
+                (app (ref P) (ref y))
+                (pi q
+                  (id
+                    (app (ref P) (ref y))
+                    (app
+                      (app
+                        (app
+                          (app (app (app (ref transport) (ref A)) (ref P)) (ref x))
+                          (ref y))
+                        (ref p))
+                      (ref u))
+                    (ref v))
+                  (id
+                    (id (ref A) (ref x) (ref y))
+                    (app
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app
+                                (ref ap)
+                                (sigma point (ref A) (app (ref P) (ref point))))
+                              (ref A))
+                            (lam value (fst (ref value))))
+                          (pair (ref x) (ref u)))
+                        (pair (ref y) (ref v)))
+                      (app
+                        (app
+                          (app
+                            (app
+                              (app
+                                (app
+                                  (app (app (ref sigma_path) (ref A)) (ref P))
+                                  (ref x))
+                                (ref y))
+                              (ref p))
+                            (ref u))
+                          (ref v))
+                        (ref q)))
+                    (ref p))))))))))
+  (lam A
+    (lam P
+      (lam x
+        (lam y
+          (lam p
+            (lam u
+              (lam v
+                (lam q
+                  (app
+                    (app
+                      (app
+                        (j
+                          (ref A)
+                          (ref x)
+                          (ann
+                            (lam endpoint
+                              (lam path
+                                (pi u
+                                  (app (ref P) (ref x))
+                                  (pi v
+                                    (app (ref P) (ref endpoint))
+                                    (pi q
+                                      (id
+                                        (app (ref P) (ref endpoint))
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app (ref transport) (ref A))
+                                                  (ref P))
+                                                (ref x))
+                                              (ref endpoint))
+                                            (ref path))
+                                          (ref u))
+                                        (ref v))
+                                      (id
+                                        (id (ref A) (ref x) (ref endpoint))
+                                        (app
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (ref ap)
+                                                    (sigma point
+                                                      (ref A)
+                                                      (app (ref P) (ref point))))
+                                                  (ref A))
+                                                (lam value (fst (ref value))))
+                                              (pair (ref x) (ref u)))
+                                            (pair (ref endpoint) (ref v)))
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app (ref sigma_path) (ref A))
+                                                        (ref P))
+                                                      (ref x))
+                                                    (ref endpoint))
+                                                  (ref path))
+                                                (ref u))
+                                              (ref v))
+                                            (ref q)))
+                                        (ref path)))))))
+                            (pi endpoint
+                              (ref A)
+                              (pi path (id (ref A) (ref x) (ref endpoint)) (universe 0))))
+                          (lam u
+                            (lam v
+                              (lam q
+                                (j
+                                  (app (ref P) (ref x))
+                                  (ref u)
+                                  (ann
+                                    (lam endpoint
+                                      (lam path
+                                        (id
+                                          (id (ref A) (ref x) (ref x))
+                                          (app
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (ref ap)
+                                                      (sigma point
+                                                        (ref A)
+                                                        (app (ref P) (ref point))))
+                                                    (ref A))
+                                                  (lam value (fst (ref value))))
+                                                (pair (ref x) (ref u)))
+                                              (pair (ref x) (ref endpoint)))
+                                            (app
+                                              (app
+                                                (app
+                                                  (app
+                                                    (app
+                                                      (app
+                                                        (app
+                                                          (app (ref sigma_path) (ref A))
+                                                          (ref P))
+                                                        (ref x))
+                                                      (ref x))
+                                                    (refl (ref x)))
+                                                  (ref u))
+                                                (ref endpoint))
+                                              (ref path)))
+                                          (refl (ref x)))))
+                                    (pi endpoint
+                                      (app (ref P) (ref x))
+                                      (pi path
+                                        (id
+                                          (app (ref P) (ref x))
+                                          (ref u)
+                                          (ref endpoint))
+                                        (universe 0))))
+                                  (refl (refl (ref x)))
+                                  (ref v)
+                                  (ref q)))))
+                          (ref y)
+                          (ref p))
+                        (ref u))
+                      (ref v))
+                    (ref q)))))))))))

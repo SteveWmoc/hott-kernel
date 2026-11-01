@@ -67,6 +67,8 @@ the triangle law relating the two inverse homotopies, with a constructor,
 coherence projection, forgetful map to quasi-inverse data, and identity example.
 Chosen quasi-inverse data converts to half-adjoint data by adjusting its
 retraction and deriving triangle coherence from naturality and path algebra.
+Paths between dependent pairs are constructed from a base path and a path
+in the transported fiber; their first projection recovers the supplied base path.
 Chosen quasi-inverse data packages an inverse map and both pointwise homotopy
 laws, with a constructor, projections, and the identity example. This data is
 not asserted to be a proposition or used as a definition of `isEquiv`.
