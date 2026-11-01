@@ -38,7 +38,7 @@ impl SemiringAxiom {
         }
     }
 
-    fn specification(self) -> (Pattern, Pattern, usize) {
+    pub(crate) fn specification(self) -> (Pattern, Pattern, usize) {
         use Pattern::{Add, Meta, Mul, One, Zero};
 
         match self {
@@ -128,7 +128,7 @@ pub const DIRECT_AXIOMS: [SemiringAxiom; 10] = [
 ];
 
 #[derive(Clone, Debug)]
-enum Pattern {
+pub(crate) enum Pattern {
     Meta(usize),
     Zero,
     One,
@@ -136,7 +136,11 @@ enum Pattern {
     Mul(Box<Pattern>, Box<Pattern>),
 }
 
-fn match_pattern(pattern: &Pattern, term: &Term, substitution: &mut [Option<Term>]) -> bool {
+pub(crate) fn match_pattern(
+    pattern: &Pattern,
+    term: &Term,
+    substitution: &mut [Option<Term>],
+) -> bool {
     match (pattern, term) {
         (Pattern::Meta(index), term) => match &substitution[*index] {
             Some(existing) => existing == term,

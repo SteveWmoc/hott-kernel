@@ -115,3 +115,85 @@
       (ref A)
       (ref zeroA)
       (app (app (ref mul) (ref x)) (ref zeroA)))))
+
+
+; Equality symmetry, transitivity, and function congruence are derived from J.
+; They are transparent helper lemmas for the untrusted bounded proof search.
+
+(transparent eq_symm
+  (pi x (ref A)
+    (pi y (ref A)
+      (pi p (id (ref A) (ref x) (ref y))
+        (id (ref A) (ref y) (ref x)))))
+  (lam x
+    (lam y
+      (lam p
+        (j
+          (ref A)
+          (ref x)
+          (ann
+            (lam endpoint
+              (lam path
+                (id (ref A) (ref endpoint) (ref x))))
+            (pi endpoint (ref A)
+              (pi path (id (ref A) (ref x) (ref endpoint))
+                (universe 0))))
+          (refl (ref x))
+          (ref y)
+          (ref p))))))
+
+(transparent eq_trans
+  (pi x (ref A)
+    (pi y (ref A)
+      (pi z (ref A)
+        (pi p (id (ref A) (ref x) (ref y))
+          (pi q (id (ref A) (ref y) (ref z))
+            (id (ref A) (ref x) (ref z)))))))
+  (lam x
+    (lam y
+      (lam z
+        (lam p
+          (lam q
+            (j
+              (ref A)
+              (ref y)
+              (ann
+                (lam endpoint
+                  (lam path
+                    (id (ref A) (ref x) (ref endpoint))))
+                (pi endpoint (ref A)
+                  (pi path (id (ref A) (ref y) (ref endpoint))
+                    (universe 0))))
+              (ref p)
+              (ref z)
+              (ref q))))))))
+
+(transparent eq_ap
+  (pi f (pi point (ref A) (ref A))
+    (pi x (ref A)
+      (pi y (ref A)
+        (pi p (id (ref A) (ref x) (ref y))
+          (id
+            (ref A)
+            (app (ref f) (ref x))
+            (app (ref f) (ref y)))))))
+  (lam f
+    (lam x
+      (lam y
+        (lam p
+          (j
+            (ref A)
+            (ref x)
+            (ann
+              (lam endpoint
+                (lam path
+                  (id
+                    (ref A)
+                    (app (ref f) (ref x))
+                    (app (ref f) (ref endpoint)))))
+              (pi endpoint (ref A)
+                (pi path (id (ref A) (ref x) (ref endpoint))
+                  (universe 0))))
+            (refl (app (ref f) (ref x)))
+            (ref y)
+            (ref p)))))))

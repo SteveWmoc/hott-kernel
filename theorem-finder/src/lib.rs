@@ -5,6 +5,7 @@
 //! This crate may generate candidates and proof objects, but logical trust ends
 //! at the public hott-kernel checker boundary.
 
+pub mod bounded_search;
 pub mod candidate;
 pub mod generate;
 pub mod kernel_bridge;
@@ -12,6 +13,9 @@ pub mod normal_form;
 pub mod search;
 pub mod term;
 
+pub use bounded_search::{
+    BoundedRewriteProof, BoundedRewriteResult, RewriteSearchLimits, search_bounded_rewrite,
+};
 pub use candidate::{CandidateCounts, EquationCandidate, NormalizedEquationCandidate};
 pub use generate::{
     atomic_terms, canonical_equations, canonical_normalized_equations,
