@@ -63,8 +63,10 @@ or proof generation is trusted for logical validity.
 3. Translate selected candidates into the kernel/surface representation.
 4. Establish a deliberately weak direct-axiom proof-search baseline and record
    schema attempts plus axiom dependencies for every success.
-5. Extend bounded verification beyond one-step axiom instances while preserving
-   kernel checking of every claimed proof.
+5. Extend bounded verification with equality symmetry, transitivity, and
+   congruence, using breadth-first rewriting under explicit resource bounds.
+   Reconstruct every successful derivation as ordinary Surface proof terms and
+   require the kernel to accept the composed proof.
 6. Measure whether retained discovered lemmas reduce proof-search cost on a
    held-out bounded frontier.
 7. Only after the baseline works, introduce best-first search, module selection,
