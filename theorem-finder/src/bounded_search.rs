@@ -5,9 +5,7 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use crate::{
     BridgeError, DIRECT_AXIOMS, DirectSearchResult, EquationCandidate, SemiringAxiom, Term,
     check_candidate_with_proof,
-    kernel_bridge::{
-        render_candidate_term, render_open_axiom_application, wrap_candidate_lambdas,
-    },
+    kernel_bridge::{render_candidate_term, render_open_axiom_application, wrap_candidate_lambdas},
     search::{Pattern, match_pattern, search_direct_axiom},
 };
 
@@ -74,11 +72,8 @@ fn root_rewrites(term: &Term) -> Vec<RewriteStep> {
         let (lhs, rhs, arity) = axiom.specification();
 
         for forward in [true, false] {
-            let (source_pattern, target_pattern) = if forward {
-                (&lhs, &rhs)
-            } else {
-                (&rhs, &lhs)
-            };
+            let (source_pattern, target_pattern) =
+                if forward { (&lhs, &rhs) } else { (&rhs, &lhs) };
             let mut substitution = vec![None; arity];
 
             if !match_pattern(source_pattern, term, &mut substitution) {
@@ -317,14 +312,7 @@ fn render_path(candidate: &EquationCandidate, steps: &[RewriteStep]) -> String {
     for step in &steps[1..] {
         debug_assert_eq!(middle, step.source);
         let next_proof = render_step(candidate, step);
-        proof = render_transitivity(
-            candidate,
-            &source,
-            &middle,
-            &step.target,
-            proof,
-            next_proof,
-        );
+        proof = render_transitivity(candidate, &source, &middle, &step.target, proof, next_proof);
         middle = step.target.clone();
     }
 
@@ -422,8 +410,7 @@ pub fn search_bounded_rewrite(
                 let steps = reconstruct_path(&start, &goal, &parents);
                 let proof_term = render_path(candidate, &steps);
                 let core = check_candidate_with_proof(declaration_name, candidate, &proof_term)?;
-                let dependencies: BTreeSet<_> =
-                    steps.iter().map(|step| step.axiom).collect();
+                let dependencies: BTreeSet<_> = steps.iter().map(|step| step.axiom).collect();
 
                 return Ok(BoundedRewriteResult::Proved(BoundedRewriteProof {
                     steps: steps.len(),
@@ -443,9 +430,7 @@ pub fn search_bounded_rewrite(
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        BoundedRewriteResult, RewriteSearchLimits, search_bounded_rewrite,
-    };
+    use super::{BoundedRewriteResult, RewriteSearchLimits, search_bounded_rewrite};
     use crate::{EquationCandidate, Term, semiring_identity_candidates, terms_up_to_depth};
 
     #[test]
