@@ -22,7 +22,9 @@ fn main() {
         {
             BoundedRewriteResult::Proved(proof) => {
                 proved += 1;
-                direct += usize::from(proof.steps() == 1);
+                if proof.steps() == 1 {
+                    direct += 1;
+                }
                 max_steps = max_steps.max(proof.steps());
                 total_nodes += proof.nodes_expanded();
                 for axiom in proof.dependencies() {
