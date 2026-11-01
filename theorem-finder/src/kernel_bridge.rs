@@ -79,30 +79,60 @@ fn render_term(term: &Term, variables: &BTreeMap<u32, String>) -> String {
     }
 }
 
+pub(crate) fn render_open_axiom_application(
+    candidate: &EquationCandidate,
+    axiom_name: &str,
+    arguments: &[Term],
+) -> String {
+    let variable_names = candidate_variable_names(candidate);
+    let mut proof = format!("(ref {axiom_name})");
+
+    for argument in arguments {
+        proof = format!("(app {proof} {})", render_term(argument, &variable_names));
+    }
+
+    proof
+}
+
 pub(crate) fn render_axiom_application(
     candidate: &EquationCandidate,
     axiom_name: &str,
     arguments: &[Term],
 ) -> String {
+    wrap_candidate_lambdas(
+        candidate,
+        render_open_axiom_application(candidate, axiom_name, arguments),
+    )
+}
+
+pub(crate) fn candidate_variable_names(
+    candidate: &EquationCandidate,
+) -> BTreeMap<u32, String> {
     let mut free_variables = BTreeSet::new();
     candidate.lhs().collect_variables(&mut free_variables);
     candidate.rhs().collect_variables(&mut free_variables);
 
-    let variable_names: BTreeMap<_, _> = free_variables
+    free_variables
         .iter()
         .enumerate()
         .map(|(index, variable)| (*variable, format!("x{index}")))
-        .collect();
+        .collect()
+}
 
-    let mut proof = format!("(ref {axiom_name})");
-    for argument in arguments {
-        proof = format!("(app {proof} {})", render_term(argument, &variable_names));
-    }
+pub(crate) fn render_candidate_term(term: &Term, candidate: &EquationCandidate) -> String {
+    render_term(term, &candidate_variable_names(candidate))
+}
 
-    for variable in free_variables.iter().rev() {
+pub(crate) fn wrap_candidate_lambdas(
+    candidate: &EquationCandidate,
+    mut proof: String,
+) -> String {
+    let variable_names = candidate_variable_names(candidate);
+
+    for variable in variable_names.keys().rev() {
         let name = variable_names
             .get(variable)
-            .expect("collected variable must have a binder name");
+            .expect("candidate variable must have a binder name");
         proof = format!("(lam {name} {proof})");
     }
 
@@ -116,24 +146,15 @@ pub(crate) fn render_axiom_application(
 /// Surface term.
 #[must_use]
 pub fn render_equation_type(candidate: &EquationCandidate) -> String {
-    let mut free_variables = BTreeSet::new();
-    candidate.lhs().collect_variables(&mut free_variables);
-    candidate.rhs().collect_variables(&mut free_variables);
-
-    let variable_names: BTreeMap<_, _> = free_variables
-        .iter()
-        .enumerate()
-        .map(|(index, variable)| (*variable, format!("x{index}")))
-        .collect();
-
+    let variable_names = candidate_variable_names(candidate);
     let lhs = render_term(candidate.lhs(), &variable_names);
     let rhs = render_term(candidate.rhs(), &variable_names);
     let mut proposition = format!("(id (ref A) {lhs} {rhs})");
 
-    for variable in free_variables.iter().rev() {
+    for variable in variable_names.keys().rev() {
         let name = variable_names
             .get(variable)
-            .expect("collected variable must have a binder name");
+            .expect("candidate variable must have a binder name");
         proposition = format!("(pi {name} (ref A) {proposition})");
     }
 
